@@ -164,5 +164,5 @@ export const BorderRadius = {
   full: 9999,
 };
 
-export const BottomTabInset = Platform.select({ ios: 49, android: 56, default: 49 });
+export const BottomTabInset = Platform.select({ ios: 100, android: 96, default: 96 });
 export const MaxContentWidth = 600; // Constrain to native mobile column on large screens

@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
+import { View, StyleSheet, Pressable, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
 import { IOSTokens } from '@/constants/theme';
 
-export type NavTab = 'home' | 'explore' | 'map' | 'saved';
+export type NavTab = 'home' | 'search' | 'map' | 'saved' | 'explore';
 
 interface NavBarProps {
   currentTab?: NavTab;
@@ -16,9 +16,10 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
   const determineTab = (): NavTab => {
     if (currentTab) return currentTab;
     if (pathname === '/' || pathname === '/index') return 'home';
-    if (pathname.startsWith('/explore')) return 'explore';
+    if (pathname.startsWith('/search')) return 'search';
     if (pathname.startsWith('/map')) return 'map';
     if (pathname.startsWith('/saved')) return 'saved';
+    if (pathname.startsWith('/explore')) return 'explore';
     return 'home';
   };
 
@@ -27,10 +28,32 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
   const navItems = [
     {
       tab: 'home' as NavTab,
-      label: 'Discover',
+      label: 'Home',
       route: '/',
-      activeIcon: 'compass' as const,
-      inactiveIcon: 'compass-outline' as const,
+      activeIcon: 'home' as const,
+      inactiveIcon: 'home-outline' as const,
+    },
+    {
+      tab: 'search' as NavTab,
+      label: 'Search',
+      route: '/search',
+      activeIcon: 'search' as const,
+      inactiveIcon: 'search-outline' as const,
+    },
+    {
+      tab: 'map' as NavTab,
+      label: 'Map',
+      route: '/map',
+      activeIcon: 'map' as const,
+      inactiveIcon: 'map-outline' as const,
+      isCenter: true,
+    },
+    {
+      tab: 'saved' as NavTab,
+      label: 'Saved',
+      route: '/saved',
+      activeIcon: 'heart' as const,
+      inactiveIcon: 'heart-outline' as const,
     },
     {
       tab: 'explore' as NavTab,
@@ -39,27 +62,42 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
       activeIcon: 'grid' as const,
       inactiveIcon: 'grid-outline' as const,
     },
-    {
-      tab: 'map' as NavTab,
-      label: 'Map',
-      route: '/map',
-      activeIcon: 'map' as const,
-      inactiveIcon: 'map-outline' as const,
-    },
-    {
-      tab: 'saved' as NavTab,
-      label: 'Saved',
-      route: '/saved',
-      activeIcon: 'bookmark' as const,
-      inactiveIcon: 'bookmark-outline' as const,
-    },
   ];
 
   return (
-    <View style={styles.outerContainer}>
-      <View style={styles.container}>
+    <View style={styles.outerContainer} pointerEvents="box-none">
+      <View style={styles.pillContainer}>
         {navItems.map((item) => {
           const isFocused = active === item.tab;
+
+          if (item.isCenter) {
+            return (
+              <Pressable
+                key={item.tab}
+                onPress={() => {
+                  if (pathname !== item.route) {
+                    router.push(item.route as any);
+                  }
+                }}
+                style={({ pressed }) => [
+                  styles.centerButton,
+                  isFocused && styles.centerButtonActive,
+                  pressed && styles.centerButtonPressed,
+                ]}
+                hitSlop={8}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: isFocused }}
+                accessibilityLabel={item.label}
+              >
+                <Ionicons
+                  name={isFocused ? item.activeIcon : item.inactiveIcon}
+                  size={26}
+                  color="#FFFFFF"
+                />
+              </Pressable>
+            );
+          }
+
           return (
             <Pressable
               key={item.tab}
@@ -74,21 +112,13 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
               accessibilityState={{ selected: isFocused }}
               accessibilityLabel={item.label}
             >
-              <View style={styles.iconWrapper}>
+              <View style={[styles.iconContainer, isFocused && styles.iconContainerFocused]}>
                 <Ionicons
                   name={isFocused ? item.activeIcon : item.inactiveIcon}
-                  size={24}
-                  color={isFocused ? IOSTokens.colors.tint : IOSTokens.colors.inactive}
+                  size={22}
+                  color={isFocused ? '#FFFFFF' : '#8E8E93'}
                 />
               </View>
-              <Text
-                style={[
-                  styles.tabLabel,
-                  isFocused ? styles.tabLabelFocused : styles.tabLabelUnfocused,
-                ]}
-              >
-                {item.label}
-              </Text>
             </Pressable>
           );
         })}
@@ -99,62 +129,88 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
 
 const styles = StyleSheet.create({
   outerContainer: {
-    backgroundColor: IOSTokens.colors.barBg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: IOSTokens.colors.separator,
+    position: Platform.OS === 'web' ? ('fixed' as any) : 'absolute',
+    bottom: Platform.OS === 'ios' ? 24 : 18,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+    paddingHorizontal: 16,
+  },
+  pillContainer: {
     width: '100%',
-    zIndex: 100,
+    maxWidth: 400,
+    height: 62,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 36,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(230, 230, 235, 0.8)',
     ...Platform.select({
       web: {
-        backdropFilter: 'saturate(180%) blur(20px)',
-        WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
+        boxShadow: '0 12px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
       } as any,
       default: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.12,
+        shadowRadius: 16,
+        elevation: 10,
       },
     }),
-  },
-  container: {
-    maxWidth: 600,
-    width: '100%',
-    alignSelf: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    height: 49,
-    paddingBottom: Platform.OS === 'ios' ? 0 : 2,
   },
   tabButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 49,
-    paddingVertical: 4,
+    height: '100%',
   },
-  iconWrapper: {
+  iconContainer: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 26,
-    width: 26,
   },
-  tabLabel: {
-    ...IOSTokens.typography.tabLabel,
-    marginTop: 2,
+  iconContainerFocused: {
+    backgroundColor: '#1C1C1E',
   },
-  tabLabelFocused: {
-    color: IOSTokens.colors.tint,
+  centerButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: IOSTokens.colors.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -24,
+    borderWidth: 3.5,
+    borderColor: '#FFFFFF',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 8px 20px rgba(214, 47, 19, 0.35)',
+      } as any,
+      default: {
+        shadowColor: IOSTokens.colors.tint,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.35,
+        shadowRadius: 10,
+        elevation: 8,
+      },
+    }),
   },
-  tabLabelUnfocused: {
-    color: IOSTokens.colors.inactive,
+  centerButtonActive: {
+    transform: [{ scale: 1.05 }],
+  },
+  centerButtonPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.95 }],
   },
   tabPressed: {
-    opacity: 0.6,
+    opacity: 0.7,
   },
 });
+
