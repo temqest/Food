@@ -1,180 +1,176 @@
-import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
-import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { NavBar } from '@/components/common/NavBar';
+import { CATEGORIES, FOOD_ITEMS } from '@/data/mockData';
+import { IOSTokens } from '@/constants/theme';
 
-import { ExternalLink } from '@/components/external-link';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Collapsible } from '@/components/ui/collapsible';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-
-export default function TabTwoScreen() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
-  const theme = useTheme();
-
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-  });
+export default function ExploreScreen() {
 
   return (
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText style={styles.centerText} themeColor="textSecondary">
-            This starter app includes example{'\n'}code to help you get started.
-          </ThemedText>
+    <View style={styles.screen}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.mainContainer}>
+          {/* iOS Large Title */}
+          <View style={styles.titleSection}>
+            <Text style={styles.largeTitle}>Categories</Text>
+          </View>
 
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
-                <ThemedText type="link">Expo documentation</ThemedText>
-                <SymbolView
-                  tintColor={theme.text}
-                  name={{ ios: 'arrow.up.right.square', android: 'link', web: 'link' }}
-                  size={12}
-                />
-              </ThemedView>
-            </Pressable>
-          </ExternalLink>
-        </ThemedView>
+          {/* iOS Inset Grouped Table of Categories */}
+          <View style={styles.insetGroup}>
+            {CATEGORIES.map((cat, index) => {
+              const count = FOOD_ITEMS.filter((f) => f.category === cat.id).length;
+              const isLast = index === CATEGORIES.length - 1;
 
-        <ThemedView style={styles.sectionsWrapper}>
-          <Collapsible title="File-based routing">
-            <ThemedText type="small">
-              This app has two screens: <ThemedText type="code">src/app/index.tsx</ThemedText> and{' '}
-              <ThemedText type="code">src/app/explore.tsx</ThemedText>
-            </ThemedText>
-            <ThemedText type="small">
-              The layout file in <ThemedText type="code">src/app/_layout.tsx</ThemedText> sets up
-              the tab navigator.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/router/introduction">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+              return (
+                <Pressable
+                  key={cat.id}
+                  onPress={() => {
+                    router.push({
+                      pathname: '/search',
+                      params: { category: cat.id },
+                    });
+                  }}
+                  style={({ pressed }) => [
+                    styles.categoryRow,
+                    isLast && styles.categoryRowLast,
+                    pressed && styles.rowPressed,
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${cat.label}, ${count} dishes`}
+                >
+                  <View style={styles.iconCircle}>
+                    <Ionicons
+                      name={cat.icon as any}
+                      size={20}
+                      color={IOSTokens.colors.tint}
+                    />
+                  </View>
 
-          <Collapsible title="Android, iOS, and web support">
-            <ThemedView type="backgroundElement" style={styles.collapsibleContent}>
-              <ThemedText type="small">
-                You can open this project on Android, iOS, and the web. To open the web version,
-                press <ThemedText type="smallBold">w</ThemedText> in the terminal running this
-                project.
-              </ThemedText>
-              <Image
-                source={require('@/assets/images/tutorial-web.png')}
-                style={styles.imageTutorial}
-              />
-            </ThemedView>
-          </Collapsible>
+                  <View style={[styles.rowContent, isLast && styles.rowContentLast]}>
+                    <View style={styles.textColumn}>
+                      <Text style={styles.categoryName}>{cat.label}</Text>
+                      <Text style={styles.categoryDesc} numberOfLines={1}>
+                        {cat.description}
+                      </Text>
+                    </View>
 
-          <Collapsible title="Images">
-            <ThemedText type="small">
-              For static images, you can use the <ThemedText type="code">@2x</ThemedText> and{' '}
-              <ThemedText type="code">@3x</ThemedText> suffixes to provide files for different
-              screen densities.
-            </ThemedText>
-            <Image source={require('@/assets/images/react-logo.png')} style={styles.imageReact} />
-            <ExternalLink href="https://reactnative.dev/docs/images">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+                    <View style={styles.trailingContainer}>
+                      <Text style={styles.countText}>{count}</Text>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={16}
+                        color={IOSTokens.colors.labelTertiary}
+                      />
+                    </View>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      </ScrollView>
 
-          <Collapsible title="Light and dark mode components">
-            <ThemedText type="small">
-              This template has light and dark mode support. The{' '}
-              <ThemedText type="code">useColorScheme()</ThemedText> hook lets you inspect what the
-              user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Animations">
-            <ThemedText type="small">
-              This template includes an example of an animated component. The{' '}
-              <ThemedText type="code">src/components/ui/collapsible.tsx</ThemedText> component uses
-              the powerful <ThemedText type="code">react-native-reanimated</ThemedText> library to
-              animate opening this hint.
-            </ThemedText>
-          </Collapsible>
-        </ThemedView>
-        {Platform.OS === 'web' && <WebBadge />}
-      </ThemedView>
-    </ScrollView>
+      <NavBar currentTab="explore" />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: IOSTokens.colors.bg,
+  },
   scrollView: {
     flex: 1,
   },
-  contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+  scrollContent: {
+    paddingBottom: 80,
   },
-  container: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
-  },
-  titleContainer: {
-    gap: Spacing.three,
-    alignItems: 'center',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
-  },
-  centerText: {
-    textAlign: 'center',
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  linkButton: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: 'center',
-    gap: Spacing.one,
-    alignItems: 'center',
-  },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
-  },
-  collapsibleContent: {
-    alignItems: 'center',
-  },
-  imageTutorial: {
+  mainContainer: {
+    maxWidth: 600,
     width: '100%',
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
-  },
-  imageReact: {
-    width: 100,
-    height: 100,
     alignSelf: 'center',
+    paddingHorizontal: IOSTokens.spacing.margin,
+  },
+  titleSection: {
+    paddingTop: 16,
+    paddingBottom: 16,
+  },
+  largeTitle: {
+    ...IOSTokens.typography.largeTitle,
+    color: IOSTokens.colors.label,
+  },
+  insetGroup: {
+    backgroundColor: IOSTokens.colors.surface,
+    borderRadius: IOSTokens.shape.card,
+    overflow: 'hidden',
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 16,
+    minHeight: 64,
+  },
+  categoryRowLast: {
+    borderBottomWidth: 0,
+  },
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: IOSTokens.colors.tintSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  rowContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingRight: 16,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: IOSTokens.colors.separator,
+  },
+  rowContentLast: {
+    borderBottomWidth: 0,
+  },
+  textColumn: {
+    flex: 1,
+    marginRight: 8,
+  },
+  categoryName: {
+    ...IOSTokens.typography.headline,
+    color: IOSTokens.colors.label,
+  },
+  categoryDesc: {
+    ...IOSTokens.typography.footnote,
+    color: IOSTokens.colors.labelSecondary,
+    marginTop: 2,
+  },
+  trailingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  countText: {
+    ...IOSTokens.typography.subhead,
+    color: IOSTokens.colors.labelSecondary,
+  },
+  rowPressed: {
+    backgroundColor: IOSTokens.colors.fill,
   },
 });

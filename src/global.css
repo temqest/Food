@@ -1,9 +1,68 @@
 :root {
-  --font-display:
-    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
-    Segoe UI Symbol, Noto Color Emoji;
-  --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
-  --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
-  --font-serif: Georgia, 'Times New Roman', serif;
+  /* Type */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+          "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+
+  /* Color (light) */
+  --bg: #F2F2F7;                      /* grouped background */
+  --surface: #FFFFFF;                 /* cards, list groups */
+  --label: #000000;
+  --label-2: rgba(60, 60, 67, 0.60);  /* secondary text */
+  --label-3: rgba(60, 60, 67, 0.30);  /* placeholders, disabled */
+  --separator: rgba(60, 60, 67, 0.29);
+  --fill: rgba(118, 118, 128, 0.12);  /* search field, subtle fills */
+  --inactive: #8E8E93;                /* inactive tab icons */
+  --tint: #D42F13;                    /* single accent: sili red, 5:1 on white */
+
+  /* Shape */
+  --r-card: 16px;
+  --r-thumb: 12px;
+  --r-field: 10px;
+  --r-sheet: 24px;
+
+  /* Space (4pt grid) */
+  --margin: 16px;                     /* screen edge */
+  --gap-section: 28px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);  /* iOS-like spring-ish ease-out */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --surface: #1C1C1E;
+    --label: #FFFFFF;
+    --label-2: rgba(235, 235, 245, 0.60);
+    --label-3: rgba(235, 235, 245, 0.30);
+    --separator: rgba(84, 84, 88, 0.60);
+    --fill: rgba(118, 118, 128, 0.24);
+    --inactive: #8E8E93;
+    --tint: #FF5A3C;
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--label);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 22px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+button, a {
+  touch-action: manipulation;
 }
