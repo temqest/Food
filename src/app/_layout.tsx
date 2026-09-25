@@ -27,6 +27,7 @@ export default function RootLayout() {
           <Stack.Screen name="map" />
           <Stack.Screen name="saved" />
           <Stack.Screen name="basket" />
+          <Stack.Screen name="profile" />
           <Stack.Screen name="search" />
           <Stack.Screen name="food/[id]" />
           <Stack.Screen name="establishment/[id]" />

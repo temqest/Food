@@ -136,8 +136,8 @@ const styles = StyleSheet.create({
   rootTopOuter: {
     backgroundColor: IOSTokens.colors.bg,
     width: '100%',
-    paddingTop: Platform.OS === 'ios' ? 8 : 4,
-    paddingBottom: 2,
+    paddingTop: Platform.OS === 'ios' ? 12 : 10,
+    paddingBottom: 6,
     zIndex: 20,
   },
   rootTopContainer: {
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: IOSTokens.spacing.margin,
-    minHeight: 36,
+    minHeight: 44,
   },
   locationButton: {
     flexDirection: 'row',
@@ -170,6 +170,8 @@ const styles = StyleSheet.create({
   rootTopRight: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
     gap: 8,
   },
   buttonPressed: {

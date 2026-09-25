@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -50,10 +51,26 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.screen}>
-      {/* Top Location Bar */}
+      {/* Top Location Bar with Profile Avatar in Top Right */}
       <Header
         locationName="Naga City"
         onLocationPress={() => router.push('/map')}
+        rightAction={
+          <Pressable
+            onPress={() => router.push('/profile')}
+            style={({ pressed }) => [styles.profileAvatarBtn, pressed && styles.pressed]}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Open profile"
+          >
+            <Image
+              source={{
+                uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+              }}
+              style={styles.profileAvatarImg}
+            />
+          </Pressable>
+        }
       />
 
       <ScrollView
@@ -282,6 +299,20 @@ const styles = StyleSheet.create({
     backgroundColor: IOSTokens.colors.surface,
     borderRadius: IOSTokens.shape.card,
     overflow: 'hidden',
+  },
+
+  profileAvatarBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    overflow: 'hidden',
+    backgroundColor: IOSTokens.colors.fill,
+    borderWidth: 1,
+    borderColor: 'rgba(60, 60, 67, 0.15)',
+  },
+  profileAvatarImg: {
+    width: '100%',
+    height: '100%',
   },
 
   pressed: {
