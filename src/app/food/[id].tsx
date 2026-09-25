@@ -13,10 +13,12 @@ import { Header } from '@/components/common/Header';
 import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
 import { IOSTokens } from '@/constants/theme';
 import { useSaved } from '@/context/SavedContext';
+import { useBasket } from '@/context/BasketContext';
 
 export default function FoodDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { isFoodSaved, toggleSaveFood } = useSaved();
+  const { addToBasket, setActiveTabSection } = useBasket();
 
   const food = FOOD_ITEMS.find((f) => f.id === id) || FOOD_ITEMS[0];
   const saved = isFoodSaved(food.id);
@@ -184,11 +186,26 @@ export default function FoodDetailScreen() {
 
           {/* Primary Action Button */}
           <Pressable
-            onPress={() => router.push('/map')}
+            onPress={() => {
+              const est = servingEstablishments[0] || ESTABLISHMENTS[0];
+              const offering = est.foodsOffered.find((f) => f.foodId === food.id);
+              addToBasket({
+                foodId: food.id,
+                foodName: food.name,
+                price: offering ? offering.price : 85,
+                establishmentId: est.id,
+                establishmentName: est.name,
+                establishmentAddress: est.address,
+                image: food.image,
+                quantity: 1,
+              });
+              setActiveTabSection('current');
+              router.push('/basket');
+            }}
             style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
           >
-            <Ionicons name="map-outline" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-            <Text style={styles.primaryButtonText}>View Serving Spots on Map</Text>
+            <Ionicons name="bag-handle-outline" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+            <Text style={styles.primaryButtonText}>Pre-Order Dish</Text>
           </Pressable>
         </View>
       </ScrollView>

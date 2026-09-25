@@ -10,13 +10,15 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Header } from '@/components/common/Header';
-import { ESTABLISHMENTS } from '@/data/mockData';
+import { ESTABLISHMENTS, FOOD_ITEMS } from '@/data/mockData';
 import { IOSTokens } from '@/constants/theme';
 import { useSaved } from '@/context/SavedContext';
+import { useBasket } from '@/context/BasketContext';
 
 export default function EstablishmentDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { isEstablishmentSaved, toggleSaveEstablishment } = useSaved();
+  const { addToBasket, setActiveTabSection } = useBasket();
 
   const establishment =
     ESTABLISHMENTS.find((e) => e.id === id) || ESTABLISHMENTS[0];
@@ -86,36 +88,63 @@ export default function EstablishmentDetailScreen() {
             <View style={styles.insetGroup}>
               {establishment.foodsOffered.map((food, index) => {
                 const isLast = index === establishment.foodsOffered.length - 1;
+                const fullFoodObj = FOOD_ITEMS.find((f) => f.id === food.foodId);
+
                 return (
-                  <Pressable
+                  <View
                     key={index}
-                    onPress={() => {
-                      router.push({
-                        pathname: '/food/[id]',
-                        params: { id: food.foodId },
-                      });
-                    }}
-                    style={({ pressed }) => [
+                    style={[
                       styles.foodRow,
                       isLast && styles.foodRowLast,
-                      pressed && styles.rowPressed,
                     ]}
                   >
-                    <View style={styles.foodInfo}>
+                    <Pressable
+                      onPress={() => {
+                        router.push({
+                          pathname: '/food/[id]',
+                          params: { id: food.foodId },
+                        });
+                      }}
+                      style={({ pressed }) => [
+                        styles.foodInfoPressable,
+                        pressed && styles.rowPressed,
+                      ]}
+                    >
                       <Text style={styles.foodName}>{food.foodName}</Text>
                       {food.servingNote && (
                         <Text style={styles.foodNote}>{food.servingNote}</Text>
                       )}
-                    </View>
+                    </Pressable>
+
                     <View style={styles.foodRight}>
                       <Text style={styles.foodPrice}>₱{food.price}</Text>
-                      <Ionicons
-                        name="chevron-forward"
-                        size={16}
-                        color={IOSTokens.colors.labelTertiary}
-                      />
+                      <Pressable
+                        onPress={() => {
+                          addToBasket({
+                            foodId: food.foodId,
+                            foodName: food.foodName,
+                            price: food.price,
+                            establishmentId: establishment.id,
+                            establishmentName: establishment.name,
+                            establishmentAddress: establishment.address,
+                            image: fullFoodObj?.image || establishment.heroImage,
+                            quantity: 1,
+                            selectedNote: food.servingNote,
+                          });
+                          setActiveTabSection('current');
+                          router.push('/basket');
+                        }}
+                        style={({ pressed }) => [
+                          styles.addBasketBtn,
+                          pressed && styles.pressed,
+                        ]}
+                        hitSlop={8}
+                        accessibilityLabel="Add to pre-order basket"
+                      >
+                        <Ionicons name="add" size={18} color="#FFFFFF" />
+                      </Pressable>
                     </View>
-                  </Pressable>
+                  </View>
                 );
               })}
             </View>
@@ -252,9 +281,10 @@ const styles = StyleSheet.create({
   foodRowLast: {
     borderBottomWidth: 0,
   },
-  foodInfo: {
+  foodInfoPressable: {
     flex: 1,
     marginRight: 12,
+    paddingVertical: 2,
   },
   foodName: {
     ...IOSTokens.typography.headline,
@@ -268,11 +298,19 @@ const styles = StyleSheet.create({
   foodRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 10,
   },
   foodPrice: {
     ...IOSTokens.typography.headline,
     color: IOSTokens.colors.tint,
+  },
+  addBasketBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: IOSTokens.colors.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // Info Rows

@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, Pressable, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
 import { IOSTokens } from '@/constants/theme';
+import { useBasket } from '@/context/BasketContext';
 
-export type NavTab = 'home' | 'search' | 'map' | 'saved' | 'explore';
+export type NavTab = 'home' | 'search' | 'map' | 'saved' | 'explore' | 'basket';
 
 interface NavBarProps {
   currentTab?: NavTab;
@@ -12,6 +13,8 @@ interface NavBarProps {
 
 export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
   const pathname = usePathname();
+  const { getBasketCount } = useBasket();
+  const basketCount = getBasketCount();
 
   const determineTab = (): NavTab => {
     if (currentTab) return currentTab;
@@ -19,6 +22,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
     if (pathname.startsWith('/search')) return 'search';
     if (pathname.startsWith('/map')) return 'map';
     if (pathname.startsWith('/saved')) return 'saved';
+    if (pathname.startsWith('/basket')) return 'basket';
     if (pathname.startsWith('/explore')) return 'explore';
     return 'home';
   };
@@ -34,11 +38,11 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
       inactiveIcon: 'home-outline' as const,
     },
     {
-      tab: 'search' as NavTab,
-      label: 'Search',
-      route: '/search',
-      activeIcon: 'search' as const,
-      inactiveIcon: 'search-outline' as const,
+      tab: 'explore' as NavTab,
+      label: 'Categories',
+      route: '/explore',
+      activeIcon: 'grid' as const,
+      inactiveIcon: 'grid-outline' as const,
     },
     {
       tab: 'map' as NavTab,
@@ -49,18 +53,19 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
       isCenter: true,
     },
     {
+      tab: 'basket' as NavTab,
+      label: 'Basket',
+      route: '/basket',
+      activeIcon: 'bag-handle' as const,
+      inactiveIcon: 'bag-handle-outline' as const,
+      badgeCount: basketCount,
+    },
+    {
       tab: 'saved' as NavTab,
       label: 'Saved',
       route: '/saved',
       activeIcon: 'heart' as const,
       inactiveIcon: 'heart-outline' as const,
-    },
-    {
-      tab: 'explore' as NavTab,
-      label: 'Categories',
-      route: '/explore',
-      activeIcon: 'grid' as const,
-      inactiveIcon: 'grid-outline' as const,
     },
   ];
 
@@ -118,6 +123,11 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
                   size={22}
                   color={isFocused ? '#FFFFFF' : '#8E8E93'}
                 />
+                {item.badgeCount && item.badgeCount > 0 ? (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{item.badgeCount}</Text>
+                  </View>
+                ) : null}
               </View>
             </Pressable>
           );
@@ -211,6 +221,26 @@ const styles = StyleSheet.create({
   },
   tabPressed: {
     opacity: 0.7,
+  },
+  badge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: IOSTokens.colors.tint,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    lineHeight: 11,
   },
 });
 
