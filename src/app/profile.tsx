@@ -16,15 +16,20 @@ import { NavBar } from '@/components/common/NavBar';
 import { IOSTokens } from '@/constants/theme';
 import { useSaved } from '@/context/SavedContext';
 import { useBasket } from '@/context/BasketContext';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ProfileScreen() {
   const { savedFoods, savedEstablishments } = useSaved();
   const { activePreOrders } = useBasket();
+  const { user, isAuthenticated, logout, updateProfile } = useAuth();
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [spicePreference, setSpicePreference] = useState<'mild' | 'moderate' | 'fiery'>('fiery');
 
   const totalSaved = savedFoods.length + savedEstablishments.length;
+
+  const handleSpiceChange = (pref: 'mild' | 'moderate' | 'fiery') => {
+    updateProfile({ spicePreference: pref });
+  };
 
   const handleSignOut = () => {
     Alert.alert(
@@ -32,7 +37,14 @@ export default function ProfileScreen() {
       'Are you sure you want to sign out of your Naga Food account?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', style: 'destructive', onPress: () => router.push('/') },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: () => {
+            logout();
+            router.replace('/welcome');
+          },
+        },
       ]
     );
   };
@@ -53,127 +65,178 @@ export default function ProfileScreen() {
           </View>
 
           {/* Profile Card Header */}
-          <View style={styles.insetGroup}>
-            <View style={styles.profileHeaderRow}>
-              <Image
-                source={{
-                  uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-                }}
-                style={styles.avatarImage}
-              />
-              <View style={styles.profileMeta}>
-                <Text style={styles.userName}>Maria Santos</Text>
-                <Text style={styles.userHandle}>@maria_naga · Centro, Naga City</Text>
+          {isAuthenticated && user ? (
+            <View style={styles.insetGroup}>
+              <View style={styles.profileHeaderRow}>
+                <Image
+                  source={{
+                    uri: user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+                  }}
+                  style={styles.avatarImage}
+                />
+                <View style={styles.profileMeta}>
+                  <Text style={styles.userName}>{user.name}</Text>
+                  <Text style={styles.userHandle}>
+                    {user.email || user.phone} · {user.location}
+                  </Text>
 
-                <View style={styles.badgeRow}>
-                  <View style={styles.guideBadge}>
-                    <Ionicons name="ribbon-outline" size={12} color={IOSTokens.colors.tint} />
-                    <Text style={styles.guideBadgeText}>Local Foodie Level 4</Text>
+                  <View style={styles.badgeRow}>
+                    <View style={styles.guideBadge}>
+                      <Ionicons name="ribbon-outline" size={12} color={IOSTokens.colors.tint} />
+                      <Text style={styles.guideBadgeText}>{user.badge}</Text>
+                    </View>
                   </View>
                 </View>
               </View>
-            </View>
 
-            {/* Quick Stats Grid */}
-            <View style={styles.statsRow}>
-              <Pressable
-                onPress={() => router.push('/saved')}
-                style={({ pressed }) => [styles.statBox, pressed && styles.pressed]}
-              >
-                <Text style={styles.statNumber}>{totalSaved}</Text>
-                <Text style={styles.statLabel}>Saved Items</Text>
-              </Pressable>
+              {/* Quick Stats Grid */}
+              <View style={styles.statsRow}>
+                <Pressable
+                  onPress={() => router.push('/saved')}
+                  style={({ pressed }) => [styles.statBox, pressed && styles.pressed]}
+                >
+                  <Text style={styles.statNumber}>{totalSaved}</Text>
+                  <Text style={styles.statLabel}>Saved Items</Text>
+                </Pressable>
 
-              <View style={styles.statDivider} />
+                <View style={styles.statDivider} />
 
-              <Pressable
-                onPress={() => router.push('/basket')}
-                style={({ pressed }) => [styles.statBox, pressed && styles.pressed]}
-              >
-                <Text style={styles.statNumber}>{activePreOrders.length}</Text>
-                <Text style={styles.statLabel}>Active Pre-Orders</Text>
-              </Pressable>
+                <Pressable
+                  onPress={() => router.push('/basket')}
+                  style={({ pressed }) => [styles.statBox, pressed && styles.pressed]}
+                >
+                  <Text style={styles.statNumber}>{activePreOrders.length}</Text>
+                  <Text style={styles.statLabel}>Active Pre-Orders</Text>
+                </Pressable>
 
-              <View style={styles.statDivider} />
+                <View style={styles.statDivider} />
 
-              <View style={styles.statBox}>
-                <Text style={styles.statNumber}>12</Text>
-                <Text style={styles.statLabel}>Reviews Shared</Text>
+                <View style={styles.statBox}>
+                  <Text style={styles.statNumber}>{user.reviewCount || 0}</Text>
+                  <Text style={styles.statLabel}>Reviews Shared</Text>
+                </View>
               </View>
             </View>
-          </View>
-
-          {/* SECTION 1: Pre-Order & Contact Info */}
-          <View style={styles.sectionBlock}>
-            <Text style={styles.sectionTitle}>Pre-Order Details</Text>
+          ) : (
             <View style={styles.insetGroup}>
-              <View style={styles.groupRow}>
-                <Text style={styles.rowLabel}>Pickup Name</Text>
-                <Text style={styles.rowValue}>Maria Santos</Text>
-              </View>
-              <View style={styles.groupRow}>
-                <Text style={styles.rowLabel}>Phone Number</Text>
-                <Text style={styles.rowValue}>+63 917 555 1928</Text>
-              </View>
-              <View style={[styles.groupRow, styles.groupRowLast]}>
-                <Text style={styles.rowLabel}>Default Payment</Text>
-                <Text style={styles.rowValueTint}>GCash / Cash on Pickup</Text>
-              </View>
-            </View>
-          </View>
+              <View style={styles.guestCard}>
+                <View style={styles.guestAvatar}>
+                  <Ionicons name="person-outline" size={30} color={IOSTokens.colors.labelSecondary} />
+                </View>
+                <Text style={styles.guestTitle}>Guest Foodie</Text>
+                <Text style={styles.guestSubtitle}>
+                  Sign in or create an account to save favorite food stalls, calibrate your sili tolerance, and pre-order meals.
+                </Text>
 
-          {/* SECTION 2: Bicolano Taste Preferences */}
-          <View style={styles.sectionBlock}>
-            <Text style={styles.sectionTitle}>Bicol Food Preferences</Text>
-            <View style={styles.insetGroup}>
-              <View style={styles.groupRow}>
-                <Text style={styles.rowLabel}>Sili Tolerance</Text>
-                <View style={styles.pillContainer}>
+                <View style={styles.guestActionRow}>
                   <Pressable
-                    onPress={() => setSpicePreference('mild')}
-                    style={[
-                      styles.preferencePill,
-                      spicePreference === 'mild' && styles.preferencePillActive,
-                    ]}
+                    onPress={() => router.push('/login')}
+                    style={({ pressed }) => [styles.guestPrimaryBtn, pressed && styles.primaryPressed]}
                   >
-                    <Text
-                      style={[
-                        styles.preferencePillText,
-                        spicePreference === 'mild' && styles.preferencePillTextActive,
-                      ]}
-                    >
-                      Mild 🌶️
-                    </Text>
+                    <Text style={styles.guestPrimaryText}>Sign In</Text>
                   </Pressable>
                   <Pressable
-                    onPress={() => setSpicePreference('fiery')}
-                    style={[
-                      styles.preferencePill,
-                      spicePreference === 'fiery' && styles.preferencePillActive,
-                    ]}
+                    onPress={() => router.push('/signup')}
+                    style={({ pressed }) => [styles.guestSecondaryBtn, pressed && styles.rowPressed]}
                   >
-                    <Text
-                      style={[
-                        styles.preferencePillText,
-                        spicePreference === 'fiery' && styles.preferencePillTextActive,
-                      ]}
-                    >
-                      Fiery 🌶️🔥
-                    </Text>
+                    <Text style={styles.guestSecondaryText}>Create Account</Text>
                   </Pressable>
                 </View>
               </View>
+            </View>
+          )}
 
-              <View style={styles.groupRow}>
-                <Text style={styles.rowLabel}>Go-To Kinalas Broth</Text>
-                <Text style={styles.rowValue}>Extra Brain Gravy</Text>
-              </View>
-              <View style={[styles.groupRow, styles.groupRowLast]}>
-                <Text style={styles.rowLabel}>Favorite Spot</Text>
-                <Text style={styles.rowValue}>Cha Cha’s Kinalas</Text>
+          {/* SECTION 1: Pre-Order & Contact Info */}
+          {isAuthenticated && user && (
+            <View style={styles.sectionBlock}>
+              <Text style={styles.sectionTitle}>Pre-Order Details</Text>
+              <View style={styles.insetGroup}>
+                <View style={styles.groupRow}>
+                  <Text style={styles.rowLabel}>Pickup Name</Text>
+                  <Text style={styles.rowValue}>{user.name}</Text>
+                </View>
+                <View style={styles.groupRow}>
+                  <Text style={styles.rowLabel}>Phone Number</Text>
+                  <Text style={styles.rowValue}>{user.phone}</Text>
+                </View>
+                <View style={[styles.groupRow, styles.groupRowLast]}>
+                  <Text style={styles.rowLabel}>Default Payment</Text>
+                  <Text style={styles.rowValueTint}>GCash / Cash on Pickup</Text>
+                </View>
               </View>
             </View>
-          </View>
+          )}
+
+          {/* SECTION 2: Bicolano Taste Preferences */}
+          {isAuthenticated && user && (
+            <View style={styles.sectionBlock}>
+              <Text style={styles.sectionTitle}>Bicol Food Preferences</Text>
+              <View style={styles.insetGroup}>
+                <View style={styles.groupRow}>
+                  <Text style={styles.rowLabel}>Sili Tolerance</Text>
+                  <View style={styles.pillContainer}>
+                    <Pressable
+                      onPress={() => handleSpiceChange('mild')}
+                      style={[
+                        styles.preferencePill,
+                        user.spicePreference === 'mild' && styles.preferencePillActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.preferencePillText,
+                          user.spicePreference === 'mild' && styles.preferencePillTextActive,
+                        ]}
+                      >
+                        Mild 🌶️
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => handleSpiceChange('moderate')}
+                      style={[
+                        styles.preferencePill,
+                        user.spicePreference === 'moderate' && styles.preferencePillActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.preferencePillText,
+                          user.spicePreference === 'moderate' && styles.preferencePillTextActive,
+                        ]}
+                      >
+                        Spicy 🌶️
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => handleSpiceChange('fiery')}
+                      style={[
+                        styles.preferencePill,
+                        user.spicePreference === 'fiery' && styles.preferencePillActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.preferencePillText,
+                          user.spicePreference === 'fiery' && styles.preferencePillTextActive,
+                        ]}
+                      >
+                        Fiery 🔥
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+
+                <View style={styles.groupRow}>
+                  <Text style={styles.rowLabel}>Preferred District</Text>
+                  <Text style={styles.rowValue}>{user.favoriteDistrict || 'Centro'}</Text>
+                </View>
+                <View style={[styles.groupRow, styles.groupRowLast]}>
+                  <Text style={styles.rowLabel}>Member Since</Text>
+                  <Text style={styles.rowValue}>{user.memberSince || 'October 2025'}</Text>
+                </View>
+              </View>
+            </View>
+          )}
 
           {/* SECTION 3: Settings & Notifications */}
           <View style={styles.sectionBlock}>
@@ -202,12 +265,23 @@ export default function ProfileScreen() {
           {/* SECTION 4: Actions */}
           <View style={styles.sectionBlock}>
             <View style={styles.insetGroup}>
-              <Pressable
-                onPress={handleSignOut}
-                style={({ pressed }) => [styles.signOutRow, pressed && styles.rowPressed]}
-              >
-                <Text style={styles.signOutText}>Sign Out</Text>
-              </Pressable>
+              {isAuthenticated ? (
+                <Pressable
+                  onPress={handleSignOut}
+                  style={({ pressed }) => [styles.signOutRow, pressed && styles.rowPressed]}
+                >
+                  <Text style={styles.signOutText}>Sign Out</Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={() => router.push('/welcome')}
+                  style={({ pressed }) => [styles.signOutRow, pressed && styles.rowPressed]}
+                >
+                  <Text style={[styles.signOutText, { color: IOSTokens.colors.tint }]}>
+                    Welcome & Onboarding Overview
+                  </Text>
+                </Pressable>
+              )}
             </View>
           </View>
         </View>
@@ -402,6 +476,72 @@ const styles = StyleSheet.create({
     ...IOSTokens.typography.headline,
     fontSize: 16,
     color: IOSTokens.colors.red,
+  },
+
+  // Guest Card
+  guestCard: {
+    padding: 20,
+    alignItems: 'center',
+    textAlign: 'center',
+  },
+  guestAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: IOSTokens.colors.fill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  guestTitle: {
+    ...IOSTokens.typography.headline,
+    fontSize: 18,
+    color: IOSTokens.colors.label,
+    marginBottom: 6,
+  },
+  guestSubtitle: {
+    ...IOSTokens.typography.footnote,
+    color: IOSTokens.colors.labelSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  guestActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%',
+  },
+  guestPrimaryBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: IOSTokens.colors.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guestPrimaryText: {
+    ...IOSTokens.typography.headline,
+    fontSize: 15,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  guestSecondaryBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: IOSTokens.colors.fill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guestSecondaryText: {
+    ...IOSTokens.typography.headline,
+    fontSize: 15,
+    color: IOSTokens.colors.label,
+    fontWeight: '600',
+  },
+  primaryPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.99 }],
   },
 
   pressed: {

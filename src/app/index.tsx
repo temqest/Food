@@ -16,6 +16,7 @@ import { FoodCard } from '@/components/food/FoodCard';
 import { EstablishmentCard } from '@/components/establishment/EstablishmentCard';
 import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
 import { IOSTokens } from '@/constants/theme';
+import { useAuth } from '@/context/AuthContext';
 
 const RECENT_SUGGESTIONS = [
   'Kinalas',
@@ -27,6 +28,7 @@ const RECENT_SUGGESTIONS = [
 ];
 
 export default function HomeScreen() {
+  const { user, isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -63,12 +65,18 @@ export default function HomeScreen() {
             accessibilityRole="button"
             accessibilityLabel="Open profile"
           >
-            <Image
-              source={{
-                uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-              }}
-              style={styles.profileAvatarImg}
-            />
+            {isAuthenticated && user?.avatar ? (
+              <Image
+                source={{
+                  uri: user.avatar,
+                }}
+                style={styles.profileAvatarImg}
+              />
+            ) : (
+              <View style={styles.guestAvatarHeader}>
+                <Ionicons name="person" size={18} color={IOSTokens.colors.labelSecondary} />
+              </View>
+            )}
           </Pressable>
         }
       />
@@ -313,6 +321,13 @@ const styles = StyleSheet.create({
   profileAvatarImg: {
     width: '100%',
     height: '100%',
+  },
+  guestAvatarHeader: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: IOSTokens.colors.fill,
   },
 
   pressed: {
