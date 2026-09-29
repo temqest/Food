@@ -49,7 +49,7 @@ export default function SignUpScreen() {
     });
 
     if (result.success) {
-      router.replace('/');
+      router.replace('/onboarding');
     } else if (result.error) {
       setErrorMessage(result.error);
     }
@@ -65,7 +65,7 @@ export default function SignUpScreen() {
     });
 
     if (result.success) {
-      router.replace('/');
+      router.replace('/onboarding');
     }
   };
 
