@@ -6,16 +6,15 @@ import {
   ScrollView,
   Pressable,
   Image,
+  Platform,
+  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Header } from '@/components/common/Header';
 import { SearchInput } from '@/components/common/SearchInput';
 import { NavBar } from '@/components/common/NavBar';
-import { FoodCard } from '@/components/food/FoodCard';
 import { EstablishmentCard } from '@/components/establishment/EstablishmentCard';
 import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
-import { IOSTokens } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 
 const RECENT_SUGGESTIONS = [
@@ -24,16 +23,35 @@ const RECENT_SUGGESTIONS = [
   'Sinanglay',
   'Pinangat',
   'Bicol Express',
-  'Pili Treats',
+  'Pili Delicacies',
+];
+
+const QUICK_CATEGORIES = [
+  { id: 'all', label: 'All Dishes', icon: 'sparkles-outline' },
+  { id: 'heritage-soups', label: '🍜 Kinalas & Soups' },
+  { id: 'gata-sili', label: '🥥 Gata & Sili' },
+  { id: 'bakery-merienda', label: '🥟 Merienda' },
+  { id: 'pili-delicacies', label: '🌰 Pili Sweets' },
+  { id: 'street-grill', label: '🍢 Night Grills' },
 ];
 
 export default function HomeScreen() {
   const { user, isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const featuredFoods = FOOD_ITEMS.filter((f) => f.featured);
-  const nearbySpots = ESTABLISHMENTS.slice(0, 4);
+  const matchingSpots =
+    selectedCategory === 'all'
+      ? ESTABLISHMENTS.slice(0, 5)
+      : ESTABLISHMENTS.filter((e) =>
+          e.foodsOffered.some(
+            (f) => FOOD_ITEMS.find((fi) => fi.id === f.foodId)?.category === selectedCategory
+          )
+        );
+
+  const nearbySpots = matchingSpots.length > 0 ? matchingSpots : ESTABLISHMENTS.slice(0, 4);
+  const spotlightFood = FOOD_ITEMS[0]; // Kinalas as hero spotlight
 
   const handleSearchSubmit = () => {
     if (searchQuery.trim().length > 0) {
@@ -51,35 +69,41 @@ export default function HomeScreen() {
     });
   };
 
+  const currentDistrict = user?.favoriteDistrict || 'Centro';
+
   return (
-    <View style={styles.screen}>
-      {/* Top Location Bar with Profile Avatar in Top Right */}
-      <Header
-        locationName="Naga City"
-        onLocationPress={() => router.push('/map')}
-        rightAction={
-          <Pressable
-            onPress={() => router.push('/profile')}
-            style={({ pressed }) => [styles.profileAvatarBtn, pressed && styles.pressed]}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Open profile"
-          >
-            {isAuthenticated && user?.avatar ? (
-              <Image
-                source={{
-                  uri: user.avatar,
-                }}
-                style={styles.profileAvatarImg}
-              />
-            ) : (
-              <View style={styles.guestAvatarHeader}>
-                <Ionicons name="person" size={18} color={IOSTokens.colors.labelSecondary} />
-              </View>
-            )}
-          </Pressable>
-        }
-      />
+    <SafeAreaView style={styles.screen}>
+      {/* Top App Header with Location & Profile */}
+      <View style={styles.topHeader}>
+        <Pressable
+          onPress={() => router.push('/map')}
+          style={({ pressed }) => [styles.locationBtn, pressed && styles.pressed]}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={`Location: Naga City, ${currentDistrict}`}
+        >
+          <Text style={styles.locationCity}>Naga City</Text>
+          <Text style={styles.locationDot}>·</Text>
+          <Text style={styles.locationDistrict}>{currentDistrict}</Text>
+          <Ionicons name="chevron-down" size={14} color="#D42F13" style={styles.chevronIcon} />
+        </Pressable>
+
+        <Pressable
+          onPress={() => router.push('/profile')}
+          style={({ pressed }) => [styles.profileAvatarBtn, pressed && styles.pressed]}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Open profile"
+        >
+          {isAuthenticated && user?.avatar ? (
+            <Image source={{ uri: user.avatar }} style={styles.profileAvatarImg} />
+          ) : (
+            <View style={styles.guestAvatarHeader}>
+              <Ionicons name="person" size={16} color="#8E8E93" />
+            </View>
+          )}
+        </Pressable>
+      </View>
 
       <ScrollView
         style={styles.scrollView}
@@ -88,18 +112,20 @@ export default function HomeScreen() {
         keyboardDismissMode="on-drag"
       >
         <View style={styles.mainContainer}>
-          {/* iOS Large Title */}
+          {/* Editorial Headline */}
           <View style={styles.titleSection}>
-            <Text style={styles.largeTitle}>Discover</Text>
+            <Text style={styles.largeTitleSans}>
+              Discover <Text style={styles.largeTitleSerif}>local flavors</Text>
+            </Text>
           </View>
 
-          {/* iOS Standard Search Bar */}
+          {/* iOS Clean Search Field */}
           <View style={styles.searchWrapper}>
             <SearchInput
               value={searchQuery}
               onChangeText={setSearchQuery}
               onSubmit={handleSearchSubmit}
-              placeholder="Search dishes or places"
+              placeholder="Search dishes or places..."
               onFilterPress={() => router.push('/search')}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}
@@ -111,7 +137,7 @@ export default function HomeScreen() {
             />
           </View>
 
-          {/* When search is focused: show clean suggestions list instead of chip clutter */}
+          {/* When search is focused: show clean suggestions list */}
           {isSearchFocused && (
             <View style={styles.suggestionsContainer}>
               <Text style={styles.suggestionsHeader}>Suggested Searches</Text>
@@ -129,52 +155,87 @@ export default function HomeScreen() {
                     <Ionicons
                       name="search-outline"
                       size={16}
-                      color={IOSTokens.colors.labelSecondary}
+                      color="#8E8E93"
                       style={styles.suggestionIcon}
                     />
                     <Text style={styles.suggestionText}>{item}</Text>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={14}
-                      color={IOSTokens.colors.labelTertiary}
-                    />
+                    <Ionicons name="chevron-forward" size={14} color="#C7C7CC" />
                   </Pressable>
                 ))}
               </View>
             </View>
           )}
 
-          {/* Main Feed Content (Dish Photos Lead Immediately) */}
+          {/* Main Feed Content */}
           {!isSearchFocused && (
             <>
-              {/* Section: Bicol classics (Horizontal Photo Carousel) */}
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Bicol classics</Text>
+              {/* Spotlight Dish of the Day (Feature Box) */}
+              {spotlightFood && (
                 <Pressable
-                  onPress={() => router.push('/explore')}
-                  style={({ pressed }) => [styles.seeAllButton, pressed && styles.pressed]}
-                  hitSlop={8}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/food/[id]',
+                      params: { id: spotlightFood.id },
+                    })
+                  }
+                  style={({ pressed }) => [styles.spotlightCard, pressed && styles.cardPressed]}
                 >
-                  <Text style={styles.seeAllText}>See All</Text>
+                  <Image source={{ uri: spotlightFood.image }} style={styles.spotlightImage} />
+                  <View style={styles.spotlightOverlay}>
+                    <View style={styles.spotlightTag}>
+                      <Text style={styles.spotlightTagText}>FEATURED SPECIALTY</Text>
+                    </View>
+                    <Text style={styles.spotlightTitle}>{spotlightFood.name}</Text>
+                    <Text style={styles.spotlightTagline} numberOfLines={2}>
+                      {spotlightFood.tagline}
+                    </Text>
+                    <View style={styles.spotlightFooter}>
+                      <Text style={styles.spotlightPrice}>{spotlightFood.priceRange}</Text>
+                      <View style={styles.spotlightAction}>
+                        <Text style={styles.spotlightActionText}>
+                          {spotlightFood.servingSpotsCount} places
+                        </Text>
+                        <Ionicons name="arrow-forward" size={14} color="#FFFFFF" />
+                      </View>
+                    </View>
+                  </View>
                 </Pressable>
-              </View>
+              )}
 
+              {/* Category Quick Filter Pills (Placed Below Feature Box) */}
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.carouselContent}
-                decelerationRate="fast"
-                snapToInterval={167} // 155 card + 12 gap
-                snapToAlignment="start"
+                contentContainerStyle={styles.categoryPillsContainer}
               >
-                {featuredFoods.map((food) => (
-                  <FoodCard key={food.id} food={food} layout="carousel" />
-                ))}
+                {QUICK_CATEGORIES.map((cat) => {
+                  const isActive = selectedCategory === cat.id;
+                  return (
+                    <Pressable
+                      key={cat.id}
+                      onPress={() => setSelectedCategory(cat.id)}
+                      style={({ pressed }) => [
+                        styles.categoryPill,
+                        isActive && styles.categoryPillActive,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.categoryPillText,
+                          isActive && styles.categoryPillTextActive,
+                        ]}
+                      >
+                        {cat.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </ScrollView>
 
-              {/* Section: Near you (Inset Grouped Restaurant List) */}
-              <View style={[styles.sectionHeader, styles.sectionHeaderSpaced]}>
-                <Text style={styles.sectionTitle}>Near you</Text>
+              {/* Section: Near You in Naga (Inset Grouped Restaurant List) */}
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Near you in Naga</Text>
                 <Pressable
                   onPress={() => router.push('/map')}
                   style={({ pressed }) => [styles.seeAllButton, pressed && styles.pressed]}
@@ -202,121 +263,75 @@ export default function HomeScreen() {
 
       {/* iOS Translucent Tab Bar */}
       <NavBar currentTab="home" />
-    </View>
+    </SafeAreaView>
   );
 }
+
+const serifFamily = Platform.select({
+  ios: 'Georgia',
+  android: 'serif',
+  web: 'Georgia, "Times New Roman", serif',
+  default: 'Georgia',
+});
+
+const sansFamily = Platform.select({
+  ios: 'system-ui',
+  android: 'sans-serif',
+  web: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
+  default: 'system-ui',
+});
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: IOSTokens.colors.bg,
+    backgroundColor: '#F2F2F7',
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 80, // Allow space for translucent bottom tab bar
-  },
-  mainContainer: {
-    maxWidth: 600,
-    width: '100%',
-    alignSelf: 'center',
-    paddingHorizontal: IOSTokens.spacing.margin,
-  },
-  titleSection: {
-    paddingTop: 8,
+  topHeader: {
+    backgroundColor: '#F2F2F7',
+    paddingTop: Platform.OS === 'ios' ? 10 : 16,
     paddingBottom: 8,
-  },
-  largeTitle: {
-    ...IOSTokens.typography.largeTitle,
-    color: IOSTokens.colors.label,
-  },
-  searchWrapper: {
-    marginBottom: 20,
-  },
-
-  // Suggestions List
-  suggestionsContainer: {
-    marginTop: 8,
-  },
-  suggestionsHeader: {
-    ...IOSTokens.typography.footnote,
-    color: IOSTokens.colors.labelSecondary,
-    marginBottom: 8,
-    marginLeft: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  suggestionsGroup: {
-    backgroundColor: IOSTokens.colors.surface,
-    borderRadius: IOSTokens.shape.card,
-    overflow: 'hidden',
-  },
-  suggestionRow: {
+    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: IOSTokens.colors.separator,
-  },
-  suggestionRowLast: {
-    borderBottomWidth: 0,
-  },
-  suggestionIcon: {
-    marginRight: 12,
-  },
-  suggestionText: {
-    ...IOSTokens.typography.body,
-    color: IOSTokens.colors.label,
-    flex: 1,
-  },
-
-  // Section Headers
-  sectionHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
+    zIndex: 20,
+  },
+  locationBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    paddingVertical: 6,
   },
-  sectionHeaderSpaced: {
-    marginTop: IOSTokens.spacing.gapSection,
-  },
-  sectionTitle: {
-    ...IOSTokens.typography.title2,
-    color: IOSTokens.colors.label,
-  },
-  seeAllButton: {
-    paddingVertical: 4,
-    paddingLeft: 8,
-  },
-  seeAllText: {
+  locationCity: {
+    fontFamily: sansFamily,
     fontSize: 15,
-    fontWeight: '400',
-    color: IOSTokens.colors.tint,
-    letterSpacing: -0.24,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.2,
   },
-
-  // Carousel
-  carouselContent: {
-    paddingRight: IOSTokens.spacing.margin,
+  locationDot: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#8E8E93',
+    marginHorizontal: 4,
   },
-
-  // Inset Grouped List
-  insetGroup: {
-    backgroundColor: IOSTokens.colors.surface,
-    borderRadius: IOSTokens.shape.card,
-    overflow: 'hidden',
+  locationDistrict: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#D42F13',
   },
-
+  chevronIcon: {
+    marginLeft: 3,
+    marginTop: 1,
+  },
   profileAvatarBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     overflow: 'hidden',
-    backgroundColor: IOSTokens.colors.fill,
-    borderWidth: 1,
-    borderColor: 'rgba(60, 60, 67, 0.15)',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
   profileAvatarImg: {
     width: '100%',
@@ -327,13 +342,237 @@ const styles = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: IOSTokens.colors.fill,
+    backgroundColor: '#E5E5EA',
+  },
+
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 90,
+  },
+  mainContainer: {
+    maxWidth: 600,
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: 20,
+  },
+
+  // Editorial Title
+  titleSection: {
+    paddingTop: 14,
+    paddingBottom: 12,
+  },
+  largeTitleSans: {
+    fontFamily: sansFamily,
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#000000',
+    letterSpacing: -1,
+  },
+  largeTitleSerif: {
+    fontFamily: serifFamily,
+    fontStyle: 'italic',
+    fontSize: 34,
+    fontWeight: '400',
+    color: '#000000',
+  },
+
+  searchWrapper: {
+    marginBottom: 14,
+  },
+
+  // Category Pills
+  categoryPillsContainer: {
+    gap: 8,
+    paddingBottom: 14,
+  },
+  categoryPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryPillActive: {
+    backgroundColor: '#111111',
+    borderColor: '#111111',
+  },
+  categoryPillText: {
+    fontFamily: sansFamily,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6E6E73',
+  },
+  categoryPillTextActive: {
+    color: '#FFFFFF',
+  },
+
+  // Spotlight Card
+  spotlightCard: {
+    height: 180,
+    borderRadius: 18,
+    overflow: 'hidden',
+    marginBottom: 20,
+    position: 'relative',
+    backgroundColor: '#000000',
+  },
+  spotlightImage: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.78,
+  },
+  spotlightOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.42)',
+  },
+  spotlightTag: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#D42F13',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 5,
+    marginBottom: 4,
+  },
+  spotlightTagText: {
+    fontFamily: sansFamily,
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  spotlightTitle: {
+    fontFamily: sansFamily,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.4,
+  },
+  spotlightTagline: {
+    fontFamily: sansFamily,
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.85)',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  spotlightFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  spotlightPrice: {
+    fontFamily: sansFamily,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  spotlightAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  spotlightActionText: {
+    fontFamily: sansFamily,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+
+  // Suggestions List
+  suggestionsContainer: {
+    marginTop: 4,
+  },
+  suggestionsHeader: {
+    fontFamily: sansFamily,
+    fontSize: 11,
+    color: '#8E8E93',
+    marginBottom: 8,
+    marginLeft: 4,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  suggestionsGroup: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  suggestionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
+  },
+  suggestionRowLast: {
+    borderBottomWidth: 0,
+  },
+  suggestionIcon: {
+    marginRight: 12,
+  },
+  suggestionText: {
+    fontFamily: sansFamily,
+    fontSize: 15,
+    color: '#000000',
+    flex: 1,
+  },
+
+  // Section Headers
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontFamily: sansFamily,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.4,
+  },
+  seeAllButton: {
+    paddingVertical: 4,
+    paddingLeft: 8,
+  },
+  seeAllText: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#D42F13',
+  },
+
+  // Inset Grouped List
+  insetGroup: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    overflow: 'hidden',
   },
 
   pressed: {
     opacity: 0.6,
   },
+  cardPressed: {
+    opacity: 0.92,
+    transform: [{ scale: 0.99 }],
+  },
   rowPressed: {
-    backgroundColor: IOSTokens.colors.fill,
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
   },
 });
+
