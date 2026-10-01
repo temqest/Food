@@ -5,6 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
+  Platform,
+  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -12,7 +14,6 @@ import { NavBar } from '@/components/common/NavBar';
 import { FoodCard } from '@/components/food/FoodCard';
 import { EstablishmentCard } from '@/components/establishment/EstablishmentCard';
 import { useSaved } from '@/context/SavedContext';
-import { IOSTokens } from '@/constants/theme';
 
 export default function SavedScreen() {
   const [activeTab, setActiveTab] = useState<'dishes' | 'places'>('dishes');
@@ -21,62 +22,73 @@ export default function SavedScreen() {
   const totalSaved = savedFoods.length + savedEstablishments.length;
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.mainContainer}>
-          {/* iOS Top Bar with Large Title and Clear action */}
-          <View style={styles.headerRow}>
-            <Text style={styles.largeTitle}>Saved</Text>
-            {totalSaved > 0 && (
-              <Pressable
-                onPress={clearAllSaved}
-                style={({ pressed }) => [styles.clearButton, pressed && styles.pressed]}
-                hitSlop={8}
-              >
-                <Text style={styles.clearText}>Clear All</Text>
-              </Pressable>
-            )}
+          {/* Top Bar with Editorial Title & Clear Action */}
+          <View style={styles.titleSection}>
+            <View style={styles.titleRow}>
+              <Text style={styles.headingSans}>
+                Saved <Text style={styles.headingSerif}>favorites</Text>
+              </Text>
+              {totalSaved > 0 && (
+                <Pressable
+                  onPress={clearAllSaved}
+                  style={({ pressed }) => [styles.clearButton, pressed && styles.pressed]}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear all saved items"
+                >
+                  <Text style={styles.clearText}>Clear All</Text>
+                </Pressable>
+              )}
+            </View>
+            <Text style={styles.subheadText}>
+              Your curated collection of Naga delicacies and favorite local eateries.
+            </Text>
           </View>
 
-          {/* iOS Segmented Control */}
-          <View style={styles.segmentContainer}>
-            <Pressable
-              onPress={() => setActiveTab('dishes')}
-              style={[
-                styles.segmentTab,
-                activeTab === 'dishes' && styles.segmentTabActive,
-              ]}
-            >
-              <Text
+          {/* Sleek Segmented Control */}
+          <View style={styles.segmentWrapper}>
+            <View style={styles.segmentContainer}>
+              <Pressable
+                onPress={() => setActiveTab('dishes')}
                 style={[
-                  styles.segmentLabel,
-                  activeTab === 'dishes' && styles.segmentLabelActive,
+                  styles.segmentTab,
+                  activeTab === 'dishes' && styles.segmentTabActive,
                 ]}
               >
-                Dishes ({savedFoods.length})
-              </Text>
-            </Pressable>
+                <Text
+                  style={[
+                    styles.segmentLabel,
+                    activeTab === 'dishes' && styles.segmentLabelActive,
+                  ]}
+                >
+                  Dishes ({savedFoods.length})
+                </Text>
+              </Pressable>
 
-            <Pressable
-              onPress={() => setActiveTab('places')}
-              style={[
-                styles.segmentTab,
-                activeTab === 'places' && styles.segmentTabActive,
-              ]}
-            >
-              <Text
+              <Pressable
+                onPress={() => setActiveTab('places')}
                 style={[
-                  styles.segmentLabel,
-                  activeTab === 'places' && styles.segmentLabelActive,
+                  styles.segmentTab,
+                  activeTab === 'places' && styles.segmentTabActive,
                 ]}
               >
-                Places ({savedEstablishments.length})
-              </Text>
-            </Pressable>
+                <Text
+                  style={[
+                    styles.segmentLabel,
+                    activeTab === 'places' && styles.segmentLabelActive,
+                  ]}
+                >
+                  Places ({savedEstablishments.length})
+                </Text>
+              </Pressable>
+            </View>
           </View>
 
           {/* Content Lists */}
@@ -89,19 +101,20 @@ export default function SavedScreen() {
               </View>
             ) : (
               <View style={styles.emptyContainer}>
-                <Ionicons
-                  name="bookmark-outline"
-                  size={48}
-                  color={IOSTokens.colors.labelTertiary}
-                  style={styles.emptyIcon}
-                />
-                <Text style={styles.emptyTitle}>No Saved Dishes</Text>
+                <View style={styles.emptyIconCircle}>
+                  <Ionicons
+                    name="bookmark-outline"
+                    size={36}
+                    color="#8E8E93"
+                  />
+                </View>
+                <Text style={styles.emptyTitle}>No Saved Dishes Yet</Text>
                 <Text style={styles.emptyDesc}>
-                  Tap the bookmark on any dish to save it to your list.
+                  Tap the bookmark icon on any dish to save it to your personalized Naga tasting list.
                 </Text>
                 <Pressable
                   onPress={() => router.push('/')}
-                  style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.pressed]}
+                  style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.primaryPressed]}
                 >
                   <Text style={styles.emptyActionText}>Explore Dishes</Text>
                 </Pressable>
@@ -121,21 +134,22 @@ export default function SavedScreen() {
             </View>
           ) : (
             <View style={styles.emptyContainer}>
-              <Ionicons
-                name="storefront-outline"
-                size={48}
-                color={IOSTokens.colors.labelTertiary}
-                style={styles.emptyIcon}
-              />
-              <Text style={styles.emptyTitle}>No Saved Places</Text>
+              <View style={styles.emptyIconCircle}>
+                <Ionicons
+                  name="storefront-outline"
+                  size={36}
+                  color="#8E8E93"
+                />
+              </View>
+              <Text style={styles.emptyTitle}>No Saved Places Yet</Text>
               <Text style={styles.emptyDesc}>
-                Bookmark restaurants and carinderias in Naga to plan your visit.
+                Bookmark carinderias, heritage dining spots, and bakeries in Naga to plan your food trip.
               </Text>
               <Pressable
                 onPress={() => router.push('/')}
-                style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.primaryPressed]}
               >
-                <Text style={styles.emptyActionText}>Find Places</Text>
+                <Text style={styles.emptyActionText}>Discover Places</Text>
               </Pressable>
             </View>
           )}
@@ -143,85 +157,132 @@ export default function SavedScreen() {
       </ScrollView>
 
       <NavBar currentTab="saved" />
-    </View>
+    </SafeAreaView>
   );
 }
+
+const serifFamily = Platform.select({
+  ios: 'Georgia',
+  android: 'serif',
+  web: 'Georgia, "Times New Roman", serif',
+  default: 'Georgia',
+});
+
+const sansFamily = Platform.select({
+  ios: 'system-ui',
+  android: 'sans-serif',
+  web: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
+  default: 'system-ui',
+});
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: IOSTokens.colors.bg,
+    backgroundColor: '#F2F2F7',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 80,
+    paddingBottom: 95,
   },
   mainContainer: {
     maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
-    paddingHorizontal: IOSTokens.spacing.margin,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 10 : 16,
   },
-  headerRow: {
+  titleSection: {
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
     justifyContent: 'space-between',
-    paddingTop: 16,
-    paddingBottom: 12,
   },
-  largeTitle: {
-    ...IOSTokens.typography.largeTitle,
-    color: IOSTokens.colors.label,
+  headingSans: {
+    fontFamily: sansFamily,
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#000000',
+    letterSpacing: -1,
+  },
+  headingSerif: {
+    fontFamily: serifFamily,
+    fontStyle: 'italic',
+    fontSize: 34,
+    fontWeight: '400',
+    color: '#000000',
+  },
+  subheadText: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#8E8E93',
+    marginTop: 6,
+    lineHeight: 20,
   },
   clearButton: {
     paddingVertical: 4,
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
   },
   clearText: {
-    fontSize: 15,
-    color: IOSTokens.colors.tint,
-    fontWeight: '400',
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#D42F13',
+    fontWeight: '600',
   },
 
-  // iOS Segmented Control
+  // Segmented Control
+  segmentWrapper: {
+    marginBottom: 18,
+  },
   segmentContainer: {
     flexDirection: 'row',
-    backgroundColor: IOSTokens.colors.fill,
-    borderRadius: 8,
-    padding: 2,
-    marginBottom: 20,
-    height: 32,
+    backgroundColor: 'rgba(118, 118, 128, 0.12)',
+    borderRadius: 12,
+    padding: 3,
+    height: 40,
   },
   segmentTab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 6,
+    borderRadius: 10,
   },
   segmentTabActive: {
-    backgroundColor: IOSTokens.colors.surface,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 2,
-    elevation: 2,
+    backgroundColor: '#FFFFFF',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1.5 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
+      } as any,
+    }),
   },
   segmentLabel: {
+    fontFamily: sansFamily,
     fontSize: 13,
     fontWeight: '500',
-    color: IOSTokens.colors.labelSecondary,
+    color: '#8E8E93',
   },
   segmentLabelActive: {
-    fontWeight: '600',
-    color: IOSTokens.colors.label,
+    fontWeight: '700',
+    color: '#000000',
   },
 
-  // Group
+  // Grouped List
   insetGroup: {
-    backgroundColor: IOSTokens.colors.surface,
-    borderRadius: IOSTokens.shape.card,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     overflow: 'hidden',
   },
 
@@ -231,33 +292,56 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 56,
     paddingHorizontal: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    marginTop: 8,
   },
-  emptyIcon: {
-    marginBottom: 12,
+  emptyIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
   },
   emptyTitle: {
-    ...IOSTokens.typography.headline,
-    color: IOSTokens.colors.label,
-    marginBottom: 4,
+    fontFamily: sansFamily,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 6,
   },
   emptyDesc: {
-    ...IOSTokens.typography.subhead,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 13,
+    color: '#8E8E93',
     textAlign: 'center',
-    maxWidth: 280,
+    lineHeight: 18,
+    maxWidth: 290,
     marginBottom: 20,
   },
   emptyActionBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    height: 46,
+    paddingHorizontal: 24,
+    borderRadius: 23,
+    backgroundColor: '#111111',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyActionText: {
-    fontSize: 15,
+    fontFamily: sansFamily,
+    fontSize: 14,
     fontWeight: '600',
-    color: IOSTokens.colors.tint,
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
   },
 
   pressed: {
     opacity: 0.6,
+  },
+  primaryPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.99 }],
   },
 });

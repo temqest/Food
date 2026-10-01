@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Header } from '@/components/common/Header';
 import { useAuth } from '@/context/AuthContext';
 
 type ResetStep = 'request' | 'verify' | 'reset' | 'success';

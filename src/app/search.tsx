@@ -5,16 +5,16 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
+  Platform,
+  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
-import { Header } from '@/components/common/Header';
+import { useLocalSearchParams, router } from 'expo-router';
 import { SearchInput } from '@/components/common/SearchInput';
 import { NavBar } from '@/components/common/NavBar';
 import { FoodCard } from '@/components/food/FoodCard';
 import { EstablishmentCard } from '@/components/establishment/EstablishmentCard';
 import { FOOD_ITEMS, ESTABLISHMENTS, CATEGORIES } from '@/data/mockData';
-import { IOSTokens } from '@/constants/theme';
 
 export default function SearchScreen() {
   const params = useLocalSearchParams<{ q?: string; category?: string }>();
@@ -69,8 +69,19 @@ export default function SearchScreen() {
   }, [query, matchedFoods, openOnly]);
 
   return (
-    <View style={styles.screen}>
-      <Header showBack title="Search" />
+    <SafeAreaView style={styles.screen}>
+      {/* Minimal Icon-Only Back Button */}
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() => router.back()}
+          style={({ pressed }) => [styles.backIconButton, pressed && styles.pressed]}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <Ionicons name="arrow-back" size={24} color="#000000" />
+        </Pressable>
+      </View>
 
       <ScrollView
         style={styles.scrollView}
@@ -79,18 +90,28 @@ export default function SearchScreen() {
         keyboardDismissMode="on-drag"
       >
         <View style={styles.mainContainer}>
-          {/* iOS Search Bar */}
+          {/* Editorial Title */}
+          <View style={styles.titleSection}>
+            <Text style={styles.headingSans}>
+              Search <Text style={styles.headingSerif}>flavors</Text>
+            </Text>
+            <Text style={styles.subheadText}>
+              Find traditional dishes, secret carinderias, and top spots across Naga.
+            </Text>
+          </View>
+
+          {/* Search Bar Input */}
           <View style={styles.searchWrapper}>
             <SearchInput
               value={query}
               onChangeText={setQuery}
-              placeholder="Search dishes or places"
+              placeholder="Search dishes or places..."
               autoFocus={!params.q && !params.category}
               onClear={() => setQuery('')}
             />
           </View>
 
-          {/* Quick Category Filters */}
+          {/* Quick Category Filter Pills */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -98,9 +119,10 @@ export default function SearchScreen() {
           >
             <Pressable
               onPress={() => setSelectedCategory('all')}
-              style={[
+              style={({ pressed }) => [
                 styles.categoryFilter,
                 selectedCategory === 'all' && styles.categoryFilterActive,
+                pressed && styles.pressed,
               ]}
             >
               <Text
@@ -115,9 +137,10 @@ export default function SearchScreen() {
 
             <Pressable
               onPress={() => setOpenOnly(!openOnly)}
-              style={[
+              style={({ pressed }) => [
                 styles.categoryFilter,
                 openOnly && styles.categoryFilterActive,
+                pressed && styles.pressed,
               ]}
             >
               <Text
@@ -136,9 +159,10 @@ export default function SearchScreen() {
                 onPress={() =>
                   setSelectedCategory(selectedCategory === cat.id ? 'all' : cat.id)
                 }
-                style={[
+                style={({ pressed }) => [
                   styles.categoryFilter,
                   selectedCategory === cat.id && styles.categoryFilterActive,
+                  pressed && styles.pressed,
                 ]}
               >
                 <Text
@@ -154,40 +178,42 @@ export default function SearchScreen() {
           </ScrollView>
 
           {/* Segmented Control: Dishes vs Places */}
-          <View style={styles.segmentContainer}>
-            <Pressable
-              onPress={() => setActiveTab('dishes')}
-              style={[
-                styles.segmentTab,
-                activeTab === 'dishes' && styles.segmentTabActive,
-              ]}
-            >
-              <Text
+          <View style={styles.segmentWrapper}>
+            <View style={styles.segmentContainer}>
+              <Pressable
+                onPress={() => setActiveTab('dishes')}
                 style={[
-                  styles.segmentLabel,
-                  activeTab === 'dishes' && styles.segmentLabelActive,
+                  styles.segmentTab,
+                  activeTab === 'dishes' && styles.segmentTabActive,
                 ]}
               >
-                Dishes ({matchedFoods.length})
-              </Text>
-            </Pressable>
+                <Text
+                  style={[
+                    styles.segmentLabel,
+                    activeTab === 'dishes' && styles.segmentLabelActive,
+                  ]}
+                >
+                  Dishes ({matchedFoods.length})
+                </Text>
+              </Pressable>
 
-            <Pressable
-              onPress={() => setActiveTab('places')}
-              style={[
-                styles.segmentTab,
-                activeTab === 'places' && styles.segmentTabActive,
-              ]}
-            >
-              <Text
+              <Pressable
+                onPress={() => setActiveTab('places')}
                 style={[
-                  styles.segmentLabel,
-                  activeTab === 'places' && styles.segmentLabelActive,
+                  styles.segmentTab,
+                  activeTab === 'places' && styles.segmentTabActive,
                 ]}
               >
-                Places ({matchedEstablishments.length})
-              </Text>
-            </Pressable>
+                <Text
+                  style={[
+                    styles.segmentLabel,
+                    activeTab === 'places' && styles.segmentLabelActive,
+                  ]}
+                >
+                  Places ({matchedEstablishments.length})
+                </Text>
+              </Pressable>
+            </View>
           </View>
 
           {/* Results List */}
@@ -200,15 +226,16 @@ export default function SearchScreen() {
               </View>
             ) : (
               <View style={styles.emptyContainer}>
-                <Ionicons
-                  name="search"
-                  size={44}
-                  color={IOSTokens.colors.labelTertiary}
-                  style={styles.emptyIcon}
-                />
+                <View style={styles.emptyIconCircle}>
+                  <Ionicons
+                    name="search"
+                    size={36}
+                    color="#8E8E93"
+                  />
+                </View>
                 <Text style={styles.emptyTitle}>No Dishes Found</Text>
                 <Text style={styles.emptyDesc}>
-                  Try searching for another dish like Kinalas or Pinangat.
+                  Try searching for another dish like Kinalas, Toasted Siopao, or Pinangat.
                 </Text>
               </View>
             )
@@ -226,15 +253,16 @@ export default function SearchScreen() {
             </View>
           ) : (
             <View style={styles.emptyContainer}>
-              <Ionicons
-                name="storefront-outline"
-                size={44}
-                color={IOSTokens.colors.labelTertiary}
-                style={styles.emptyIcon}
-              />
+              <View style={styles.emptyIconCircle}>
+                <Ionicons
+                  name="storefront-outline"
+                  size={36}
+                  color="#8E8E93"
+                />
+              </View>
               <Text style={styles.emptyTitle}>No Places Found</Text>
               <Text style={styles.emptyDesc}>
-                Try adjusting your search terms or category filter.
+                Try adjusting your search terms or selecting a different category filter.
               </Text>
             </View>
           )}
@@ -242,27 +270,77 @@ export default function SearchScreen() {
       </ScrollView>
 
       <NavBar />
-    </View>
+    </SafeAreaView>
   );
 }
+
+const serifFamily = Platform.select({
+  ios: 'Georgia',
+  android: 'serif',
+  web: 'Georgia, "Times New Roman", serif',
+  default: 'Georgia',
+});
+
+const sansFamily = Platform.select({
+  ios: 'system-ui',
+  android: 'sans-serif',
+  web: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
+  default: 'system-ui',
+});
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: IOSTokens.colors.bg,
+    backgroundColor: '#F2F2F7',
+  },
+  topBar: {
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 4 : 10,
+    paddingBottom: 2,
+  },
+  backIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 80,
+    paddingBottom: 95,
   },
   mainContainer: {
     maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
-    paddingHorizontal: IOSTokens.spacing.margin,
-    paddingTop: 12,
+    paddingHorizontal: 20,
+  },
+  titleSection: {
+    paddingTop: 8,
+    paddingBottom: 14,
+  },
+  headingSans: {
+    fontFamily: sansFamily,
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#000000',
+    letterSpacing: -1,
+  },
+  headingSerif: {
+    fontFamily: serifFamily,
+    fontStyle: 'italic',
+    fontSize: 34,
+    fontWeight: '400',
+    color: '#000000',
+  },
+  subheadText: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#8E8E93',
+    marginTop: 6,
+    lineHeight: 20,
   },
   searchWrapper: {
     marginBottom: 12,
@@ -270,65 +348,82 @@ const styles = StyleSheet.create({
 
   // Category Filters
   filterScroll: {
-    paddingBottom: 12,
+    paddingBottom: 14,
     gap: 8,
   },
   categoryFilter: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: IOSTokens.colors.fill,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   categoryFilterActive: {
-    backgroundColor: IOSTokens.colors.tint,
+    backgroundColor: '#111111',
+    borderColor: '#111111',
   },
   categoryFilterText: {
+    fontFamily: sansFamily,
     fontSize: 13,
-    fontWeight: '500',
-    color: IOSTokens.colors.label,
+    fontWeight: '600',
+    color: '#6E6E73',
   },
   categoryFilterTextActive: {
     color: '#FFFFFF',
-    fontWeight: '600',
   },
 
   // Segmented Control
+  segmentWrapper: {
+    marginBottom: 16,
+  },
   segmentContainer: {
     flexDirection: 'row',
-    backgroundColor: IOSTokens.colors.fill,
-    borderRadius: 8,
-    padding: 2,
-    marginBottom: 16,
-    height: 32,
+    backgroundColor: 'rgba(118, 118, 128, 0.12)',
+    borderRadius: 12,
+    padding: 3,
+    height: 40,
   },
   segmentTab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 6,
+    borderRadius: 10,
   },
   segmentTabActive: {
-    backgroundColor: IOSTokens.colors.surface,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 2,
-    elevation: 2,
+    backgroundColor: '#FFFFFF',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1.5 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
+      } as any,
+    }),
   },
   segmentLabel: {
+    fontFamily: sansFamily,
     fontSize: 13,
     fontWeight: '500',
-    color: IOSTokens.colors.labelSecondary,
+    color: '#8E8E93',
   },
   segmentLabelActive: {
-    fontWeight: '600',
-    color: IOSTokens.colors.label,
+    fontWeight: '700',
+    color: '#000000',
   },
 
   // Inset Group
   insetGroup: {
-    backgroundColor: IOSTokens.colors.surface,
-    borderRadius: IOSTokens.shape.card,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     overflow: 'hidden',
   },
 
@@ -337,19 +432,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 56,
+    paddingHorizontal: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    marginTop: 8,
   },
-  emptyIcon: {
-    marginBottom: 12,
+  emptyIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
   },
   emptyTitle: {
-    ...IOSTokens.typography.headline,
-    color: IOSTokens.colors.label,
-    marginBottom: 4,
+    fontFamily: sansFamily,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 6,
   },
   emptyDesc: {
-    ...IOSTokens.typography.subhead,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 13,
+    color: '#8E8E93',
     textAlign: 'center',
-    maxWidth: 260,
+    maxWidth: 270,
+    lineHeight: 18,
+  },
+
+  pressed: {
+    opacity: 0.6,
   },
 });

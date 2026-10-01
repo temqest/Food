@@ -8,12 +8,12 @@ import {
   Image,
   TextInput,
   Modal,
+  Platform,
+  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Header } from '@/components/common/Header';
 import { NavBar } from '@/components/common/NavBar';
-import { IOSTokens } from '@/constants/theme';
 import { useBasket, PreOrder } from '@/context/BasketContext';
 
 const PICKUP_TIME_SLOTS = [
@@ -47,7 +47,6 @@ export default function BasketScreen() {
   const fee = 0; // Free pre-ordering
   const total = subtotal + fee;
 
-  // Primary shop info from cart items
   const primaryItem = items.length > 0 ? items[0] : null;
 
   const handlePlaceOrder = () => {
@@ -59,22 +58,7 @@ export default function BasketScreen() {
   };
 
   return (
-    <View style={styles.screen}>
-      <Header
-        title="Basket & Pre-Orders"
-        rightAction={
-          items.length > 0 && activeTabSection === 'current' ? (
-            <Pressable
-              onPress={clearBasket}
-              style={({ pressed }) => [styles.headerClearBtn, pressed && styles.pressed]}
-              hitSlop={8}
-            >
-              <Text style={styles.headerClearText}>Clear</Text>
-            </Pressable>
-          ) : undefined
-        }
-      />
-
+    <SafeAreaView style={styles.screen}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -82,14 +66,30 @@ export default function BasketScreen() {
         keyboardDismissMode="on-drag"
       >
         <View style={styles.mainContainer}>
-          {/* iOS Large Title */}
+          {/* Top Editorial Title & Header */}
           <View style={styles.titleSection}>
-            <Text style={styles.largeTitle}>Pre-Orders</Text>
+            <View style={styles.titleRow}>
+              <Text style={styles.headingSans}>
+                Your <Text style={styles.headingSerif}>basket</Text>
+              </Text>
+              {items.length > 0 && activeTabSection === 'current' && (
+                <Pressable
+                  onPress={clearBasket}
+                  style={({ pressed }) => [styles.clearBtn, pressed && styles.pressed]}
+                  hitSlop={8}
+                >
+                  <Text style={styles.clearBtnText}>Clear</Text>
+                </Pressable>
+              )}
+            </View>
+            <Text style={styles.subheadText}>
+              Pre-order authentic dishes from local kitchens for immediate counter pickup.
+            </Text>
           </View>
 
-          {/* Segmented Control: Current Basket vs Active Orders */}
-          <View style={styles.segmentedWrapper}>
-            <View style={styles.segmentedControl}>
+          {/* Segmented Control: Current Cart vs Active Orders */}
+          <View style={styles.segmentWrapper}>
+            <View style={styles.segmentContainer}>
               <Pressable
                 onPress={() => setActiveTabSection('current')}
                 style={[
@@ -135,19 +135,19 @@ export default function BasketScreen() {
                   <View style={styles.emptyIconCircle}>
                     <Ionicons
                       name="bag-handle-outline"
-                      size={44}
-                      color={IOSTokens.colors.labelSecondary}
+                      size={36}
+                      color="#8E8E93"
                     />
                   </View>
                   <Text style={styles.emptyTitle}>Your Basket is Empty</Text>
-                  <Text style={styles.emptySubtext}>
-                    Pre-order Bikol delicacies like Kinalas or Toasted Siopao from local Naga spots for instant pickup.
+                  <Text style={styles.emptyDesc}>
+                    Pre-order Bicol delicacies like Kinalas, Pinangat, or Toasted Siopao from local Naga food spots.
                   </Text>
                   <Pressable
                     onPress={() => router.push('/explore')}
-                    style={({ pressed }) => [styles.exploreButton, pressed && styles.pressed]}
+                    style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.primaryPressed]}
                   >
-                    <Text style={styles.exploreButtonText}>Browse Food Spots</Text>
+                    <Text style={styles.emptyActionText}>Browse Food Spots</Text>
                   </Pressable>
                 </View>
               ) : (
@@ -162,8 +162,8 @@ export default function BasketScreen() {
                           <View style={styles.shopIconBox}>
                             <Ionicons
                               name="storefront-outline"
-                              size={22}
-                              color={IOSTokens.colors.tint}
+                              size={20}
+                              color="#000000"
                             />
                           </View>
                           <View style={styles.shopInfo}>
@@ -173,7 +173,7 @@ export default function BasketScreen() {
                             </Text>
                             <View style={styles.shopStatusBadge}>
                               <View style={styles.statusDot} />
-                              <Text style={styles.statusBadgeText}>Open for Pre-Order</Text>
+                              <Text style={styles.statusBadgeText}>Open for Instant Pre-Order</Text>
                             </View>
                           </View>
                         </View>
@@ -203,8 +203,8 @@ export default function BasketScreen() {
                           >
                             <Ionicons
                               name={isSelected ? 'time' : 'time-outline'}
-                              size={15}
-                              color={isSelected ? '#FFFFFF' : IOSTokens.colors.labelSecondary}
+                              size={14}
+                              color={isSelected ? '#FFFFFF' : '#8E8E93'}
                               style={{ marginRight: 6 }}
                             />
                             <Text
@@ -248,7 +248,7 @@ export default function BasketScreen() {
                                 )}
                               </View>
 
-                              {/* iOS Stepper (- qty +) */}
+                              {/* Stepper (- qty +) */}
                               <View style={styles.stepperContainer}>
                                 <Pressable
                                   onPress={() => updateQuantity(item.id, -1)}
@@ -261,12 +261,8 @@ export default function BasketScreen() {
                                 >
                                   <Ionicons
                                     name={item.quantity === 1 ? 'trash-outline' : 'remove-outline'}
-                                    size={16}
-                                    color={
-                                      item.quantity === 1
-                                        ? IOSTokens.colors.red
-                                        : IOSTokens.colors.label
-                                    }
+                                    size={15}
+                                    color={item.quantity === 1 ? '#FF3B30' : '#000000'}
                                   />
                                 </Pressable>
 
@@ -283,8 +279,8 @@ export default function BasketScreen() {
                                 >
                                   <Ionicons
                                     name="add-outline"
-                                    size={16}
-                                    color={IOSTokens.colors.label}
+                                    size={15}
+                                    color="#000000"
                                   />
                                 </Pressable>
                               </View>
@@ -302,8 +298,8 @@ export default function BasketScreen() {
                       <TextInput
                         value={specialInstructions}
                         onChangeText={setSpecialInstructions}
-                        placeholder="Add notes for kitchen (e.g., extra chili, broth on side)"
-                        placeholderTextColor={IOSTokens.colors.labelTertiary}
+                        placeholder="Add notes for the kitchen (e.g. extra sili, broth on side)..."
+                        placeholderTextColor="#8E8E93"
                         style={styles.instructionInput}
                         multiline
                         numberOfLines={2}
@@ -311,9 +307,9 @@ export default function BasketScreen() {
                     </View>
                   </View>
 
-                  {/* Payment & Order Summary */}
+                  {/* Summary Block */}
                   <View style={styles.sectionBlock}>
-                    <Text style={styles.sectionTitle}>Summary</Text>
+                    <Text style={styles.sectionTitle}>Order Summary</Text>
                     <View style={styles.insetGroup}>
                       <View style={styles.summaryRow}>
                         <Text style={styles.summaryLabel}>Subtotal</Text>
@@ -333,7 +329,9 @@ export default function BasketScreen() {
                   {/* Place Pre-Order Primary Action */}
                   <Pressable
                     onPress={handlePlaceOrder}
-                    style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
+                    style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryPressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Place pre-order for ${total} pesos`}
                   >
                     <Text style={styles.primaryButtonText}>
                       Place Pre-Order • ₱{total}
@@ -352,13 +350,13 @@ export default function BasketScreen() {
                   <View style={styles.emptyIconCircle}>
                     <Ionicons
                       name="receipt-outline"
-                      size={44}
-                      color={IOSTokens.colors.labelSecondary}
+                      size={36}
+                      color="#8E8E93"
                     />
                   </View>
                   <Text style={styles.emptyTitle}>No Active Orders</Text>
-                  <Text style={styles.emptySubtext}>
-                    When you place a pre-order, you can track real-time kitchen status and pickup windows right here.
+                  <Text style={styles.emptyDesc}>
+                    When you place a pre-order, you can track real-time kitchen preparation status and pickup windows right here.
                   </Text>
                 </View>
               ) : (
@@ -450,8 +448,8 @@ export default function BasketScreen() {
                         <View style={styles.metaRow}>
                           <Ionicons
                             name="time-outline"
-                            size={16}
-                            color={IOSTokens.colors.labelSecondary}
+                            size={15}
+                            color="#8E8E93"
                           />
                           <Text style={styles.metaText}>
                             Pickup: {order.pickupTimeSlot}
@@ -460,8 +458,8 @@ export default function BasketScreen() {
                         <View style={styles.metaRow}>
                           <Ionicons
                             name="location-outline"
-                            size={16}
-                            color={IOSTokens.colors.labelSecondary}
+                            size={15}
+                            color="#8E8E93"
                           />
                           <Text style={styles.metaText} numberOfLines={1}>
                             {order.establishmentAddress}
@@ -490,11 +488,11 @@ export default function BasketScreen() {
                         >
                           <Ionicons
                             name="navigate"
-                            size={14}
-                            color={IOSTokens.colors.tint}
+                            size={13}
+                            color="#111111"
                             style={{ marginRight: 4 }}
                           />
-                          <Text style={styles.directionsBtnText}>Get Directions</Text>
+                          <Text style={styles.directionsBtnText}>Directions</Text>
                         </Pressable>
                       </View>
                     </View>
@@ -510,27 +508,29 @@ export default function BasketScreen() {
       <Modal
         visible={confirmModalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setConfirmModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <View style={styles.modalIconWrapper}>
-              <Ionicons name="checkmark-circle" size={60} color={IOSTokens.colors.green} />
+              <Ionicons name="checkmark-circle" size={56} color="#34C759" />
             </View>
 
-            <Text style={styles.modalTitle}>Pre-Order Confirmed!</Text>
+            <Text style={styles.modalTitle}>
+              Pre-Order <Text style={styles.headingSerif}>confirmed</Text>
+            </Text>
             <Text style={styles.modalOrderNum}>{placedOrder?.orderNumber}</Text>
             <Text style={styles.modalBody}>
-              Your pre-order has been sent to{' '}
-              <Text style={{ fontWeight: '600' }}>{placedOrder?.establishmentName}</Text>.
+              Your order has been sent to{' '}
+              <Text style={{ fontWeight: '700', color: '#000000' }}>{placedOrder?.establishmentName}</Text>.
               It will be freshly prepared and ready for pickup at{' '}
-              <Text style={{ fontWeight: '600' }}>{placedOrder?.pickupTimeSlot}</Text>.
+              <Text style={{ fontWeight: '700', color: '#000000' }}>{placedOrder?.pickupTimeSlot}</Text>.
             </Text>
 
             <Pressable
               onPress={() => setConfirmModalVisible(false)}
-              style={({ pressed }) => [styles.modalPrimaryBtn, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.modalPrimaryBtn, pressed && styles.primaryPressed]}
             >
               <Text style={styles.modalPrimaryBtnText}>Track Order Progress</Text>
             </Pressable>
@@ -538,132 +538,195 @@ export default function BasketScreen() {
         </View>
       </Modal>
 
-      {/* Translucent Tab Bar */}
       <NavBar currentTab="basket" />
-    </View>
+    </SafeAreaView>
   );
 }
+
+const serifFamily = Platform.select({
+  ios: 'Georgia',
+  android: 'serif',
+  web: 'Georgia, "Times New Roman", serif',
+  default: 'Georgia',
+});
+
+const sansFamily = Platform.select({
+  ios: 'system-ui',
+  android: 'sans-serif',
+  web: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
+  default: 'system-ui',
+});
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: IOSTokens.colors.bg,
+    backgroundColor: '#F2F2F7',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 90,
+    paddingBottom: 95,
   },
   mainContainer: {
     maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
-    paddingHorizontal: IOSTokens.spacing.margin,
-  },
-  headerClearBtn: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-  },
-  headerClearText: {
-    ...IOSTokens.typography.body,
-    fontSize: 15,
-    color: IOSTokens.colors.tint,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 10 : 16,
   },
   titleSection: {
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingTop: 12,
+    paddingBottom: 16,
   },
-  largeTitle: {
-    ...IOSTokens.typography.largeTitle,
-    color: IOSTokens.colors.label,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+  },
+  headingSans: {
+    fontFamily: sansFamily,
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#000000',
+    letterSpacing: -1,
+  },
+  headingSerif: {
+    fontFamily: serifFamily,
+    fontStyle: 'italic',
+    fontSize: 34,
+    fontWeight: '400',
+    color: '#000000',
+  },
+  subheadText: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#8E8E93',
+    marginTop: 6,
+    lineHeight: 20,
+  },
+  clearBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+  },
+  clearBtnText: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#D42F13',
+    fontWeight: '600',
   },
 
   // Segmented Control
-  segmentedWrapper: {
+  segmentWrapper: {
     marginBottom: 20,
   },
-  segmentedControl: {
+  segmentContainer: {
     flexDirection: 'row',
-    backgroundColor: IOSTokens.colors.fill,
-    borderRadius: 9,
-    padding: 2,
+    backgroundColor: 'rgba(118, 118, 128, 0.12)',
+    borderRadius: 12,
+    padding: 3,
+    height: 40,
   },
   segmentButton: {
     flex: 1,
-    paddingVertical: 8,
     alignItems: 'center',
-    borderRadius: 7,
+    justifyContent: 'center',
+    borderRadius: 10,
   },
   segmentButtonActive: {
-    backgroundColor: IOSTokens.colors.surface,
+    backgroundColor: '#FFFFFF',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1.5 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
+      } as any,
+    }),
   },
   segmentText: {
-    ...IOSTokens.typography.subhead,
+    fontFamily: sansFamily,
     fontSize: 13,
     fontWeight: '500',
-    color: IOSTokens.colors.labelSecondary,
+    color: '#8E8E93',
   },
   segmentTextActive: {
-    color: IOSTokens.colors.label,
-    fontWeight: '600',
+    color: '#000000',
+    fontWeight: '700',
   },
 
   // Empty State
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 48,
+    paddingVertical: 56,
     paddingHorizontal: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    marginTop: 8,
   },
   emptyIconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: IOSTokens.colors.fill,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   emptyTitle: {
-    ...IOSTokens.typography.headline,
-    fontSize: 20,
-    color: IOSTokens.colors.label,
-    marginBottom: 8,
+    fontFamily: sansFamily,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 6,
   },
-  emptySubtext: {
-    ...IOSTokens.typography.subhead,
-    color: IOSTokens.colors.labelSecondary,
+  emptyDesc: {
+    fontFamily: sansFamily,
+    fontSize: 13,
+    color: '#8E8E93',
     textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 24,
+    lineHeight: 18,
+    maxWidth: 290,
+    marginBottom: 20,
   },
-  exploreButton: {
+  emptyActionBtn: {
+    height: 46,
     paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: IOSTokens.colors.tint,
+    borderRadius: 23,
+    backgroundColor: '#111111',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  exploreButtonText: {
-    ...IOSTokens.typography.headline,
-    fontSize: 15,
+  emptyActionText: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    fontWeight: '600',
     color: '#FFFFFF',
+    letterSpacing: -0.2,
   },
 
-  // Sections & Groups
+  // Section Blocks & Inset Group
   sectionBlock: {
     marginBottom: 20,
   },
   sectionTitle: {
-    ...IOSTokens.typography.title2,
+    fontFamily: sansFamily,
     fontSize: 18,
-    lineHeight: 22,
-    color: IOSTokens.colors.label,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.3,
     marginBottom: 10,
   },
   insetGroup: {
-    backgroundColor: IOSTokens.colors.surface,
-    borderRadius: IOSTokens.shape.card,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     overflow: 'hidden',
   },
 
@@ -676,8 +739,8 @@ const styles = StyleSheet.create({
   shopIconBox: {
     width: 44,
     height: 44,
-    borderRadius: 10,
-    backgroundColor: IOSTokens.colors.tintSoft,
+    borderRadius: 12,
+    backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -686,12 +749,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   shopName: {
-    ...IOSTokens.typography.headline,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.2,
   },
   shopAddress: {
-    ...IOSTokens.typography.footnote,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 12,
+    color: '#8E8E93',
     marginTop: 2,
   },
   shopStatusBadge: {
@@ -703,13 +770,14 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: IOSTokens.colors.green,
+    backgroundColor: '#34C759',
     marginRight: 6,
   },
   statusBadgeText: {
-    ...IOSTokens.typography.caption,
-    color: IOSTokens.colors.green,
-    fontWeight: '500',
+    fontFamily: sansFamily,
+    fontSize: 11,
+    color: '#34C759',
+    fontWeight: '600',
   },
 
   // Pickup Slots
@@ -722,23 +790,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: IOSTokens.colors.surface,
-    borderWidth: 1,
-    borderColor: 'rgba(60, 60, 67, 0.12)',
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: 'transparent',
   },
   slotPillSelected: {
-    backgroundColor: IOSTokens.colors.tint,
-    borderColor: IOSTokens.colors.tint,
+    backgroundColor: '#111111',
+    borderColor: '#111111',
   },
   slotPillText: {
-    ...IOSTokens.typography.subhead,
-    fontSize: 14,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#000000',
   },
   slotPillTextSelected: {
     color: '#FFFFFF',
-    fontWeight: '600',
   },
 
   // Cart Item Row
@@ -752,8 +820,8 @@ const styles = StyleSheet.create({
   itemThumb: {
     width: 56,
     height: 56,
-    borderRadius: IOSTokens.shape.thumb,
-    backgroundColor: IOSTokens.colors.fill,
+    borderRadius: 12,
+    backgroundColor: '#F2F2F7',
   },
   itemContent: {
     flex: 1,
@@ -761,7 +829,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: IOSTokens.colors.separator,
+    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
     paddingBottom: 12,
   },
   itemContentLast: {
@@ -773,19 +841,22 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   itemName: {
-    ...IOSTokens.typography.headline,
-    fontSize: 16,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#000000',
   },
   itemPrice: {
-    ...IOSTokens.typography.subhead,
-    fontWeight: '600',
-    color: IOSTokens.colors.tint,
+    fontFamily: sansFamily,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#D42F13',
     marginTop: 2,
   },
   itemNote: {
-    ...IOSTokens.typography.footnote,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 11,
+    color: '#8E8E93',
     marginTop: 2,
     fontStyle: 'italic',
   },
@@ -794,31 +865,32 @@ const styles = StyleSheet.create({
   stepperContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: IOSTokens.colors.fill,
-    borderRadius: 8,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
     padding: 3,
   },
   stepperButton: {
     width: 28,
     height: 28,
-    borderRadius: 6,
-    backgroundColor: IOSTokens.colors.surface,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepperValue: {
-    ...IOSTokens.typography.headline,
-    fontSize: 15,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#000000',
     paddingHorizontal: 10,
   },
 
   // Input
   instructionInput: {
-    ...IOSTokens.typography.body,
-    fontSize: 15,
+    fontFamily: sansFamily,
+    fontSize: 14,
     padding: 14,
-    color: IOSTokens.colors.label,
+    color: '#000000',
     minHeight: 60,
   },
 
@@ -829,36 +901,40 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: IOSTokens.colors.separator,
+    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
   },
   summaryRowTotal: {
     borderBottomWidth: 0,
     paddingVertical: 14,
   },
   summaryLabel: {
-    ...IOSTokens.typography.body,
-    fontSize: 15,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#6E6E73',
   },
   summaryValue: {
-    ...IOSTokens.typography.body,
-    fontSize: 15,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#000000',
   },
   summaryValueFree: {
-    ...IOSTokens.typography.headline,
-    fontSize: 15,
-    color: IOSTokens.colors.green,
+    fontFamily: sansFamily,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#34C759',
   },
   totalLabel: {
-    ...IOSTokens.typography.headline,
-    fontSize: 17,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
   },
   totalValue: {
-    ...IOSTokens.typography.headline,
+    fontFamily: sansFamily,
     fontSize: 18,
-    color: IOSTokens.colors.tint,
+    fontWeight: '800',
+    color: '#000000',
   },
 
   // Primary Button
@@ -866,17 +942,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 50,
-    borderRadius: 14,
-    backgroundColor: IOSTokens.colors.tint,
-    marginTop: 8,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#111111',
+    marginTop: 4,
     marginBottom: 24,
   },
   primaryButtonText: {
-    fontSize: 17,
+    fontFamily: sansFamily,
+    fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
-    letterSpacing: -0.41,
+    letterSpacing: -0.2,
   },
 
   // Active Orders List
@@ -884,8 +961,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   orderCard: {
-    backgroundColor: IOSTokens.colors.surface,
-    borderRadius: IOSTokens.shape.card,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 16,
   },
   orderCardHeader: {
@@ -895,26 +972,29 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   orderNumberText: {
-    ...IOSTokens.typography.footnote,
+    fontFamily: sansFamily,
+    fontSize: 12,
     fontWeight: '600',
-    color: IOSTokens.colors.labelSecondary,
+    color: '#8E8E93',
   },
   orderShopName: {
-    ...IOSTokens.typography.headline,
-    fontSize: 18,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#000000',
     marginTop: 2,
   },
   orderStatusBadge: {
-    backgroundColor: IOSTokens.colors.tintSoft,
+    backgroundColor: 'rgba(212, 47, 19, 0.10)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
   },
   orderStatusText: {
-    ...IOSTokens.typography.caption,
-    fontWeight: '600',
-    color: IOSTokens.colors.tint,
+    fontFamily: sansFamily,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#D42F13',
   },
 
   // Tracker
@@ -925,7 +1005,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: IOSTokens.colors.separator,
+    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
   },
   trackerStep: {
     alignItems: 'center',
@@ -935,11 +1015,11 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: IOSTokens.colors.labelTertiary,
+    backgroundColor: '#C7C7CC',
     marginBottom: 4,
   },
   trackerDotActive: {
-    backgroundColor: IOSTokens.colors.tint,
+    backgroundColor: '#111111',
     width: 12,
     height: 12,
     borderRadius: 6,
@@ -947,26 +1027,26 @@ const styles = StyleSheet.create({
   trackerLine: {
     height: 2,
     flex: 1,
-    backgroundColor: IOSTokens.colors.labelTertiary,
+    backgroundColor: '#E5E5EA',
     marginTop: -16,
   },
   trackerLineActive: {
-    backgroundColor: IOSTokens.colors.tint,
+    backgroundColor: '#111111',
   },
   trackerText: {
-    ...IOSTokens.typography.caption,
+    fontFamily: sansFamily,
     fontSize: 11,
-    color: IOSTokens.colors.labelSecondary,
+    color: '#8E8E93',
   },
   trackerTextActive: {
-    ...IOSTokens.typography.caption,
+    fontFamily: sansFamily,
     fontSize: 11,
-    fontWeight: '600',
-    color: IOSTokens.colors.label,
+    fontWeight: '700',
+    color: '#000000',
   },
 
   orderMetaBox: {
-    backgroundColor: IOSTokens.colors.fill,
+    backgroundColor: '#F2F2F7',
     borderRadius: 10,
     padding: 10,
     gap: 6,
@@ -978,8 +1058,9 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   metaText: {
-    ...IOSTokens.typography.footnote,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 12,
+    color: '#000000',
     flex: 1,
   },
 
@@ -988,9 +1069,9 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   orderItemRowText: {
-    ...IOSTokens.typography.subhead,
-    fontSize: 14,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 13,
+    color: '#6E6E73',
   },
 
   orderFooter: {
@@ -999,11 +1080,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 8,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: IOSTokens.colors.separator,
+    borderTopColor: 'rgba(60, 60, 67, 0.15)',
   },
   orderTotalText: {
-    ...IOSTokens.typography.headline,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#000000',
   },
   directionsBtn: {
     flexDirection: 'row',
@@ -1011,19 +1094,19 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 8,
-    backgroundColor: IOSTokens.colors.tintSoft,
+    backgroundColor: '#F2F2F7',
   },
   directionsBtnText: {
-    ...IOSTokens.typography.subhead,
-    fontSize: 13,
+    fontFamily: sansFamily,
+    fontSize: 12,
     fontWeight: '600',
-    color: IOSTokens.colors.tint,
+    color: '#000000',
   },
 
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -1031,8 +1114,8 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: IOSTokens.colors.surface,
-    borderRadius: IOSTokens.shape.sheet,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
     padding: 24,
     alignItems: 'center',
   },
@@ -1040,39 +1123,47 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   modalTitle: {
-    ...IOSTokens.typography.title2,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#000000',
     marginBottom: 4,
   },
   modalOrderNum: {
-    ...IOSTokens.typography.subhead,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 13,
+    color: '#8E8E93',
     fontWeight: '600',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   modalBody: {
-    ...IOSTokens.typography.body,
-    fontSize: 15,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#6E6E73',
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 24,
+    lineHeight: 20,
+    marginBottom: 22,
   },
   modalPrimaryBtn: {
     width: '100%',
     height: 48,
-    borderRadius: 12,
-    backgroundColor: IOSTokens.colors.tint,
+    borderRadius: 24,
+    backgroundColor: '#111111',
     alignItems: 'center',
     justifyContent: 'center',
   },
   modalPrimaryBtnText: {
-    ...IOSTokens.typography.headline,
-    fontSize: 16,
+    fontFamily: sansFamily,
+    fontSize: 15,
+    fontWeight: '600',
     color: '#FFFFFF',
   },
 
   pressed: {
-    opacity: 0.65,
+    opacity: 0.6,
+  },
+  primaryPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.99 }],
   },
 });

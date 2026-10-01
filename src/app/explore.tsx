@@ -5,29 +5,64 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
+  Platform,
+  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { NavBar } from '@/components/common/NavBar';
 import { CATEGORIES, FOOD_ITEMS } from '@/data/mockData';
-import { IOSTokens } from '@/constants/theme';
 
 export default function ExploreScreen() {
-
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.mainContainer}>
-          {/* iOS Large Title */}
+          {/* Editorial Title */}
           <View style={styles.titleSection}>
-            <Text style={styles.largeTitle}>Categories</Text>
+            <Text style={styles.headingSans}>
+              Explore <Text style={styles.headingSerif}>categories</Text>
+            </Text>
+            <Text style={styles.subheadText}>
+              Curated regional specialties and culinary heritage across Naga City.
+            </Text>
           </View>
 
-          {/* iOS Inset Grouped Table of Categories */}
+          {/* Featured Highlight Banner */}
+          <Pressable
+            onPress={() => {
+              router.push({
+                pathname: '/search',
+                params: { category: 'heritage-soups' },
+              });
+            }}
+            style={({ pressed }) => [styles.featureCard, pressed && styles.cardPressed]}
+          >
+            <View style={styles.featureCardContent}>
+              <View style={styles.featureBadge}>
+                <Text style={styles.featureBadgeText}>NAGA SIGNATURE</Text>
+              </View>
+              <Text style={styles.featureTitle}>🍜 Kinalas & Heritage Soups</Text>
+              <Text style={styles.featureDesc}>
+                Rich savory brain gravy, fall-off-the-bone beef head meat, and springy noodles.
+              </Text>
+            </View>
+            <View style={styles.featureArrowCircle}>
+              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+            </View>
+          </Pressable>
+
+          {/* Section Header */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>All Food Categories</Text>
+            <Text style={styles.sectionMeta}>{CATEGORIES.length} Categories</Text>
+          </View>
+
+          {/* Inset Grouped Table of Categories */}
           <View style={styles.insetGroup}>
             {CATEGORIES.map((cat, index) => {
               const count = FOOD_ITEMS.filter((f) => f.category === cat.id).length;
@@ -54,7 +89,7 @@ export default function ExploreScreen() {
                     <Ionicons
                       name={cat.icon as any}
                       size={20}
-                      color={IOSTokens.colors.tint}
+                      color="#000000"
                     />
                   </View>
 
@@ -67,11 +102,13 @@ export default function ExploreScreen() {
                     </View>
 
                     <View style={styles.trailingContainer}>
-                      <Text style={styles.countText}>{count}</Text>
+                      <View style={styles.countBadge}>
+                        <Text style={styles.countText}>{count} dishes</Text>
+                      </View>
                       <Ionicons
                         name="chevron-forward"
                         size={16}
-                        color={IOSTokens.colors.labelTertiary}
+                        color="#C7C7CC"
                       />
                     </View>
                   </View>
@@ -83,54 +120,162 @@ export default function ExploreScreen() {
       </ScrollView>
 
       <NavBar currentTab="explore" />
-    </View>
+    </SafeAreaView>
   );
 }
+
+const serifFamily = Platform.select({
+  ios: 'Georgia',
+  android: 'serif',
+  web: 'Georgia, "Times New Roman", serif',
+  default: 'Georgia',
+});
+
+const sansFamily = Platform.select({
+  ios: 'system-ui',
+  android: 'sans-serif',
+  web: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
+  default: 'system-ui',
+});
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: IOSTokens.colors.bg,
+    backgroundColor: '#F2F2F7',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 80,
+    paddingBottom: 95,
   },
   mainContainer: {
     maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
-    paddingHorizontal: IOSTokens.spacing.margin,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 10 : 16,
   },
   titleSection: {
-    paddingTop: 16,
+    paddingTop: 12,
     paddingBottom: 16,
   },
-  largeTitle: {
-    ...IOSTokens.typography.largeTitle,
-    color: IOSTokens.colors.label,
+  headingSans: {
+    fontFamily: sansFamily,
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#000000',
+    letterSpacing: -1,
   },
+  headingSerif: {
+    fontFamily: serifFamily,
+    fontStyle: 'italic',
+    fontSize: 34,
+    fontWeight: '400',
+    color: '#000000',
+  },
+  subheadText: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#8E8E93',
+    marginTop: 6,
+    lineHeight: 20,
+  },
+
+  // Featured Highlight Banner
+  featureCard: {
+    backgroundColor: '#111111',
+    borderRadius: 18,
+    padding: 18,
+    marginBottom: 22,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  featureCardContent: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  featureBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#D42F13',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 5,
+    marginBottom: 8,
+  },
+  featureBadgeText: {
+    fontFamily: sansFamily,
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  featureTitle: {
+    fontFamily: sansFamily,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+  },
+  featureDesc: {
+    fontFamily: sansFamily,
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 4,
+    lineHeight: 16,
+  },
+  featureArrowCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Section Header
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 2,
+  },
+  sectionTitle: {
+    fontFamily: sansFamily,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.3,
+  },
+  sectionMeta: {
+    fontFamily: sansFamily,
+    fontSize: 13,
+    color: '#8E8E93',
+    fontWeight: '500',
+  },
+
+  // Inset Group
   insetGroup: {
-    backgroundColor: IOSTokens.colors.surface,
-    borderRadius: IOSTokens.shape.card,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     overflow: 'hidden',
   },
   categoryRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: 16,
-    minHeight: 64,
+    minHeight: 68,
   },
   categoryRowLast: {
     borderBottomWidth: 0,
   },
   iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: IOSTokens.colors.tintSoft,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -143,7 +288,7 @@ const styles = StyleSheet.create({
     paddingRight: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: IOSTokens.colors.separator,
+    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
   },
   rowContentLast: {
     borderBottomWidth: 0,
@@ -153,24 +298,41 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   categoryName: {
-    ...IOSTokens.typography.headline,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    letterSpacing: -0.2,
   },
   categoryDesc: {
-    ...IOSTokens.typography.footnote,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 12,
+    color: '#8E8E93',
     marginTop: 2,
   },
   trailingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 8,
+  },
+  countBadge: {
+    backgroundColor: '#F2F2F7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
   countText: {
-    ...IOSTokens.typography.subhead,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6E6E73',
   },
+
   rowPressed: {
-    backgroundColor: IOSTokens.colors.fill,
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+  },
+  cardPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.99 }],
   },
 });

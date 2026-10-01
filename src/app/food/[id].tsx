@@ -6,12 +6,12 @@ import {
   ScrollView,
   Pressable,
   Image,
+  Platform,
+  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, router } from 'expo-router';
-import { Header } from '@/components/common/Header';
 import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
-import { IOSTokens } from '@/constants/theme';
 import { useSaved } from '@/context/SavedContext';
 import { useBasket } from '@/context/BasketContext';
 
@@ -29,47 +29,56 @@ export default function FoodDetailScreen() {
   );
 
   return (
-    <View style={styles.screen}>
-      <Header
-        showBack
-        title={food.name}
-        rightAction={
-          <Pressable
-            onPress={() => toggleSaveFood(food.id)}
-            style={({ pressed }) => [styles.navBookmarkBtn, pressed && styles.pressed]}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={saved ? 'Remove from saved' : 'Save dish'}
-          >
-            <Ionicons
-              name={saved ? 'bookmark' : 'bookmark-outline'}
-              size={22}
-              color={saved ? IOSTokens.colors.tint : IOSTokens.colors.labelSecondary}
-            />
-          </Pressable>
-        }
-      />
+    <SafeAreaView style={styles.screen}>
+      {/* Minimal Top Navigation Bar */}
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() => router.back()}
+          style={({ pressed }) => [styles.navIconButton, pressed && styles.pressed]}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <Ionicons name="arrow-back" size={24} color="#000000" />
+        </Pressable>
+
+        <Pressable
+          onPress={() => toggleSaveFood(food.id)}
+          style={({ pressed }) => [styles.navIconButton, pressed && styles.pressed]}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={saved ? 'Remove from saved' : 'Save dish'}
+        >
+          <Ionicons
+            name={saved ? 'bookmark' : 'bookmark-outline'}
+            size={22}
+            color={saved ? '#D42F13' : '#000000'}
+          />
+        </Pressable>
+      </View>
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero Photo */}
-        <View style={styles.heroImageWrapper}>
-          <Image
-            source={{ uri: food.image }}
-            style={styles.heroImage}
-            resizeMode="cover"
-          />
-        </View>
-
         <View style={styles.mainContainer}>
-          {/* Title Header */}
+          {/* Hero Photo Banner */}
+          <View style={styles.heroImageWrapper}>
+            <Image
+              source={{ uri: food.image }}
+              style={styles.heroImage}
+              resizeMode="cover"
+            />
+          </View>
+
+          {/* Title Header with Editorial Styling */}
           <View style={styles.titleSection}>
             <Text style={styles.foodTitle}>{food.name}</Text>
             {food.bikolName && (
-              <Text style={styles.bikolName}>Bikol: {food.bikolName}</Text>
+              <Text style={styles.bikolName}>
+                Bikolano: <Text style={styles.bikolItalic}>{food.bikolName}</Text>
+              </Text>
             )}
             <Text style={styles.tagline}>{food.tagline}</Text>
           </View>
@@ -77,7 +86,7 @@ export default function FoodDetailScreen() {
           {/* Inset Group 1: Dish Overview */}
           <View style={styles.insetGroup}>
             <View style={styles.groupRow}>
-              <Text style={styles.groupRowLabel}>Price Range</Text>
+              <Text style={styles.groupRowLabel}>Typical Price</Text>
               <Text style={styles.groupRowValueBold}>{food.priceRange}</Text>
             </View>
             <View style={styles.groupRow}>
@@ -87,20 +96,29 @@ export default function FoodDetailScreen() {
             <View style={[styles.groupRow, styles.groupRowLast]}>
               <Text style={styles.groupRowLabel}>Serving Places</Text>
               <Text style={styles.groupRowValue}>
-                {servingEstablishments.length} in Naga
+                {servingEstablishments.length} spots in Naga
               </Text>
             </View>
           </View>
 
-          {/* Flavor Profile */}
+          {/* Flavor Profile Pills (Mirroring Welcome Screen Style) */}
           <View style={styles.sectionBlock}>
             <Text style={styles.sectionHeader}>Flavor Profile</Text>
             <View style={styles.flavorTagsContainer}>
-              {food.flavorProfile.map((flavor, index) => (
-                <View key={index} style={styles.flavorTag}>
-                  <Text style={styles.flavorTagText}>{flavor}</Text>
-                </View>
-              ))}
+              {food.flavorProfile.map((flavor, index) => {
+                const isDashed = index % 2 === 0;
+                return (
+                  <View
+                    key={index}
+                    style={[
+                      styles.flavorPill,
+                      isDashed ? styles.flavorPillDashed : styles.flavorPillSolid,
+                    ]}
+                  >
+                    <Text style={styles.flavorPillText}>{flavor}</Text>
+                  </View>
+                );
+              })}
             </View>
           </View>
 
@@ -175,7 +193,7 @@ export default function FoodDetailScreen() {
                       <Ionicons
                         name="chevron-forward"
                         size={18}
-                        color={IOSTokens.colors.labelTertiary}
+                        color="#C7C7CC"
                       />
                     </View>
                   </Pressable>
@@ -202,21 +220,52 @@ export default function FoodDetailScreen() {
               setActiveTabSection('current');
               router.push('/basket');
             }}
-            style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryPressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Pre-order dish"
           >
             <Ionicons name="bag-handle-outline" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
             <Text style={styles.primaryButtonText}>Pre-Order Dish</Text>
           </Pressable>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
+
+const serifFamily = Platform.select({
+  ios: 'Georgia',
+  android: 'serif',
+  web: 'Georgia, "Times New Roman", serif',
+  default: 'Georgia',
+});
+
+const sansFamily = Platform.select({
+  ios: 'system-ui',
+  android: 'sans-serif',
+  web: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
+  default: 'system-ui',
+});
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: IOSTokens.colors.bg,
+    backgroundColor: '#F2F2F7',
+  },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 4 : 10,
+    paddingBottom: 6,
+  },
+  navIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollView: {
     flex: 1,
@@ -224,51 +273,58 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 40,
   },
-  navBookmarkBtn: {
-    padding: 6,
+  mainContainer: {
+    maxWidth: 600,
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: 20,
   },
   heroImageWrapper: {
     width: '100%',
-    height: 240,
-    backgroundColor: IOSTokens.colors.fill,
+    height: 220,
+    borderRadius: 18,
+    overflow: 'hidden',
+    backgroundColor: '#F2F2F7',
+    marginBottom: 16,
   },
   heroImage: {
     width: '100%',
     height: '100%',
   },
-  mainContainer: {
-    maxWidth: 600,
-    width: '100%',
-    alignSelf: 'center',
-    paddingHorizontal: IOSTokens.spacing.margin,
-  },
   titleSection: {
-    paddingTop: 16,
     paddingBottom: 16,
   },
   foodTitle: {
-    ...IOSTokens.typography.largeTitle,
-    fontSize: 28,
-    lineHeight: 34,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 30,
+    fontWeight: '800',
+    color: '#000000',
+    letterSpacing: -0.8,
   },
   bikolName: {
-    ...IOSTokens.typography.subhead,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#6E6E73',
+    marginTop: 3,
+  },
+  bikolItalic: {
+    fontFamily: serifFamily,
     fontStyle: 'italic',
-    marginTop: 2,
+    color: '#000000',
+    fontWeight: '500',
   },
   tagline: {
-    ...IOSTokens.typography.body,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#8E8E93',
     marginTop: 6,
-    lineHeight: 22,
+    lineHeight: 20,
   },
 
   // Inset Group
   insetGroup: {
-    backgroundColor: IOSTokens.colors.surface,
-    borderRadius: IOSTokens.shape.card,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     overflow: 'hidden',
     marginBottom: 20,
   },
@@ -276,36 +332,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 13,
     paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: IOSTokens.colors.separator,
+    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
   },
   groupRowLast: {
     borderBottomWidth: 0,
   },
   groupRowLabel: {
-    ...IOSTokens.typography.body,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 15,
+    color: '#000000',
+    fontWeight: '500',
   },
   groupRowValue: {
-    ...IOSTokens.typography.body,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#8E8E93',
   },
   groupRowValueBold: {
-    ...IOSTokens.typography.headline,
-    color: IOSTokens.colors.tint,
+    fontFamily: sansFamily,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#D42F13',
   },
 
-  // Sections
+  // Flavor Profile
   sectionBlock: {
     marginBottom: 20,
   },
   sectionHeader: {
-    ...IOSTokens.typography.title2,
+    fontFamily: sansFamily,
     fontSize: 18,
-    lineHeight: 22,
-    color: IOSTokens.colors.label,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.3,
     marginBottom: 10,
   },
   flavorTagsContainer: {
@@ -313,36 +375,51 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
-  flavorTag: {
-    backgroundColor: IOSTokens.colors.fill,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+  flavorPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 9999,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  flavorTagText: {
-    ...IOSTokens.typography.subhead,
+  flavorPillDashed: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 0, 0, 0.35)',
+    borderStyle: 'dashed',
+  },
+  flavorPillSolid: {
+    backgroundColor: 'rgba(254, 215, 170, 0.65)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(234, 88, 12, 0.6)',
+    borderStyle: 'dashed',
+  },
+  flavorPillText: {
+    fontFamily: serifFamily,
     fontSize: 13,
-    color: IOSTokens.colors.label,
     fontWeight: '500',
+    color: '#000000',
   },
+
   textBlock: {
     padding: 16,
   },
   textBlockDivider: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: IOSTokens.colors.separator,
+    borderTopColor: 'rgba(60, 60, 67, 0.15)',
   },
   contextHeader: {
-    ...IOSTokens.typography.headline,
+    fontFamily: sansFamily,
     fontSize: 15,
-    color: IOSTokens.colors.label,
+    fontWeight: '700',
+    color: '#000000',
     marginBottom: 6,
   },
   bodyText: {
-    ...IOSTokens.typography.body,
-    fontSize: 15,
-    lineHeight: 22,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 14,
+    lineHeight: 21,
+    color: '#48484A',
   },
 
   // Establishment row
@@ -357,10 +434,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   estThumbnail: {
-    width: 60,
-    height: 60,
-    borderRadius: IOSTokens.shape.thumb,
-    backgroundColor: IOSTokens.colors.fill,
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    backgroundColor: '#F2F2F7',
   },
   estContent: {
     flex: 1,
@@ -368,9 +445,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: IOSTokens.colors.separator,
+    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
     paddingBottom: 10,
-    minHeight: 60,
+    minHeight: 56,
   },
   estContentLast: {
     borderBottomWidth: 0,
@@ -381,24 +458,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   estName: {
-    ...IOSTokens.typography.headline,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#000000',
   },
   estSubhead: {
-    ...IOSTokens.typography.footnote,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 12,
+    color: '#8E8E93',
     marginTop: 2,
   },
   estStatus: {
-    ...IOSTokens.typography.footnote,
+    fontFamily: sansFamily,
+    fontSize: 12,
     marginTop: 2,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   statusOpen: {
-    color: IOSTokens.colors.green,
+    color: '#34C759',
   },
   statusClosed: {
-    color: IOSTokens.colors.red,
+    color: '#FF3B30',
   },
 
   // Primary Button
@@ -406,23 +487,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 50,
-    borderRadius: 14,
-    backgroundColor: IOSTokens.colors.tint,
-    marginTop: 8,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#111111',
+    marginTop: 4,
     marginBottom: 24,
   },
   primaryButtonText: {
-    fontSize: 17,
+    fontFamily: sansFamily,
+    fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
-    letterSpacing: -0.41,
+    letterSpacing: -0.2,
   },
 
   pressed: {
     opacity: 0.6,
   },
+  primaryPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.99 }],
+  },
   rowPressed: {
-    backgroundColor: IOSTokens.colors.fill,
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
   },
 });

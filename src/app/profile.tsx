@@ -8,12 +8,12 @@ import {
   Image,
   Switch,
   Alert,
+  Platform,
+  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Header } from '@/components/common/Header';
 import { NavBar } from '@/components/common/NavBar';
-import { IOSTokens } from '@/constants/theme';
 import { useSaved } from '@/context/SavedContext';
 import { useBasket } from '@/context/BasketContext';
 import { useAuth } from '@/context/AuthContext';
@@ -50,18 +50,21 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={styles.screen}>
-      <Header showBack title="Profile" />
-
+    <SafeAreaView style={styles.screen}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.mainContainer}>
-          {/* iOS Large Title */}
+          {/* Editorial Title */}
           <View style={styles.titleSection}>
-            <Text style={styles.largeTitle}>Profile</Text>
+            <Text style={styles.headingSans}>
+              Foodie <Text style={styles.headingSerif}>profile</Text>
+            </Text>
+            <Text style={styles.subheadText}>
+              Personalize your sili heat tolerance, favorite district, and account details.
+            </Text>
           </View>
 
           {/* Profile Card Header */}
@@ -82,7 +85,7 @@ export default function ProfileScreen() {
 
                   <View style={styles.badgeRow}>
                     <View style={styles.guideBadge}>
-                      <Ionicons name="ribbon-outline" size={12} color={IOSTokens.colors.tint} />
+                      <Ionicons name="ribbon" size={12} color="#D42F13" />
                       <Text style={styles.guideBadgeText}>{user.badge}</Text>
                     </View>
                   </View>
@@ -106,14 +109,14 @@ export default function ProfileScreen() {
                   style={({ pressed }) => [styles.statBox, pressed && styles.pressed]}
                 >
                   <Text style={styles.statNumber}>{activePreOrders.length}</Text>
-                  <Text style={styles.statLabel}>Active Pre-Orders</Text>
+                  <Text style={styles.statLabel}>Active Orders</Text>
                 </Pressable>
 
                 <View style={styles.statDivider} />
 
                 <View style={styles.statBox}>
-                  <Text style={styles.statNumber}>{user.reviewCount || 0}</Text>
-                  <Text style={styles.statLabel}>Reviews Shared</Text>
+                  <Text style={styles.statNumber}>{user.reviewCount || 12}</Text>
+                  <Text style={styles.statLabel}>Reviews</Text>
                 </View>
               </View>
             </View>
@@ -121,7 +124,7 @@ export default function ProfileScreen() {
             <View style={styles.insetGroup}>
               <View style={styles.guestCard}>
                 <View style={styles.guestAvatar}>
-                  <Ionicons name="person-outline" size={30} color={IOSTokens.colors.labelSecondary} />
+                  <Ionicons name="person-outline" size={30} color="#8E8E93" />
                 </View>
                 <Text style={styles.guestTitle}>Guest Foodie</Text>
                 <Text style={styles.guestSubtitle}>
@@ -204,7 +207,7 @@ export default function ProfileScreen() {
                           user.spicePreference === 'moderate' && styles.preferencePillTextActive,
                         ]}
                       >
-                        Spicy 🌶️
+                        Spicy 🌶️🌶️
                       </Text>
                     </Pressable>
                     <Pressable
@@ -247,7 +250,7 @@ export default function ProfileScreen() {
                 <Switch
                   value={notificationsEnabled}
                   onValueChange={setNotificationsEnabled}
-                  trackColor={{ false: IOSTokens.colors.fill, true: IOSTokens.colors.green }}
+                  trackColor={{ false: 'rgba(118, 118, 128, 0.16)', true: '#111111' }}
                   thumbColor="#FFFFFF"
                 />
               </View>
@@ -269,6 +272,8 @@ export default function ProfileScreen() {
                 <Pressable
                   onPress={handleSignOut}
                   style={({ pressed }) => [styles.signOutRow, pressed && styles.rowPressed]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Sign out"
                 >
                   <Text style={styles.signOutText}>Sign Out</Text>
                 </Pressable>
@@ -277,8 +282,8 @@ export default function ProfileScreen() {
                   onPress={() => router.push('/welcome')}
                   style={({ pressed }) => [styles.signOutRow, pressed && styles.rowPressed]}
                 >
-                  <Text style={[styles.signOutText, { color: IOSTokens.colors.tint }]}>
-                    Welcome & Onboarding Overview
+                  <Text style={[styles.signOutText, { color: '#000000' }]}>
+                    Welcome & App Overview
                   </Text>
                 </Pressable>
               )}
@@ -287,42 +292,73 @@ export default function ProfileScreen() {
         </View>
       </ScrollView>
 
-      {/* Translucent Bottom Navigation Bar */}
       <NavBar />
-    </View>
+    </SafeAreaView>
   );
 }
+
+const serifFamily = Platform.select({
+  ios: 'Georgia',
+  android: 'serif',
+  web: 'Georgia, "Times New Roman", serif',
+  default: 'Georgia',
+});
+
+const sansFamily = Platform.select({
+  ios: 'system-ui',
+  android: 'sans-serif',
+  web: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
+  default: 'system-ui',
+});
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: IOSTokens.colors.bg,
+    backgroundColor: '#F2F2F7',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 90,
+    paddingBottom: 95,
   },
   mainContainer: {
     maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
-    paddingHorizontal: IOSTokens.spacing.margin,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 10 : 16,
   },
   titleSection: {
-    paddingTop: 8,
-    paddingBottom: 12,
+    paddingTop: 12,
+    paddingBottom: 16,
   },
-  largeTitle: {
-    ...IOSTokens.typography.largeTitle,
-    color: IOSTokens.colors.label,
+  headingSans: {
+    fontFamily: sansFamily,
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#000000',
+    letterSpacing: -1,
+  },
+  headingSerif: {
+    fontFamily: serifFamily,
+    fontStyle: 'italic',
+    fontSize: 34,
+    fontWeight: '400',
+    color: '#000000',
+  },
+  subheadText: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#8E8E93',
+    marginTop: 6,
+    lineHeight: 20,
   },
 
   // Profile Card Header
   insetGroup: {
-    backgroundColor: IOSTokens.colors.surface,
-    borderRadius: IOSTokens.shape.card,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     overflow: 'hidden',
     marginBottom: 20,
   },
@@ -331,26 +367,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: IOSTokens.colors.separator,
+    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
   },
   avatarImage: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: IOSTokens.colors.fill,
+    backgroundColor: '#F2F2F7',
   },
   profileMeta: {
     marginLeft: 14,
     flex: 1,
   },
   userName: {
-    ...IOSTokens.typography.headline,
-    fontSize: 19,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.3,
   },
   userHandle: {
-    ...IOSTokens.typography.footnote,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 12,
+    color: '#8E8E93',
     marginTop: 2,
   },
   badgeRow: {
@@ -360,16 +399,17 @@ const styles = StyleSheet.create({
   guideBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: IOSTokens.colors.tintSoft,
+    backgroundColor: 'rgba(212, 47, 19, 0.10)',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
     gap: 4,
   },
   guideBadgeText: {
-    ...IOSTokens.typography.caption,
-    fontWeight: '600',
-    color: IOSTokens.colors.tint,
+    fontFamily: sansFamily,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#D42F13',
   },
 
   // Stats Row
@@ -385,20 +425,22 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   statNumber: {
-    ...IOSTokens.typography.headline,
+    fontFamily: sansFamily,
     fontSize: 18,
-    color: IOSTokens.colors.label,
+    fontWeight: '700',
+    color: '#000000',
   },
   statLabel: {
-    ...IOSTokens.typography.caption,
+    fontFamily: sansFamily,
     fontSize: 11,
-    color: IOSTokens.colors.labelSecondary,
+    color: '#8E8E93',
     marginTop: 2,
+    fontWeight: '500',
   },
   statDivider: {
     width: StyleSheet.hairlineWidth,
     height: 28,
-    backgroundColor: IOSTokens.colors.separator,
+    backgroundColor: 'rgba(60, 60, 67, 0.15)',
   },
 
   // Section Blocks & Group Rows
@@ -406,64 +448,70 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionTitle: {
-    ...IOSTokens.typography.title2,
+    fontFamily: sansFamily,
     fontSize: 18,
-    lineHeight: 22,
-    color: IOSTokens.colors.label,
-    marginBottom: 8,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.3,
+    marginBottom: 10,
   },
   groupRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 13,
     paddingHorizontal: 16,
-    minHeight: 48,
+    minHeight: 50,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: IOSTokens.colors.separator,
+    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
   },
   groupRowLast: {
     borderBottomWidth: 0,
   },
   rowLabel: {
-    ...IOSTokens.typography.body,
-    fontSize: 16,
-    color: IOSTokens.colors.label,
-  },
-  rowValue: {
-    ...IOSTokens.typography.body,
+    fontFamily: sansFamily,
     fontSize: 15,
-    color: IOSTokens.colors.labelSecondary,
-  },
-  rowValueTint: {
-    ...IOSTokens.typography.body,
-    fontSize: 15,
-    color: IOSTokens.colors.tint,
+    color: '#000000',
     fontWeight: '500',
   },
+  rowValue: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#8E8E93',
+  },
+  rowValueTint: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#D42F13',
+    fontWeight: '600',
+  },
 
-  // Pills
+  // Sili Preference Pills
   pillContainer: {
     flexDirection: 'row',
     gap: 6,
   },
   preferencePill: {
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: 8,
-    backgroundColor: IOSTokens.colors.fill,
+    backgroundColor: '#F2F2F7',
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   preferencePillActive: {
-    backgroundColor: IOSTokens.colors.tintSoft,
+    backgroundColor: '#111111',
+    borderColor: '#111111',
   },
   preferencePillText: {
-    ...IOSTokens.typography.caption,
+    fontFamily: sansFamily,
     fontSize: 12,
-    color: IOSTokens.colors.labelSecondary,
+    color: '#6E6E73',
+    fontWeight: '600',
   },
   preferencePillTextActive: {
-    color: IOSTokens.colors.tint,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 
   // Sign Out
@@ -473,38 +521,40 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   signOutText: {
-    ...IOSTokens.typography.headline,
-    fontSize: 16,
-    color: IOSTokens.colors.red,
+    fontFamily: sansFamily,
+    fontSize: 15,
+    color: '#FF3B30',
+    fontWeight: '600',
   },
 
   // Guest Card
   guestCard: {
-    padding: 20,
+    padding: 24,
     alignItems: 'center',
-    textAlign: 'center',
   },
   guestAvatar: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: IOSTokens.colors.fill,
+    backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
   },
   guestTitle: {
-    ...IOSTokens.typography.headline,
+    fontFamily: sansFamily,
     fontSize: 18,
-    color: IOSTokens.colors.label,
+    fontWeight: '700',
+    color: '#000000',
     marginBottom: 6,
   },
   guestSubtitle: {
-    ...IOSTokens.typography.footnote,
-    color: IOSTokens.colors.labelSecondary,
+    fontFamily: sansFamily,
+    fontSize: 13,
+    color: '#8E8E93',
     textAlign: 'center',
     lineHeight: 18,
-    marginBottom: 16,
+    marginBottom: 18,
   },
   guestActionRow: {
     flexDirection: 'row',
@@ -513,30 +563,32 @@ const styles = StyleSheet.create({
   },
   guestPrimaryBtn: {
     flex: 1,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: IOSTokens.colors.tint,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: '#111111',
     alignItems: 'center',
     justifyContent: 'center',
   },
   guestPrimaryText: {
-    ...IOSTokens.typography.headline,
-    fontSize: 15,
+    fontFamily: sansFamily,
+    fontSize: 14,
     color: '#FFFFFF',
     fontWeight: '600',
   },
   guestSecondaryBtn: {
     flex: 1,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: IOSTokens.colors.fill,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 0, 0, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   guestSecondaryText: {
-    ...IOSTokens.typography.headline,
-    fontSize: 15,
-    color: IOSTokens.colors.label,
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: '#000000',
     fontWeight: '600',
   },
   primaryPressed: {
@@ -548,6 +600,6 @@ const styles = StyleSheet.create({
     opacity: 0.65,
   },
   rowPressed: {
-    backgroundColor: IOSTokens.colors.fill,
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
   },
 });
