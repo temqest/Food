@@ -12,7 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { NavBar } from '@/components/common/NavBar';
-import { NagaMapCanvas } from '@/components/map/NagaMapCanvas';
+import { MapboxMapView } from '@/components/map/MapboxMapView';
 import { ESTABLISHMENTS } from '@/data/mockData';
 import { Establishment } from '@/data/types';
 import { useSaved } from '@/context/SavedContext';
@@ -22,12 +22,21 @@ export default function MapScreen() {
   const [selectedEstablishment, setSelectedEstablishment] = useState<Establishment>(
     ESTABLISHMENTS[0]
   );
+  const [isScrollEnabled, setIsScrollEnabled] = useState<boolean>(true);
   const { isEstablishmentSaved, toggleSaveEstablishment } = useSaved();
 
   const filteredEstablishments = ESTABLISHMENTS.filter((est) => {
     if (selectedType === 'all') return true;
     return est.type === selectedType;
   });
+
+  const handleSelectType = (type: string) => {
+    setSelectedType(type);
+    const matches = ESTABLISHMENTS.filter((est) => type === 'all' || est.type === type);
+    if (matches.length > 0 && !matches.some((m) => m.id === selectedEstablishment.id)) {
+      setSelectedEstablishment(matches[0]);
+    }
+  };
 
   const isSaved = isEstablishmentSaved(selectedEstablishment.id);
   const distanceStr =
@@ -41,6 +50,7 @@ export default function MapScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={isScrollEnabled}
       >
         <View style={styles.mainContainer}>
           {/* Editorial Title */}
@@ -60,7 +70,7 @@ export default function MapScreen() {
             contentContainerStyle={styles.filterScroll}
           >
             <Pressable
-              onPress={() => setSelectedType('all')}
+              onPress={() => handleSelectType('all')}
               style={({ pressed }) => [
                 styles.filterPill,
                 selectedType === 'all' && styles.filterPillActive,
@@ -78,7 +88,7 @@ export default function MapScreen() {
             </Pressable>
 
             <Pressable
-              onPress={() => setSelectedType('kinalas-station')}
+              onPress={() => handleSelectType('kinalas-station')}
               style={({ pressed }) => [
                 styles.filterPill,
                 selectedType === 'kinalas-station' && styles.filterPillActive,
@@ -96,7 +106,7 @@ export default function MapScreen() {
             </Pressable>
 
             <Pressable
-              onPress={() => setSelectedType('bakery')}
+              onPress={() => handleSelectType('bakery')}
               style={({ pressed }) => [
                 styles.filterPill,
                 selectedType === 'bakery' && styles.filterPillActive,
@@ -114,7 +124,7 @@ export default function MapScreen() {
             </Pressable>
 
             <Pressable
-              onPress={() => setSelectedType('restaurant')}
+              onPress={() => handleSelectType('restaurant')}
               style={({ pressed }) => [
                 styles.filterPill,
                 selectedType === 'restaurant' && styles.filterPillActive,
@@ -134,11 +144,13 @@ export default function MapScreen() {
 
           {/* Interactive Map Canvas */}
           <View style={styles.mapCard}>
-            <NagaMapCanvas
+            <MapboxMapView
               establishments={filteredEstablishments}
               selectedId={selectedEstablishment.id}
               onSelectEstablishment={(est) => setSelectedEstablishment(est)}
-              height={330}
+              height={360}
+              onInteractionStart={() => setIsScrollEnabled(false)}
+              onInteractionEnd={() => setIsScrollEnabled(true)}
             />
           </View>
 
