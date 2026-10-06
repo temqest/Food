@@ -443,6 +443,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#000000',
+    maxWidth: 160,
   },
   previewActionBtn: {
     backgroundColor: '#1C1C1E',

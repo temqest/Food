@@ -53,32 +53,26 @@ export const PromotionCard: React.FC<PromotionCardProps> = ({
         <Text style={styles.tierText}>{campaign.budgetTier}</Text>
       </View>
 
-      {/* Analytics Grid */}
-      <View style={styles.analyticsRow}>
-        <View style={styles.analyticCol}>
+      {/* Analytics Grid (2x2 Mobile Grid) */}
+      <View style={styles.analyticsGrid}>
+        <View style={styles.analyticBox}>
           <Text style={styles.analyticVal}>{campaign.impressions.toLocaleString()}</Text>
           <Text style={styles.analyticLbl}>Foodie Views</Text>
         </View>
 
-        <View style={styles.colDivider} />
-
-        <View style={styles.analyticCol}>
+        <View style={styles.analyticBox}>
           <Text style={styles.analyticVal}>{campaign.clicks.toLocaleString()}</Text>
           <Text style={styles.analyticLbl}>Menu Clicks</Text>
         </View>
 
-        <View style={styles.colDivider} />
-
-        <View style={styles.analyticCol}>
+        <View style={styles.analyticBox}>
           <Text style={[styles.analyticVal, { color: '#D42F13' }]}>
             {campaign.ordersDriven}
           </Text>
           <Text style={styles.analyticLbl}>Orders Placed</Text>
         </View>
 
-        <View style={styles.colDivider} />
-
-        <View style={styles.analyticCol}>
+        <View style={styles.analyticBox}>
           <Text style={styles.analyticVal}>{ctr}%</Text>
           <Text style={styles.analyticLbl}>CTR</Text>
         </View>
@@ -172,18 +166,19 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: 'rgba(60, 60, 67, 0.5)',
   },
-  analyticsRow: {
+  analyticsGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    backgroundColor: '#F2F2F7',
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    marginBottom: 10,
+    gap: 8,
+    marginBottom: 12,
   },
-  analyticCol: {
-    flex: 1,
+  analyticBox: {
+    width: '48%',
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
     alignItems: 'center',
   },
   analyticVal: {
@@ -195,11 +190,6 @@ const styles = StyleSheet.create({
   analyticLbl: {
     fontSize: 10,
     color: 'rgba(60, 60, 67, 0.6)',
-  },
-  colDivider: {
-    width: 0.5,
-    height: 20,
-    backgroundColor: 'rgba(60, 60, 67, 0.15)',
   },
   footerRow: {
     flexDirection: 'row',

@@ -21,16 +21,15 @@ import { AddProductModal } from '@/components/business/AddProductModal';
 import { CreatePromotionModal } from '@/components/business/CreatePromotionModal';
 import { BusinessOrderCard } from '@/components/business/BusinessOrderCard';
 import { PromotionCard } from '@/components/business/PromotionCard';
+import { BusinessNavBar, BusinessTab } from '@/components/business/BusinessNavBar';
 import { ESTABLISHMENTS } from '@/data/mockData';
-
-type BusinessTab = 'overview' | 'products' | 'orders' | 'promote' | 'settings';
+import { IOSTokens } from '@/constants/theme';
 
 export default function BusinessDashboardScreen() {
   const {
     profile,
     products,
     promotions,
-    activePromotion,
     analytics,
     updateProfile,
     toggleOpenStatus,
@@ -46,8 +45,9 @@ export default function BusinessDashboardScreen() {
 
   const { activePreOrders, updateOrderStatus, cancelOrder } = useBasket();
 
-  const [activeTab, setActiveTab] = useState<BusinessTab>('overview');
-  const [orderFilter, setOrderFilter] = useState<string>('all');
+  // Mobile Bottom Navigation Tab: orders | menu | promote | store
+  const [activeTab, setActiveTab] = useState<BusinessTab>('orders');
+  const [orderFilter, setOrderFilter] = useState<'all' | 'received' | 'preparing' | 'ready'>('all');
 
   // Modals state
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -62,7 +62,7 @@ export default function BusinessDashboardScreen() {
   const [editHours, setEditHours] = useState(profile.openingHours);
   const [editDesc, setEditDesc] = useState(profile.description);
 
-  // Filter orders for this establishment or generic test orders
+  // Filter orders for this establishment
   const storeOrders = activePreOrders.filter(
     (o) => o.establishmentId === profile.id || o.establishmentName.includes(profile.name.split(' ')[0])
   );
@@ -83,8 +83,8 @@ export default function BusinessDashboardScreen() {
 
   const handleDeleteProductPress = (prod: BusinessProduct) => {
     Alert.alert(
-      'Remove Product',
-      `Are you sure you want to remove "${prod.name}" from your store offerings?`,
+      'Remove Dish',
+      `Are you sure you want to remove "${prod.name}" from your store menu?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -121,359 +121,149 @@ export default function BusinessDashboardScreen() {
     Alert.alert('Saved', 'Store details updated successfully.');
   };
 
+  // Header Title mapping
+  const getHeaderTitle = () => {
+    switch (activeTab) {
+      case 'orders':
+        return 'Kitchen Orders';
+      case 'menu':
+        return 'Store Menu';
+      case 'promote':
+        return 'Promote & Reach';
+      case 'store':
+        return 'Store Profile';
+      default:
+        return profile.name;
+    }
+  };
+
   return (
     <SafeAreaView style={styles.screen}>
-      {/* Top Merchant App Bar */}
+      {/* Sleek Native iOS Mobile App Header */}
       <View style={styles.topHeader}>
-        <View style={styles.storeMetaCol}>
-          <View style={styles.storeNameRow}>
-            <Text style={styles.storeName} numberOfLines={1}>
-              {profile.name}
-            </Text>
-            <View style={styles.verifiedPartnerBadge}>
-              <Ionicons name="checkmark-circle" size={14} color="#D42F13" />
-            </View>
-          </View>
-          <Text style={styles.storeTypeSubhead} numberOfLines={1}>
-            {profile.typeLabel} · {profile.neighborhood}
+        <Pressable
+          onPress={() => router.push('/')}
+          style={({ pressed }) => [styles.exitBtn, pressed && styles.pressed]}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel="Back to customer foodie view"
+        >
+          <Ionicons name="chevron-back" size={20} color="#000000" />
+          <Text style={styles.exitBtnText}>Exit</Text>
+        </Pressable>
+
+        <View style={styles.headerCenterCol}>
+          <Text style={styles.headerScreenTitle} numberOfLines={1}>
+            {getHeaderTitle()}
+          </Text>
+          <Text style={styles.headerStoreSubhead} numberOfLines={1}>
+            {profile.name}
           </Text>
         </View>
 
-        <View style={styles.headerRightActions}>
-          <Pressable
-            onPress={toggleOpenStatus}
-            style={[
-              styles.openStatusPill,
-              profile.isOpenNow ? styles.openPillGreen : styles.openPillRed,
-            ]}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Toggle store open status"
-          >
-            <View
-              style={[
-                styles.statusDot,
-                profile.isOpenNow ? styles.statusDotGreen : styles.statusDotRed,
-              ]}
-            />
-            <Text
-              style={[
-                styles.openStatusText,
-                profile.isOpenNow ? styles.openTextGreen : styles.openTextRed,
-              ]}
-            >
-              {profile.isOpenNow ? 'Open' : 'Closed'}
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => router.push('/')}
-            style={({ pressed }) => [styles.exitBtn, pressed && styles.pressed]}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Switch to Foodie Customer Mode"
-          >
-            <Ionicons name="eye-outline" size={16} color="#000000" />
-            <Text style={styles.exitBtnText}>Foodie View</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      {/* iOS Segmented Navigation Bar */}
-      <View style={styles.navBarWrapper}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.navBarScroll}
+        <Pressable
+          onPress={toggleOpenStatus}
+          style={[
+            styles.openStatusPill,
+            profile.isOpenNow ? styles.openPillGreen : styles.openPillRed,
+          ]}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Toggle store open status"
         >
-          <Pressable
-            onPress={() => setActiveTab('overview')}
-            style={[styles.tabItem, activeTab === 'overview' && styles.tabItemActive]}
+          <View
+            style={[
+              styles.statusDot,
+              profile.isOpenNow ? styles.statusDotGreen : styles.statusDotRed,
+            ]}
+          />
+          <Text
+            style={[
+              styles.openStatusText,
+              profile.isOpenNow ? styles.openTextGreen : styles.openTextRed,
+            ]}
           >
-            <Ionicons
-              name={activeTab === 'overview' ? 'grid' : 'grid-outline'}
-              size={15}
-              color={activeTab === 'overview' ? '#D42F13' : '#8E8E93'}
-            />
-            <Text
-              style={[
-                styles.tabItemText,
-                activeTab === 'overview' && styles.tabItemTextActive,
-              ]}
-            >
-              Dashboard
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setActiveTab('products')}
-            style={[styles.tabItem, activeTab === 'products' && styles.tabItemActive]}
-          >
-            <Ionicons
-              name={activeTab === 'products' ? 'restaurant' : 'restaurant-outline'}
-              size={15}
-              color={activeTab === 'products' ? '#D42F13' : '#8E8E93'}
-            />
-            <Text
-              style={[
-                styles.tabItemText,
-                activeTab === 'products' && styles.tabItemTextActive,
-              ]}
-            >
-              Products ({products.length})
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setActiveTab('orders')}
-            style={[styles.tabItem, activeTab === 'orders' && styles.tabItemActive]}
-          >
-            <Ionicons
-              name={activeTab === 'orders' ? 'receipt' : 'receipt-outline'}
-              size={15}
-              color={activeTab === 'orders' ? '#D42F13' : '#8E8E93'}
-            />
-            <Text
-              style={[
-                styles.tabItemText,
-                activeTab === 'orders' && styles.tabItemTextActive,
-              ]}
-            >
-              Orders
-            </Text>
-            {newOrdersCount > 0 && (
-              <View style={styles.tabBadge}>
-                <Text style={styles.tabBadgeText}>{newOrdersCount}</Text>
-              </View>
-            )}
-          </Pressable>
-
-          <Pressable
-            onPress={() => setActiveTab('promote')}
-            style={[styles.tabItem, activeTab === 'promote' && styles.tabItemActive]}
-          >
-            <Ionicons
-              name={activeTab === 'promote' ? 'megaphone' : 'megaphone-outline'}
-              size={15}
-              color={activeTab === 'promote' ? '#D42F13' : '#8E8E93'}
-            />
-            <Text
-              style={[
-                styles.tabItemText,
-                activeTab === 'promote' && styles.tabItemTextActive,
-              ]}
-            >
-              Advertise & Reach
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setActiveTab('settings')}
-            style={[styles.tabItem, activeTab === 'settings' && styles.tabItemActive]}
-          >
-            <Ionicons
-              name={activeTab === 'settings' ? 'storefront' : 'storefront-outline'}
-              size={15}
-              color={activeTab === 'settings' ? '#D42F13' : '#8E8E93'}
-            />
-            <Text
-              style={[
-                styles.tabItemText,
-                activeTab === 'settings' && styles.tabItemTextActive,
-              ]}
-            >
-              Store Info
-            </Text>
-          </Pressable>
-        </ScrollView>
+            {profile.isOpenNow ? 'Open' : 'Closed'}
+          </Text>
+        </Pressable>
       </View>
 
+      {/* Main Scroll Content Area */}
       <ScrollView
         style={styles.mainScroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ================= TAB 1: OVERVIEW ================= */}
-        {activeTab === 'overview' && (
+        {/* ================= TAB 1: ORDERS ================= */}
+        {activeTab === 'orders' && (
           <View style={styles.tabContainer}>
-            {/* Today's Sales & Metrics Grid */}
-            <Text style={styles.sectionHeader}>TODAY&apos;S PERFORMANCE</Text>
-            <View style={styles.statsGrid}>
-              <View style={styles.statCard}>
-                <View style={styles.statIconCircle}>
-                  <Ionicons name="wallet-outline" size={17} color="#D42F13" />
-                </View>
-                <Text style={styles.statNumber}>₱{analytics.todayGrossSales.toLocaleString()}</Text>
-                <Text style={styles.statTitle}>Gross Sales</Text>
-              </View>
-
-              <View style={styles.statCard}>
-                <View style={[styles.statIconCircle, { backgroundColor: '#E3F2FD' }]}>
-                  <Ionicons name="receipt-outline" size={17} color="#1976D2" />
-                </View>
-                <Text style={styles.statNumber}>{storeOrders.length}</Text>
-                <Text style={styles.statTitle}>Orders Handled</Text>
-              </View>
-
-              <View style={styles.statCard}>
-                <View style={[styles.statIconCircle, { backgroundColor: '#E8F5E9' }]}>
-                  <Ionicons name="people-outline" size={17} color="#2E7D32" />
-                </View>
-                <Text style={styles.statNumber}>{analytics.weeklyCustomerReach.toLocaleString()}</Text>
-                <Text style={styles.statTitle}>Naga Foodie Views</Text>
-              </View>
-
-              <View style={styles.statCard}>
-                <View style={[styles.statIconCircle, { backgroundColor: '#FFF3E0' }]}>
-                  <Ionicons name="bookmark-outline" size={17} color="#E65100" />
-                </View>
-                <Text style={styles.statNumber}>{analytics.profileSaves}</Text>
-                <Text style={styles.statTitle}>Foodie Saves</Text>
-              </View>
+            {/* Filter Segmented Control */}
+            <View style={styles.filterSegmentContainer}>
+              {[
+                { id: 'all' as const, label: `All (${storeOrders.length})` },
+                { id: 'received' as const, label: `New (${newOrdersCount})` },
+                { id: 'preparing' as const, label: `Kitchen (${inKitchenCount})` },
+                { id: 'ready' as const, label: `Ready (${readyCount})` },
+              ].map((f) => {
+                const isActive = orderFilter === f.id;
+                return (
+                  <Pressable
+                    key={f.id}
+                    onPress={() => setOrderFilter(f.id)}
+                    style={[
+                      styles.filterSegmentBtn,
+                      isActive && styles.filterSegmentBtnActive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.filterSegmentText,
+                        isActive && styles.filterSegmentTextActive,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {f.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
 
-            {/* Quick Action Shortcuts */}
-            <Text style={styles.sectionHeader}>QUICK SHORTCUTS</Text>
-            <View style={styles.shortcutsRow}>
-              <Pressable
-                onPress={() => {
-                  setEditingProduct(null);
-                  setIsAddProductOpen(true);
-                }}
-                style={({ pressed }) => [styles.shortcutBtn, pressed && styles.pressed]}
-              >
-                <View style={styles.shortcutIconBg}>
-                  <Ionicons name="add" size={20} color="#FFFFFF" />
+            {/* Orders Queue */}
+            {displayedOrders.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <View style={styles.emptyIconBg}>
+                  <Ionicons name="receipt-outline" size={32} color="#8E8E93" />
                 </View>
-                <Text style={styles.shortcutLabel}>Add Dish</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => setIsCreatePromoOpen(true)}
-                style={({ pressed }) => [styles.shortcutBtn, pressed && styles.pressed]}
-              >
-                <View style={[styles.shortcutIconBg, { backgroundColor: '#1976D2' }]}>
-                  <Ionicons name="megaphone" size={17} color="#FFFFFF" />
-                </View>
-                <Text style={styles.shortcutLabel}>Launch Ad</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => setActiveTab('orders')}
-                style={({ pressed }) => [styles.shortcutBtn, pressed && styles.pressed]}
-              >
-                <View style={[styles.shortcutIconBg, { backgroundColor: '#2E7D32' }]}>
-                  <Ionicons name="flame" size={18} color="#FFFFFF" />
-                </View>
-                <Text style={styles.shortcutLabel}>Kitchen Queue</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={handleOpenEditProfile}
-                style={({ pressed }) => [styles.shortcutBtn, pressed && styles.pressed]}
-              >
-                <View style={[styles.shortcutIconBg, { backgroundColor: '#616161' }]}>
-                  <Ionicons name="time" size={18} color="#FFFFFF" />
-                </View>
-                <Text style={styles.shortcutLabel}>Store Hours</Text>
-              </Pressable>
-            </View>
-
-            {/* Active Promotion Broadcast Widget */}
-            {activePromotion && (
-              <>
-                <Text style={styles.sectionHeader}>LIVE PROMOTION IN NAGA DISCOVERY FEED</Text>
-                <View style={styles.livePromoCard}>
-                  <View style={styles.livePromoTop}>
-                    <View style={styles.livePromoBadge}>
-                      <Ionicons name="radio" size={12} color="#FFFFFF" />
-                      <Text style={styles.livePromoBadgeText}>BROADCASTING NOW</Text>
-                    </View>
-                    <Text style={styles.livePromoDistrict}>{activePromotion.targetDistrict}</Text>
-                  </View>
-                  <Text style={styles.livePromoTitle}>{activePromotion.title}</Text>
-                  <Text style={styles.livePromoDesc}>{activePromotion.description}</Text>
-
-                  <View style={styles.livePromoStats}>
-                    <View style={styles.promoStatItem}>
-                      <Text style={styles.promoStatNum}>{activePromotion.impressions.toLocaleString()}</Text>
-                      <Text style={styles.promoStatLbl}>Foodies Reached</Text>
-                    </View>
-                    <View style={styles.promoStatItem}>
-                      <Text style={styles.promoStatNum}>{activePromotion.clicks.toLocaleString()}</Text>
-                      <Text style={styles.promoStatLbl}>Menu Clicks</Text>
-                    </View>
-                    <View style={styles.promoStatItem}>
-                      <Text style={[styles.promoStatNum, { color: '#D42F13' }]}>
-                        {activePromotion.ordersDriven}
-                      </Text>
-                      <Text style={styles.promoStatLbl}>Orders Driven</Text>
-                    </View>
-                  </View>
-                </View>
-              </>
-            )}
-
-            {/* Rush Hours Distribution */}
-            <Text style={styles.sectionHeader}>PEAK RUSH HOURS IN NAGA</Text>
-            <View style={styles.insetCard}>
-              <View style={styles.rushHoursRow}>
-                {analytics.popularHours.map((h, i) => (
-                  <View key={i} style={styles.rushHourCol}>
-                    <View style={styles.rushBarContainer}>
-                      <View
-                        style={[
-                          styles.rushBarFill,
-                          {
-                            height: `${h.percentage}%`,
-                            backgroundColor:
-                              h.level === 'High'
-                                ? '#D42F13'
-                                : h.level === 'Medium'
-                                ? '#FF9500'
-                                : '#C7C7CC',
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.rushHourLabel}>{h.hour}</Text>
-                  </View>
+                <Text style={styles.emptyTitle}>No Orders in this View</Text>
+                <Text style={styles.emptySub}>
+                  When customers pre-order from {profile.name}, tickets appear here for kitchen prep.
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.ordersList}>
+                {displayedOrders.map((order) => (
+                  <BusinessOrderCard
+                    key={order.id}
+                    order={order}
+                    onUpdateStatus={updateOrderStatus}
+                    onCancelOrder={cancelOrder}
+                  />
                 ))}
               </View>
-              <Text style={styles.rushHourHint}>
-                Highest kitchen traffic: 12 PM (Lunch) &amp; 3 PM to 6 PM (Afternoon Merienda)
-              </Text>
-            </View>
-
-            {/* Pending Orders Alert */}
-            {newOrdersCount > 0 && (
-              <Pressable
-                onPress={() => setActiveTab('orders')}
-                style={({ pressed }) => [styles.pendingAlertCard, pressed && styles.pressed]}
-              >
-                <View style={styles.pendingAlertLeft}>
-                  <Ionicons name="notifications-circle" size={24} color="#D42F13" />
-                  <View>
-                    <Text style={styles.pendingAlertTitle}>
-                      {newOrdersCount} New Pre-Order{newOrdersCount > 1 ? 's' : ''} Waiting!
-                    </Text>
-                    <Text style={styles.pendingAlertSubtitle}>Tap to open kitchen queue and start preparing</Text>
-                  </View>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#D42F13" />
-              </Pressable>
             )}
           </View>
         )}
 
-        {/* ================= TAB 2: PRODUCTS ================= */}
-        {activeTab === 'products' && (
+        {/* ================= TAB 2: MENU & PRODUCTS ================= */}
+        {activeTab === 'menu' && (
           <View style={styles.tabContainer}>
-            <View style={styles.tabActionHeader}>
+            {/* Top Action Row */}
+            <View style={styles.menuHeaderRow}>
               <View>
-                <Text style={styles.tabMainTitle}>Menu &amp; Products</Text>
-                <Text style={styles.tabMainSubtitle}>
-                  Manage dishes, prices, signature items, and stock availability.
+                <Text style={styles.sectionHeading}>Dishes Offered</Text>
+                <Text style={styles.sectionSubheading}>
+                  {products.length} item{products.length === 1 ? '' : 's'} on your counter menu
                 </Text>
               </View>
 
@@ -482,31 +272,31 @@ export default function BusinessDashboardScreen() {
                   setEditingProduct(null);
                   setIsAddProductOpen(true);
                 }}
-                style={({ pressed }) => [styles.addBtnHeader, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.primaryActionBtn, pressed && styles.pressed]}
                 hitSlop={8}
               >
-                <Ionicons name="add" size={17} color="#FFFFFF" />
-                <Text style={styles.addBtnHeaderText}>Add Dish</Text>
+                <Ionicons name="add" size={16} color="#FFFFFF" />
+                <Text style={styles.primaryActionBtnText}>Add Dish</Text>
               </Pressable>
             </View>
 
             {/* Inset Group List */}
-            <View style={styles.productsInsetGroup}>
+            <View style={styles.insetGroup}>
               {products.map((prod, index) => {
                 const isLast = index === products.length - 1;
                 return (
                   <View
                     key={prod.id}
-                    style={[styles.productRow, isLast && styles.productRowLast]}
+                    style={[styles.productRow, isLast && styles.rowLast]}
                   >
                     <Image source={{ uri: prod.image }} style={styles.productThumb} />
 
                     <Pressable
-                      style={styles.productInfoCol}
+                      style={styles.productDetailsCol}
                       onPress={() => handleEditProductPress(prod)}
                     >
-                      <View style={styles.productTitleRow}>
-                        <Text style={styles.productNameText} numberOfLines={1}>
+                      <View style={styles.productTitleLine}>
+                        <Text style={styles.productName} numberOfLines={1}>
                           {prod.name}
                         </Text>
                         {prod.isSignature && (
@@ -517,19 +307,19 @@ export default function BusinessDashboardScreen() {
                       </View>
 
                       {prod.bikolName ? (
-                        <Text style={styles.productBikolText} numberOfLines={1}>
+                        <Text style={styles.productBikol} numberOfLines={1}>
                           {prod.bikolName}
                         </Text>
                       ) : null}
 
-                      <Text style={styles.productMetaText}>
+                      <Text style={styles.productMeta} numberOfLines={1}>
                         {prod.categoryLabel} · {prod.prepTime}
                       </Text>
 
-                      <Text style={styles.productPriceText}>₱{prod.price}</Text>
+                      <Text style={styles.productPrice}>₱{prod.price}</Text>
                     </Pressable>
 
-                    <View style={styles.productControlsCol}>
+                    <View style={styles.productActionsCol}>
                       <Switch
                         value={prod.inStock}
                         onValueChange={() => toggleProductStock(prod.id)}
@@ -538,7 +328,7 @@ export default function BusinessDashboardScreen() {
                       />
                       <Text
                         style={[
-                          styles.stockStatusLabel,
+                          styles.stockBadgeText,
                           prod.inStock ? styles.stockGreen : styles.stockRed,
                         ]}
                       >
@@ -547,10 +337,10 @@ export default function BusinessDashboardScreen() {
 
                       <Pressable
                         onPress={() => handleDeleteProductPress(prod)}
-                        style={({ pressed }) => [styles.trashIconBtn, pressed && styles.pressed]}
+                        style={({ pressed }) => [styles.trashBtn, pressed && styles.pressed]}
                         hitSlop={8}
                       >
-                        <Ionicons name="trash-outline" size={15} color="#8E8E93" />
+                        <Ionicons name="trash-outline" size={14} color="#8E8E93" />
                       </Pressable>
                     </View>
                   </View>
@@ -560,104 +350,43 @@ export default function BusinessDashboardScreen() {
           </View>
         )}
 
-        {/* ================= TAB 3: ORDERS ================= */}
-        {activeTab === 'orders' && (
-          <View style={styles.tabContainer}>
-            <View style={styles.tabActionHeader}>
-              <View>
-                <Text style={styles.tabMainTitle}>Live Kitchen Orders</Text>
-                <Text style={styles.tabMainSubtitle}>
-                  Receive pre-orders and advance order status for customer counter pickups.
-                </Text>
-              </View>
-            </View>
-
-            {/* Order Filter Tabs */}
-            <View style={styles.orderFilterRow}>
-              {[
-                { id: 'all', label: `All (${storeOrders.length})` },
-                { id: 'received', label: `New (${newOrdersCount})` },
-                { id: 'preparing', label: `Cooking (${inKitchenCount})` },
-                { id: 'ready', label: `Ready (${readyCount})` },
-              ].map((filter) => (
-                <Pressable
-                  key={filter.id}
-                  onPress={() => setOrderFilter(filter.id)}
-                  style={[
-                    styles.orderFilterPill,
-                    orderFilter === filter.id && styles.orderFilterPillActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.orderFilterText,
-                      orderFilter === filter.id && styles.orderFilterTextActive,
-                    ]}
-                  >
-                    {filter.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-
-            {displayedOrders.length === 0 ? (
-              <View style={styles.emptyOrdersCard}>
-                <Ionicons name="restaurant-outline" size={36} color="#8E8E93" />
-                <Text style={styles.emptyOrdersTitle}>No active tickets in this view</Text>
-                <Text style={styles.emptyOrdersSub}>
-                  When foodies place pre-orders through Naga Food, tickets appear here instantly.
-                </Text>
-              </View>
-            ) : (
-              displayedOrders.map((order) => (
-                <BusinessOrderCard
-                  key={order.id}
-                  order={order}
-                  onUpdateStatus={updateOrderStatus}
-                  onCancelOrder={cancelOrder}
-                />
-              ))
-            )}
-          </View>
-        )}
-
-        {/* ================= TAB 4: PROMOTE & ADVERTISE ================= */}
+        {/* ================= TAB 3: PROMOTE & ADVERTISE ================= */}
         {activeTab === 'promote' && (
           <View style={styles.tabContainer}>
-            <View style={styles.tabActionHeader}>
+            {/* Header & Launch Button */}
+            <View style={styles.menuHeaderRow}>
               <View>
-                <Text style={styles.tabMainTitle}>Advertise &amp; Reach</Text>
-                <Text style={styles.tabMainSubtitle}>
-                  Reach hungry Naga foodies with flash deals and featured spotlights.
+                <Text style={styles.sectionHeading}>Promote in Naga</Text>
+                <Text style={styles.sectionSubheading}>
+                  Broadcast special deals to foodies browsing Naga Food
                 </Text>
               </View>
 
               <Pressable
                 onPress={() => setIsCreatePromoOpen(true)}
-                style={({ pressed }) => [styles.addBtnHeader, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.primaryActionBtn, pressed && styles.pressed]}
                 hitSlop={8}
               >
                 <Ionicons name="megaphone" size={15} color="#FFFFFF" />
-                <Text style={styles.addBtnHeaderText}>Launch Ad</Text>
+                <Text style={styles.primaryActionBtnText}>Launch Ad</Text>
               </Pressable>
             </View>
 
-            {/* Reach Audience Explainer Card */}
-            <View style={styles.reachHeroCard}>
-              <View style={styles.reachHeroIconWrap}>
-                <Ionicons name="location" size={24} color="#D42F13" />
+            {/* Audience Info Card */}
+            <View style={styles.promoAudienceCard}>
+              <View style={styles.promoAudienceIcon}>
+                <Ionicons name="people" size={20} color="#D42F13" />
               </View>
-              <View style={styles.reachHeroTextCol}>
-                <Text style={styles.reachHeroHeading}>How Advertising Works on Naga Food</Text>
-                <Text style={styles.reachHeroDesc}>
-                  Your active promotional campaigns are broadcast directly onto the Home &amp; Categories
-                  feed for users within Naga City, allowing foodies to tap and pre-order immediately.
+              <View style={styles.promoAudienceTextCol}>
+                <Text style={styles.promoAudienceTitle}>Direct Reach Across Naga City</Text>
+                <Text style={styles.promoAudienceDesc}>
+                  Active promotions appear at the top of the Discover &amp; Categories feeds. Foodies can tap and order immediately for counter pickup.
                 </Text>
               </View>
             </View>
 
-            {/* Campaigns List */}
-            <Text style={styles.sectionHeader}>CAMPAIGNS ({promotions.length})</Text>
+            {/* Active Campaigns List */}
+            <Text style={styles.sectionDividerLabel}>YOUR CAMPAIGNS ({promotions.length})</Text>
             {promotions.map((campaign) => (
               <PromotionCard
                 key={campaign.id}
@@ -669,59 +398,85 @@ export default function BusinessDashboardScreen() {
           </View>
         )}
 
-        {/* ================= TAB 5: SETTINGS ================= */}
-        {activeTab === 'settings' && (
+        {/* ================= TAB 4: STORE & ANALYTICS ================= */}
+        {activeTab === 'store' && (
           <View style={styles.tabContainer}>
-            <View style={styles.tabActionHeader}>
-              <View>
-                <Text style={styles.tabMainTitle}>Store &amp; Business Profile</Text>
-                <Text style={styles.tabMainSubtitle}>
-                  Operating hours, contact hotline, location, and establishment info.
-                </Text>
-              </View>
-
-              <Pressable
-                onPress={handleOpenEditProfile}
-                style={({ pressed }) => [styles.editStoreBtn, pressed && styles.pressed]}
-                hitSlop={8}
-              >
-                <Ionicons name="pencil" size={14} color="#111111" />
-                <Text style={styles.editStoreBtnText}>Edit Details</Text>
-              </Pressable>
-            </View>
-
-            {/* Store Profile Card */}
-            <View style={styles.storeProfileCard}>
-              <Image source={{ uri: profile.heroImage }} style={styles.storeHeroImg} />
-              <View style={styles.storeCardBody}>
-                <Text style={styles.storeCardTitle}>{profile.name}</Text>
-                <Text style={styles.storeCardType}>
+            {/* Store Hero Card */}
+            <View style={styles.storeHeroCard}>
+              <Image source={{ uri: profile.heroImage }} style={styles.storeHeroImage} />
+              <View style={styles.storeHeroContent}>
+                <View style={styles.storeHeroTitleRow}>
+                  <Text style={styles.storeHeroTitle}>{profile.name}</Text>
+                  <Pressable
+                    onPress={handleOpenEditProfile}
+                    style={({ pressed }) => [styles.editProfilePill, pressed && styles.pressed]}
+                    hitSlop={8}
+                  >
+                    <Ionicons name="pencil" size={13} color="#000000" />
+                    <Text style={styles.editProfilePillText}>Edit</Text>
+                  </Pressable>
+                </View>
+                <Text style={styles.storeHeroSub}>
                   {profile.typeLabel} · {profile.neighborhood}
                 </Text>
-                <Text style={styles.storeCardDesc}>{profile.description}</Text>
-
-                <View style={styles.storeInfoDivider} />
-
-                <View style={styles.storeMetaRow}>
-                  <Ionicons name="location-outline" size={16} color="#D42F13" />
-                  <Text style={styles.storeMetaText}>{profile.address}</Text>
-                </View>
-
-                <View style={styles.storeMetaRow}>
-                  <Ionicons name="time-outline" size={16} color="#2E7D32" />
-                  <Text style={styles.storeMetaText}>{profile.openingHours}</Text>
-                </View>
-
-                <View style={styles.storeMetaRow}>
-                  <Ionicons name="call-outline" size={16} color="#1976D2" />
-                  <Text style={styles.storeMetaText}>{profile.contactNumber}</Text>
-                </View>
+                <Text style={styles.storeHeroDesc}>{profile.description}</Text>
               </View>
             </View>
 
-            {/* Switch Active Establishment */}
-            <Text style={styles.sectionHeader}>SWITCH MANAGED RESTAURANT / STALL</Text>
-            <View style={styles.insetCard}>
+            {/* Today's Metrics (Clean 2x2 Grid) */}
+            <Text style={styles.sectionDividerLabel}>TODAY&apos;S OVERVIEW</Text>
+            <View style={styles.storeStatsGrid}>
+              <View style={styles.storeStatTile}>
+                <Text style={styles.storeStatNumber}>₱{analytics.todayGrossSales.toLocaleString()}</Text>
+                <Text style={styles.storeStatLabel}>Gross Sales Today</Text>
+              </View>
+              <View style={styles.storeStatTile}>
+                <Text style={styles.storeStatNumber}>{storeOrders.length}</Text>
+                <Text style={styles.storeStatLabel}>Pre-Orders Handled</Text>
+              </View>
+              <View style={styles.storeStatTile}>
+                <Text style={styles.storeStatNumber}>{analytics.weeklyCustomerReach.toLocaleString()}</Text>
+                <Text style={styles.storeStatLabel}>Foodie Views</Text>
+              </View>
+              <View style={styles.storeStatTile}>
+                <Text style={styles.storeStatNumber}>{analytics.profileSaves}</Text>
+                <Text style={styles.storeStatLabel}>Customer Bookmarks</Text>
+              </View>
+            </View>
+
+            {/* Store Information Details Inset */}
+            <Text style={styles.sectionDividerLabel}>STORE DETAILS</Text>
+            <View style={styles.insetGroup}>
+              <View style={styles.storeDetailRow}>
+                <View style={styles.storeDetailLeft}>
+                  <Ionicons name="time-outline" size={17} color="#2E7D32" />
+                  <Text style={styles.storeDetailLabel}>Operating Hours</Text>
+                </View>
+                <Text style={styles.storeDetailValue}>{profile.openingHours}</Text>
+              </View>
+
+              <View style={styles.storeDetailRow}>
+                <View style={styles.storeDetailLeft}>
+                  <Ionicons name="location-outline" size={17} color="#D42F13" />
+                  <Text style={styles.storeDetailLabel}>Address</Text>
+                </View>
+                <Text style={styles.storeDetailValue} numberOfLines={2}>
+                  {profile.address}
+                </Text>
+              </View>
+
+              <View style={[styles.storeDetailRow, styles.rowLast]}>
+                <View style={styles.storeDetailLeft}>
+                  <Ionicons name="call-outline" size={17} color="#1976D2" />
+                  <Text style={styles.storeDetailLabel}>Contact Hotline</Text>
+                </View>
+                <Text style={styles.storeDetailValue}>{profile.contactNumber}</Text>
+              </View>
+            </View>
+
+            {/* Switch Managed Establishment */}
+            <Text style={styles.sectionDividerLabel}>SWITCH ACTIVE RESTAURANT / STALL</Text>
+            <View style={styles.insetGroup}>
               {ESTABLISHMENTS.map((est, idx) => {
                 const isSelected = est.id === profile.id;
                 const isLast = idx === ESTABLISHMENTS.length - 1;
@@ -729,24 +484,24 @@ export default function BusinessDashboardScreen() {
                   <Pressable
                     key={est.id}
                     onPress={() => switchEstablishment(est.id)}
-                    style={[styles.switchEstRow, isLast && styles.switchEstRowLast]}
+                    style={[styles.switchRow, isLast && styles.rowLast]}
                   >
-                    <Image source={{ uri: est.heroImage }} style={styles.switchEstThumb} />
-                    <View style={styles.switchEstMeta}>
+                    <Image source={{ uri: est.heroImage }} style={styles.switchThumb} />
+                    <View style={styles.switchMeta}>
                       <Text
                         style={[
-                          styles.switchEstName,
-                          isSelected && styles.switchEstNameActive,
+                          styles.switchName,
+                          isSelected && styles.switchNameActive,
                         ]}
                       >
                         {est.name}
                       </Text>
-                      <Text style={styles.switchEstSub}>{est.typeLabel} · {est.neighborhood}</Text>
+                      <Text style={styles.switchSub}>{est.typeLabel} · {est.neighborhood}</Text>
                     </View>
                     {isSelected ? (
                       <Ionicons name="checkmark-circle" size={20} color="#D42F13" />
                     ) : (
-                      <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+                      <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
                     )}
                   </Pressable>
                 );
@@ -754,9 +509,14 @@ export default function BusinessDashboardScreen() {
             </View>
           </View>
         )}
-
-        <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* Floating Signature Mobile Bottom Navigation Bar */}
+      <BusinessNavBar
+        currentTab={activeTab}
+        onSelectTab={setActiveTab}
+        ordersBadgeCount={newOrdersCount}
+      />
 
       {/* Modals */}
       <AddProductModal
@@ -817,7 +577,7 @@ export default function BusinessDashboardScreen() {
               contentContainerStyle={styles.modalContent}
               keyboardDismissMode="on-drag"
             >
-              <Text style={styles.groupHeader}>BUSINESS DETAILS</Text>
+              <Text style={styles.modalSectionLabel}>BUSINESS DETAILS</Text>
               <View style={styles.modalInsetGroup}>
                 <View style={styles.modalInputRow}>
                   <Text style={styles.modalLabel}>Store Name</Text>
@@ -846,7 +606,7 @@ export default function BusinessDashboardScreen() {
                   />
                 </View>
 
-                <View style={[styles.modalInputRow, styles.inputRowLast]}>
+                <View style={[styles.modalInputRow, styles.rowLast]}>
                   <Text style={styles.modalLabel}>Operating Hours</Text>
                   <TextInput
                     style={styles.modalTextInput}
@@ -856,7 +616,7 @@ export default function BusinessDashboardScreen() {
                 </View>
               </View>
 
-              <Text style={styles.groupHeader}>STORY &amp; DESCRIPTION</Text>
+              <Text style={styles.modalSectionLabel}>STORY &amp; DESCRIPTION</Text>
               <View style={styles.modalInsetGroup}>
                 <View style={styles.modalTextAreaRow}>
                   <TextInput
@@ -891,40 +651,39 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(60, 60, 67, 0.2)',
   },
-  storeMetaCol: {
-    flex: 1,
-    paddingRight: 10,
-  },
-  storeNameRow: {
+  exitBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 2,
+    paddingVertical: 4,
+    paddingRight: 8,
   },
-  storeName: {
-    fontSize: 18,
+  exitBtnText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#000000',
+  },
+  headerCenterCol: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  headerScreenTitle: {
+    fontSize: 16,
     fontWeight: '700',
     color: '#000000',
-    letterSpacing: -0.2,
   },
-  verifiedPartnerBadge: {
-    paddingTop: 1,
-  },
-  storeTypeSubhead: {
-    fontSize: 12,
+  headerStoreSubhead: {
+    fontSize: 11,
     color: 'rgba(60, 60, 67, 0.6)',
     marginTop: 1,
-  },
-  headerRightActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
   },
   openStatusPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingHorizontal: 9,
-    paddingVertical: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 8,
   },
   openPillGreen: {
@@ -954,310 +713,118 @@ const styles = StyleSheet.create({
   openTextRed: {
     color: '#C62828',
   },
-  exitBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#F2F2F7',
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    borderRadius: 8,
-  },
-  exitBtnText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  navBarWrapper: {
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
-  },
-  navBarScroll: {
-    flexDirection: 'row',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 6,
-  },
-  tabItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 18,
-    backgroundColor: '#F2F2F7',
-  },
-  tabItemActive: {
-    backgroundColor: '#1C1C1E',
-  },
-  tabItemText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(60, 60, 67, 0.8)',
-  },
-  tabItemTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  tabBadge: {
-    backgroundColor: '#D42F13',
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 3,
-  },
-  tabBadgeText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
   mainScroll: {
     flex: 1,
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 130, // Generous padding ensures content is never covered by floating bottom navbar
   },
   tabContainer: {
-    gap: 8,
+    gap: 12,
   },
-  sectionHeader: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(60, 60, 67, 0.6)',
-    letterSpacing: -0.08,
-    marginTop: 10,
-    marginBottom: 6,
-    paddingHorizontal: 4,
-  },
-  statsGrid: {
+  filterSegmentContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 10,
+    backgroundColor: 'rgba(118, 118, 128, 0.12)',
+    borderRadius: 10,
+    padding: 3,
+    marginBottom: 4,
   },
-  statCard: {
-    width: '48.5%',
+  filterSegmentBtn: {
+    flex: 1,
+    paddingVertical: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+  },
+  filterSegmentBtnActive: {
+    backgroundColor: '#FFFFFF',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+      } as any,
+      default: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 1,
+      },
+    }),
+  },
+  filterSegmentText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(60, 60, 67, 0.7)',
+  },
+  filterSegmentTextActive: {
+    fontWeight: '700',
+    color: '#000000',
+  },
+  ordersList: {
+    gap: 12,
+  },
+  emptyCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 14,
+    padding: 36,
+    alignItems: 'center',
+    marginTop: 20,
     borderWidth: 0.5,
     borderColor: 'rgba(60, 60, 67, 0.15)',
   },
-  statIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(212, 47, 19, 0.10)',
+  emptyIconBg: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  statNumber: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000000',
-    marginBottom: 2,
-  },
-  statTitle: {
-    fontSize: 12,
-    color: 'rgba(60, 60, 67, 0.6)',
-  },
-  shortcutsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    marginBottom: 10,
-    borderWidth: 0.5,
-    borderColor: 'rgba(60, 60, 67, 0.15)',
-  },
-  shortcutBtn: {
-    alignItems: 'center',
-    width: '23%',
-  },
-  shortcutIconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#D42F13',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  shortcutLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#000000',
-    textAlign: 'center',
-  },
-  livePromoCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(212, 47, 19, 0.3)',
-    marginBottom: 10,
-  },
-  livePromoTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  livePromoBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#D42F13',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  livePromoBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  livePromoDistrict: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#D42F13',
-  },
-  livePromoTitle: {
+  emptyTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#000000',
     marginBottom: 4,
   },
-  livePromoDesc: {
+  emptySub: {
     fontSize: 13,
-    lineHeight: 18,
-    color: 'rgba(60, 60, 67, 0.7)',
-    marginBottom: 12,
-  },
-  livePromoStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#F2F2F7',
-    borderRadius: 12,
-    paddingVertical: 8,
-  },
-  promoStatItem: {
-    alignItems: 'center',
-  },
-  promoStatNum: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  promoStatLbl: {
-    fontSize: 10,
-    color: 'rgba(60, 60, 67, 0.6)',
-  },
-  insetCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 10,
-    borderWidth: 0.5,
-    borderColor: 'rgba(60, 60, 67, 0.15)',
-  },
-  rushHoursRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-around',
-    height: 100,
-    marginBottom: 12,
-  },
-  rushHourCol: {
-    alignItems: 'center',
-    width: 36,
-  },
-  rushBarContainer: {
-    width: 14,
-    height: 75,
-    backgroundColor: '#F2F2F7',
-    borderRadius: 7,
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
-    marginBottom: 6,
-  },
-  rushBarFill: {
-    width: '100%',
-    borderRadius: 7,
-  },
-  rushHourLabel: {
-    fontSize: 11,
-    color: 'rgba(60, 60, 67, 0.6)',
-  },
-  rushHourHint: {
-    fontSize: 12,
     color: 'rgba(60, 60, 67, 0.6)',
     textAlign: 'center',
+    lineHeight: 18,
   },
-  pendingAlertCard: {
+  menuHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(212, 47, 19, 0.25)',
+    marginBottom: 4,
   },
-  pendingAlertLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1,
-  },
-  pendingAlertTitle: {
-    fontSize: 15,
+  sectionHeading: {
+    fontSize: 18,
     fontWeight: '700',
     color: '#000000',
   },
-  pendingAlertSubtitle: {
+  sectionSubheading: {
     fontSize: 12,
     color: 'rgba(60, 60, 67, 0.6)',
     marginTop: 1,
   },
-  tabActionHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  tabMainTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  tabMainSubtitle: {
-    fontSize: 13,
-    color: 'rgba(60, 60, 67, 0.6)',
-    marginTop: 2,
-    maxWidth: 240,
-  },
-  addBtnHeader: {
+  primaryActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#D42F13',
-    paddingHorizontal: 12,
+    gap: 5,
+    backgroundColor: IOSTokens.colors.tint,
+    paddingHorizontal: 13,
     paddingVertical: 8,
     borderRadius: 10,
   },
-  addBtnHeaderText: {
+  primaryActionBtnText: {
     fontSize: 13,
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  productsInsetGroup: {
+  insetGroup: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     overflow: 'hidden',
@@ -1267,67 +834,68 @@ const styles = StyleSheet.create({
   productRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(60, 60, 67, 0.15)',
   },
-  productRowLast: {
+  rowLast: {
     borderBottomWidth: 0,
   },
   productThumb: {
-    width: 60,
-    height: 60,
+    width: 58,
+    height: 58,
     borderRadius: 12,
     backgroundColor: '#F2F2F7',
     marginRight: 12,
   },
-  productInfoCol: {
+  productDetailsCol: {
     flex: 1,
-    paddingRight: 10,
+    paddingRight: 8,
   },
-  productTitleRow: {
+  productTitleLine: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     marginBottom: 2,
   },
-  productNameText: {
+  productName: {
     fontSize: 15,
     fontWeight: '600',
     color: '#000000',
   },
   signatureBadge: {
-    backgroundColor: '#D42F13',
+    backgroundColor: IOSTokens.colors.tint,
     paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 4,
   },
   signatureBadgeText: {
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  productBikolText: {
+  productBikol: {
     fontSize: 12,
-    color: '#D42F13',
+    color: IOSTokens.colors.tint,
     fontStyle: 'italic',
     marginBottom: 2,
   },
-  productMetaText: {
-    fontSize: 12,
+  productMeta: {
+    fontSize: 11,
     color: 'rgba(60, 60, 67, 0.6)',
     marginBottom: 4,
   },
-  productPriceText: {
-    fontSize: 15,
+  productPrice: {
+    fontSize: 14,
     fontWeight: '700',
     color: '#000000',
   },
-  productControlsCol: {
+  productActionsCol: {
     alignItems: 'flex-end',
-    gap: 4,
+    gap: 3,
   },
-  stockStatusLabel: {
+  stockBadgeText: {
     fontSize: 11,
     fontWeight: '600',
   },
@@ -1337,189 +905,181 @@ const styles = StyleSheet.create({
   stockRed: {
     color: '#C62828',
   },
-  trashIconBtn: {
+  trashBtn: {
     padding: 4,
-    marginTop: 4,
+    marginTop: 2,
   },
-  orderFilterRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
-  },
-  orderFilterPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 0.5,
-    borderColor: 'rgba(60, 60, 67, 0.15)',
-  },
-  orderFilterPillActive: {
-    backgroundColor: '#1C1C1E',
-  },
-  orderFilterText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(60, 60, 67, 0.8)',
-  },
-  orderFilterTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  emptyOrdersCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 0.5,
-    borderColor: 'rgba(60, 60, 67, 0.15)',
-  },
-  emptyOrdersTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  emptyOrdersSub: {
-    fontSize: 13,
-    color: 'rgba(60, 60, 67, 0.6)',
-    textAlign: 'center',
-    maxWidth: 260,
-  },
-  reachHeroCard: {
+  promoAudienceCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
     backgroundColor: 'rgba(212, 47, 19, 0.08)',
     borderRadius: 16,
-    padding: 16,
-    marginBottom: 14,
+    padding: 14,
     borderWidth: 1,
-    borderColor: 'rgba(212, 47, 19, 0.18)',
+    borderColor: 'rgba(212, 47, 19, 0.2)',
   },
-  reachHeroIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  promoAudienceIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  reachHeroTextCol: {
+  promoAudienceTextCol: {
     flex: 1,
   },
-  reachHeroHeading: {
-    fontSize: 15,
+  promoAudienceTitle: {
+    fontSize: 14,
     fontWeight: '700',
     color: '#000000',
-    marginBottom: 4,
+    marginBottom: 3,
   },
-  reachHeroDesc: {
+  promoAudienceDesc: {
     fontSize: 12,
     lineHeight: 17,
     color: 'rgba(60, 60, 67, 0.8)',
   },
-  editStoreBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 10,
-    borderWidth: 0.5,
-    borderColor: 'rgba(60, 60, 67, 0.2)',
-  },
-  editStoreBtnText: {
-    fontSize: 13,
+  sectionDividerLabel: {
+    fontSize: 12,
     fontWeight: '600',
-    color: '#000000',
+    color: 'rgba(60, 60, 67, 0.6)',
+    letterSpacing: -0.08,
+    marginTop: 8,
+    marginBottom: 4,
+    paddingHorizontal: 4,
   },
-  storeProfileCard: {
+  storeHeroCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     overflow: 'hidden',
-    marginBottom: 14,
     borderWidth: 0.5,
     borderColor: 'rgba(60, 60, 67, 0.15)',
   },
-  storeHeroImg: {
+  storeHeroImage: {
     width: '100%',
-    height: 140,
+    height: 130,
     backgroundColor: '#F2F2F7',
   },
-  storeCardBody: {
-    padding: 16,
+  storeHeroContent: {
+    padding: 14,
   },
-  storeCardTitle: {
+  storeHeroTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  storeHeroTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  editProfilePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F2F2F7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  editProfilePillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  storeHeroSub: {
+    fontSize: 13,
+    color: IOSTokens.colors.tint,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  storeHeroDesc: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: 'rgba(60, 60, 67, 0.7)',
+  },
+  storeStatsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  storeStatTile: {
+    width: '48.5%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 0.5,
+    borderColor: 'rgba(60, 60, 67, 0.15)',
+  },
+  storeStatNumber: {
     fontSize: 18,
     fontWeight: '700',
     color: '#000000',
     marginBottom: 2,
   },
-  storeCardType: {
-    fontSize: 13,
-    color: '#D42F13',
-    fontWeight: '500',
-    marginBottom: 8,
+  storeStatLabel: {
+    fontSize: 11,
+    color: 'rgba(60, 60, 67, 0.6)',
   },
-  storeCardDesc: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: 'rgba(60, 60, 67, 0.7)',
-    marginBottom: 12,
-  },
-  storeInfoDivider: {
-    height: 0.5,
-    backgroundColor: 'rgba(60, 60, 67, 0.15)',
-    marginBottom: 12,
-  },
-  storeMetaRow: {
+  storeDetailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  storeMetaText: {
-    fontSize: 13,
-    color: '#000000',
-    flex: 1,
-  },
-  switchEstRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
     paddingVertical: 12,
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(60, 60, 67, 0.15)',
   },
-  switchEstRowLast: {
-    borderBottomWidth: 0,
+  storeDetailLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  switchEstThumb: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
+  storeDetailLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#000000',
+  },
+  storeDetailValue: {
+    fontSize: 13,
+    color: 'rgba(60, 60, 67, 0.7)',
+    maxWidth: 180,
+    textAlign: 'right',
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
+  },
+  switchThumb: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
     backgroundColor: '#F2F2F7',
-    marginRight: 12,
+    marginRight: 10,
   },
-  switchEstMeta: {
+  switchMeta: {
     flex: 1,
   },
-  switchEstName: {
-    fontSize: 15,
+  switchName: {
+    fontSize: 14,
     fontWeight: '600',
     color: '#000000',
     marginBottom: 2,
   },
-  switchEstNameActive: {
-    color: '#D42F13',
+  switchNameActive: {
+    color: IOSTokens.colors.tint,
   },
-  switchEstSub: {
-    fontSize: 12,
+  switchSub: {
+    fontSize: 11,
     color: 'rgba(60, 60, 67, 0.6)',
-  },
-  bottomSpacer: {
-    height: 60,
   },
   pressed: {
     opacity: 0.6,
@@ -1540,7 +1100,7 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 34 : 20,
     ...Platform.select({
       web: {
-        maxWidth: 600,
+        maxWidth: 550,
         width: '100%',
         alignSelf: 'center',
       } as any,
@@ -1563,18 +1123,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   modalCancelText: {
-    fontSize: 17,
+    fontSize: 16,
     color: '#8E8E93',
   },
   modalTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '600',
     color: '#000000',
   },
   modalSaveText: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#D42F13',
+    color: IOSTokens.colors.tint,
   },
   modalBody: {
     flex: 1,
@@ -1582,7 +1142,7 @@ const styles = StyleSheet.create({
   modalContent: {
     padding: 16,
   },
-  groupHeader: {
+  modalSectionLabel: {
     fontSize: 12,
     fontWeight: '600',
     color: 'rgba(60, 60, 67, 0.6)',
@@ -1605,29 +1165,26 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(60, 60, 67, 0.15)',
   },
-  inputRowLast: {
-    borderBottomWidth: 0,
-  },
   modalLabel: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#000000',
-    width: 130,
+    width: 120,
   },
   modalTextInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     color: '#000000',
     textAlign: 'right',
     padding: 0,
   },
   modalTextAreaRow: {
-    padding: 16,
+    padding: 14,
   },
   modalTextArea: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#000000',
     lineHeight: 20,
-    minHeight: 80,
+    minHeight: 70,
     padding: 0,
   },
 });
