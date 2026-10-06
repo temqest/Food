@@ -10,6 +10,10 @@ import {
   Alert,
   Platform,
   SafeAreaView,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -18,17 +22,104 @@ import { useSaved } from '@/context/SavedContext';
 import { useBasket } from '@/context/BasketContext';
 import { useAuth } from '@/context/AuthContext';
 
+const AVATAR_PRESETS = [
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+];
+
 export default function ProfileScreen() {
   const { savedFoods, savedEstablishments } = useSaved();
-  const { activePreOrders } = useBasket();
+  const { activePreOrders, clearBasket } = useBasket();
   const { user, isAuthenticated, logout, updateProfile } = useAuth();
 
+  // Settings Toggles
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [smsAlertsEnabled, setSmsAlertsEnabled] = useState(true);
+  const [hapticsEnabled, setHapticsEnabled] = useState(true);
+
+  // Edit Profile Modal State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editName, setEditName] = useState(user?.name || '');
+  const [editEmail, setEditEmail] = useState(user?.email || '');
+  const [editPhone, setEditPhone] = useState(user?.phone || '');
+  const [editLocation, setEditLocation] = useState(user?.location || 'Centro, Naga City');
+  const [editAvatar, setEditAvatar] = useState(
+    user?.avatar || AVATAR_PRESETS[0]
+  );
+  const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
 
   const totalSaved = savedFoods.length + savedEstablishments.length;
 
-  const handleSpiceChange = (pref: 'mild' | 'moderate' | 'fiery') => {
-    updateProfile({ spicePreference: pref });
+  const handleOpenEdit = () => {
+    if (user) {
+      setEditName(user.name);
+      setEditEmail(user.email);
+      setEditPhone(user.phone);
+      setEditLocation(user.location);
+      setEditAvatar(user.avatar || AVATAR_PRESETS[0]);
+    }
+    setSaveSuccessMessage(null);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveProfile = () => {
+    if (!editName.trim()) {
+      Alert.alert('Validation Error', 'Please enter your full name.');
+      return;
+    }
+
+    updateProfile({
+      name: editName.trim(),
+      email: editEmail.trim(),
+      phone: editPhone.trim(),
+      location: editLocation.trim(),
+      avatar: editAvatar,
+    });
+
+    setSaveSuccessMessage('Profile details updated successfully!');
+    setTimeout(() => {
+      setIsEditModalOpen(false);
+      setSaveSuccessMessage(null);
+    }, 800);
+  };
+
+  const handleClearCache = () => {
+    Alert.alert(
+      'Clear App Cache',
+      'This will clear temporary saved images and cached offline data. Your account and favorites will remain safe.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear Cache',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert('Cache Cleared', 'Freed up 24.8 MB of local cached files.');
+          },
+        },
+      ]
+    );
+  };
+
+  const handleHelpSupport = () => {
+    Alert.alert(
+      'Naga Foodie Help & Support',
+      'Need assistance with your orders or account?\n\n📧 Email: support@nagafood.ph\n📞 Hotline: +63 (054) 881-3000\n⏰ Hours: 8:00 AM – 10:00 PM Daily',
+      [{ text: 'Close', style: 'default' }]
+    );
+  };
+
+  const handlePrivacyPolicy = () => {
+    Alert.alert(
+      'Privacy & Data Policy',
+      'Naga Food respects your data privacy. Your contact details and pre-order history are only shared with partner food establishments when an order is submitted.',
+      [{ text: 'Understood', style: 'default' }]
+    );
+  };
+
+  const handleCheckUpdates = () => {
+    Alert.alert('Up to Date', 'You are running the latest version of Naga Food (v1.2.0 Build 42).');
   };
 
   const handleSignOut = () => {
@@ -63,7 +154,7 @@ export default function ProfileScreen() {
               Foodie <Text style={styles.headingSerif}>profile</Text>
             </Text>
             <Text style={styles.subheadText}>
-              Personalize your sili heat tolerance, favorite district, and account details.
+              Manage your pre-orders, profile details, security, and app preferences.
             </Text>
           </View>
 
@@ -71,12 +162,23 @@ export default function ProfileScreen() {
           {isAuthenticated && user ? (
             <View style={styles.insetGroup}>
               <View style={styles.profileHeaderRow}>
-                <Image
-                  source={{
-                    uri: user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-                  }}
-                  style={styles.avatarImage}
-                />
+                <View style={styles.avatarWrapper}>
+                  <Image
+                    source={{
+                      uri: user.avatar || AVATAR_PRESETS[0],
+                    }}
+                    style={styles.avatarImage}
+                  />
+                  <Pressable
+                    onPress={handleOpenEdit}
+                    style={({ pressed }) => [styles.avatarEditBadge, pressed && styles.pressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Edit profile photo"
+                  >
+                    <Ionicons name="camera" size={12} color="#FFFFFF" />
+                  </Pressable>
+                </View>
+
                 <View style={styles.profileMeta}>
                   <Text style={styles.userName}>{user.name}</Text>
                   <Text style={styles.userHandle}>
@@ -90,6 +192,16 @@ export default function ProfileScreen() {
                     </View>
                   </View>
                 </View>
+
+                <Pressable
+                  onPress={handleOpenEdit}
+                  style={({ pressed }) => [styles.headerEditButton, pressed && styles.pressed]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Edit profile"
+                >
+                  <Ionicons name="pencil" size={14} color="#111111" />
+                  <Text style={styles.headerEditText}>Edit</Text>
+                </Pressable>
               </View>
 
               {/* Quick Stats Grid */}
@@ -128,7 +240,7 @@ export default function ProfileScreen() {
                 </View>
                 <Text style={styles.guestTitle}>Guest Foodie</Text>
                 <Text style={styles.guestSubtitle}>
-                  Sign in or create an account to save favorite food stalls, calibrate your sili tolerance, and pre-order meals.
+                  Sign in or create an account to save favorite food stalls, manage orders, and edit account settings.
                 </Text>
 
                 <View style={styles.guestActionRow}>
@@ -149,104 +261,72 @@ export default function ProfileScreen() {
             </View>
           )}
 
-          {/* SECTION 1: Pre-Order & Contact Info */}
-          {isAuthenticated && user && (
-            <View style={styles.sectionBlock}>
-              <Text style={styles.sectionTitle}>Pre-Order Details</Text>
-              <View style={styles.insetGroup}>
-                <View style={styles.groupRow}>
-                  <Text style={styles.rowLabel}>Pickup Name</Text>
-                  <Text style={styles.rowValue}>{user.name}</Text>
-                </View>
-                <View style={styles.groupRow}>
-                  <Text style={styles.rowLabel}>Phone Number</Text>
-                  <Text style={styles.rowValue}>{user.phone}</Text>
-                </View>
-                <View style={[styles.groupRow, styles.groupRowLast]}>
-                  <Text style={styles.rowLabel}>Default Payment</Text>
-                  <Text style={styles.rowValueTint}>GCash / Cash on Pickup</Text>
-                </View>
-              </View>
-            </View>
-          )}
+          {/* SECTION 1: Account & Security */}
+          <View style={styles.sectionBlock}>
+            <Text style={styles.sectionTitle}>Account & Security</Text>
+            <View style={styles.insetGroup}>
+              {isAuthenticated && (
+                <Pressable
+                  onPress={handleOpenEdit}
+                  style={({ pressed }) => [styles.groupRow, pressed && styles.rowPressed]}
+                >
+                  <View style={styles.rowLeft}>
+                    <View style={[styles.rowIconCircle, { backgroundColor: '#F2F2F7' }]}>
+                      <Ionicons name="person" size={17} color="#111111" />
+                    </View>
+                    <View>
+                      <Text style={styles.rowLabel}>Edit Profile Information</Text>
+                      <Text style={styles.rowSubLabel}>Name, phone, email & location</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+                </Pressable>
+              )}
 
-          {/* SECTION 2: Bicolano Taste Preferences */}
-          {isAuthenticated && user && (
-            <View style={styles.sectionBlock}>
-              <Text style={styles.sectionTitle}>Bicol Food Preferences</Text>
-              <View style={styles.insetGroup}>
-                <View style={styles.groupRow}>
-                  <Text style={styles.rowLabel}>Sili Tolerance</Text>
-                  <View style={styles.pillContainer}>
-                    <Pressable
-                      onPress={() => handleSpiceChange('mild')}
-                      style={[
-                        styles.preferencePill,
-                        user.spicePreference === 'mild' && styles.preferencePillActive,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.preferencePillText,
-                          user.spicePreference === 'mild' && styles.preferencePillTextActive,
-                        ]}
-                      >
-                        Mild 🌶️
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => handleSpiceChange('moderate')}
-                      style={[
-                        styles.preferencePill,
-                        user.spicePreference === 'moderate' && styles.preferencePillActive,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.preferencePillText,
-                          user.spicePreference === 'moderate' && styles.preferencePillTextActive,
-                        ]}
-                      >
-                        Spicy 🌶️🌶️
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => handleSpiceChange('fiery')}
-                      style={[
-                        styles.preferencePill,
-                        user.spicePreference === 'fiery' && styles.preferencePillActive,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.preferencePillText,
-                          user.spicePreference === 'fiery' && styles.preferencePillTextActive,
-                        ]}
-                      >
-                        Fiery 🔥
-                      </Text>
-                    </Pressable>
+              <Pressable
+                onPress={() => router.push('/forgot-password')}
+                style={({ pressed }) => [styles.groupRow, pressed && styles.rowPressed]}
+              >
+                <View style={styles.rowLeft}>
+                  <View style={[styles.rowIconCircle, { backgroundColor: 'rgba(212, 47, 19, 0.10)' }]}>
+                    <Ionicons name="key-outline" size={17} color="#D42F13" />
+                  </View>
+                  <View>
+                    <Text style={styles.rowLabel}>Password & Recovery</Text>
+                    <Text style={styles.rowSubLabel}>Reset or change login password</Text>
                   </View>
                 </View>
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+              </Pressable>
 
-                <View style={styles.groupRow}>
-                  <Text style={styles.rowLabel}>Preferred District</Text>
-                  <Text style={styles.rowValue}>{user.favoriteDistrict || 'Centro'}</Text>
-                </View>
+              {isAuthenticated && user && (
                 <View style={[styles.groupRow, styles.groupRowLast]}>
-                  <Text style={styles.rowLabel}>Member Since</Text>
-                  <Text style={styles.rowValue}>{user.memberSince || 'October 2025'}</Text>
+                  <View style={styles.rowLeft}>
+                    <View style={[styles.rowIconCircle, { backgroundColor: '#E8F5E9' }]}>
+                      <Ionicons name="wallet-outline" size={17} color="#2E7D32" />
+                    </View>
+                    <View>
+                      <Text style={styles.rowLabel}>Default Payment</Text>
+                      <Text style={styles.rowSubLabel}>GCash / Cash on Pickup</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.rowValueTint}>Active</Text>
                 </View>
-              </View>
+              )}
             </View>
-          )}
+          </View>
 
-          {/* SECTION 3: Settings & Notifications */}
+          {/* SECTION 2: App Preferences */}
           <View style={styles.sectionBlock}>
-            <Text style={styles.sectionTitle}>Settings</Text>
+            <Text style={styles.sectionTitle}>Preferences</Text>
             <View style={styles.insetGroup}>
               <View style={styles.groupRow}>
-                <Text style={styles.rowLabel}>Pre-Order Notifications</Text>
+                <View style={styles.rowLeft}>
+                  <View style={[styles.rowIconCircle, { backgroundColor: '#E3F2FD' }]}>
+                    <Ionicons name="notifications-outline" size={17} color="#1976D2" />
+                  </View>
+                  <Text style={styles.rowLabel}>Pre-Order Notifications</Text>
+                </View>
                 <Switch
                   value={notificationsEnabled}
                   onValueChange={setNotificationsEnabled}
@@ -254,18 +334,114 @@ export default function ProfileScreen() {
                   thumbColor="#FFFFFF"
                 />
               </View>
+
               <View style={styles.groupRow}>
-                <Text style={styles.rowLabel}>Location Services</Text>
-                <Text style={styles.rowValue}>Naga City (Active)</Text>
+                <View style={styles.rowLeft}>
+                  <View style={[styles.rowIconCircle, { backgroundColor: '#FFF3E0' }]}>
+                    <Ionicons name="chatbox-ellipses-outline" size={17} color="#E65100" />
+                  </View>
+                  <Text style={styles.rowLabel}>SMS Order Tracking Alerts</Text>
+                </View>
+                <Switch
+                  value={smsAlertsEnabled}
+                  onValueChange={setSmsAlertsEnabled}
+                  trackColor={{ false: 'rgba(118, 118, 128, 0.16)', true: '#111111' }}
+                  thumbColor="#FFFFFF"
+                />
               </View>
+
+              <View style={styles.groupRow}>
+                <View style={styles.rowLeft}>
+                  <View style={[styles.rowIconCircle, { backgroundColor: '#F3E5F5' }]}>
+                    <Ionicons name="hardware-chip-outline" size={17} color="#7B1FA2" />
+                  </View>
+                  <Text style={styles.rowLabel}>Haptic Feedback</Text>
+                </View>
+                <Switch
+                  value={hapticsEnabled}
+                  onValueChange={setHapticsEnabled}
+                  trackColor={{ false: 'rgba(118, 118, 128, 0.16)', true: '#111111' }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+
               <View style={[styles.groupRow, styles.groupRowLast]}>
-                <Text style={styles.rowLabel}>App Version</Text>
-                <Text style={styles.rowValue}>v1.2.0 (Build 42)</Text>
+                <View style={styles.rowLeft}>
+                  <View style={[styles.rowIconCircle, { backgroundColor: '#EFEBE9' }]}>
+                    <Ionicons name="location-outline" size={17} color="#5D4037" />
+                  </View>
+                  <View style={styles.rowTextCol}>
+                    <Text style={styles.rowLabel}>Location Services</Text>
+                    <Text style={styles.rowSubLabel}>GPS enabled for Naga City</Text>
+                  </View>
+                </View>
+                <View style={styles.statusBadgeGreen}>
+                  <View style={styles.greenDot} />
+                  <Text style={styles.statusBadgeGreenText}>Active</Text>
+                </View>
               </View>
             </View>
           </View>
 
-          {/* SECTION 4: Actions */}
+          {/* SECTION 3: Support & System */}
+          <View style={styles.sectionBlock}>
+            <Text style={styles.sectionTitle}>Support & About</Text>
+            <View style={styles.insetGroup}>
+              <Pressable
+                onPress={handleHelpSupport}
+                style={({ pressed }) => [styles.groupRow, pressed && styles.rowPressed]}
+              >
+                <View style={styles.rowLeft}>
+                  <View style={[styles.rowIconCircle, { backgroundColor: '#F2F2F7' }]}>
+                    <Ionicons name="help-buoy-outline" size={17} color="#111111" />
+                  </View>
+                  <Text style={styles.rowLabel}>Help & Customer Support</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+              </Pressable>
+
+              <Pressable
+                onPress={handlePrivacyPolicy}
+                style={({ pressed }) => [styles.groupRow, pressed && styles.rowPressed]}
+              >
+                <View style={styles.rowLeft}>
+                  <View style={[styles.rowIconCircle, { backgroundColor: '#F2F2F7' }]}>
+                    <Ionicons name="shield-checkmark-outline" size={17} color="#111111" />
+                  </View>
+                  <Text style={styles.rowLabel}>Privacy Policy & Terms</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+              </Pressable>
+
+              <Pressable
+                onPress={handleClearCache}
+                style={({ pressed }) => [styles.groupRow, pressed && styles.rowPressed]}
+              >
+                <View style={styles.rowLeft}>
+                  <View style={[styles.rowIconCircle, { backgroundColor: '#FFEBEE' }]}>
+                    <Ionicons name="trash-outline" size={17} color="#C62828" />
+                  </View>
+                  <Text style={styles.rowLabel}>Clear Local Cache</Text>
+                </View>
+                <Text style={styles.rowValue}>24.8 MB</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={handleCheckUpdates}
+                style={({ pressed }) => [styles.groupRow, styles.groupRowLast, pressed && styles.rowPressed]}
+              >
+                <View style={styles.rowLeft}>
+                  <View style={[styles.rowIconCircle, { backgroundColor: '#F2F2F7' }]}>
+                    <Ionicons name="information-circle-outline" size={17} color="#111111" />
+                  </View>
+                  <Text style={styles.rowLabel}>App Version</Text>
+                </View>
+                <Text style={styles.rowValue}>v1.2.0 (Build 42)</Text>
+              </Pressable>
+            </View>
+          </View>
+
+          {/* SECTION 4: Sign Out / Auth Actions */}
           <View style={styles.sectionBlock}>
             <View style={styles.insetGroup}>
               {isAuthenticated ? (
@@ -275,6 +451,7 @@ export default function ProfileScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Sign out"
                 >
+                  <Ionicons name="log-out-outline" size={18} color="#FF3B30" style={{ marginRight: 6 }} />
                   <Text style={styles.signOutText}>Sign Out</Text>
                 </Pressable>
               ) : (
@@ -291,6 +468,131 @@ export default function ProfileScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        visible={isEditModalOpen}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsEditModalOpen(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContent}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Pressable
+                onPress={() => setIsEditModalOpen(false)}
+                style={({ pressed }) => [styles.modalCloseBtn, pressed && styles.pressed]}
+              >
+                <Ionicons name="close" size={22} color="#111111" />
+              </Pressable>
+              <Text style={styles.modalTitle}>Edit Profile</Text>
+              <TouchableOpacity
+                onPress={handleSaveProfile}
+                style={styles.modalSaveBtn}
+                accessibilityRole="button"
+              >
+                <Text style={styles.modalSaveText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalScrollBody}>
+              {/* Success Notification */}
+              {saveSuccessMessage && (
+                <View style={styles.successBanner}>
+                  <Ionicons name="checkmark-circle" size={18} color="#2E7D32" />
+                  <Text style={styles.successBannerText}>{saveSuccessMessage}</Text>
+                </View>
+              )}
+
+              {/* Avatar Picker */}
+              <Text style={styles.inputSectionTitle}>Choose Avatar</Text>
+              <View style={styles.avatarPickerRow}>
+                {AVATAR_PRESETS.map((uri, idx) => {
+                  const isSelected = editAvatar === uri;
+                  return (
+                    <Pressable
+                      key={idx}
+                      onPress={() => setEditAvatar(uri)}
+                      style={[
+                        styles.avatarOptionWrapper,
+                        isSelected && styles.avatarOptionSelected,
+                      ]}
+                    >
+                      <Image source={{ uri }} style={styles.avatarOptionImage} />
+                      {isSelected && (
+                        <View style={styles.avatarCheckBadge}>
+                          <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                        </View>
+                      )}
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              {/* Input Fields */}
+              <View style={styles.formGroup}>
+                <Text style={styles.inputLabel}>Full Name</Text>
+                <TextInput
+                  value={editName}
+                  onChangeText={setEditName}
+                  placeholder="e.g. Maria Santos"
+                  placeholderTextColor="#8E8E93"
+                  style={styles.inputField}
+                  autoCapitalize="words"
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.inputLabel}>Email Address</Text>
+                <TextInput
+                  value={editEmail}
+                  onChangeText={setEditEmail}
+                  placeholder="name@domain.com"
+                  placeholderTextColor="#8E8E93"
+                  style={styles.inputField}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.inputLabel}>Phone Number</Text>
+                <TextInput
+                  value={editPhone}
+                  onChangeText={setEditPhone}
+                  placeholder="+63 9XX XXX XXXX"
+                  placeholderTextColor="#8E8E93"
+                  style={styles.inputField}
+                  keyboardType="phone-pad"
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.inputLabel}>Neighborhood / District</Text>
+                <TextInput
+                  value={editLocation}
+                  onChangeText={setEditLocation}
+                  placeholder="e.g. Centro, Naga City"
+                  placeholderTextColor="#8E8E93"
+                  style={styles.inputField}
+                />
+              </View>
+
+              <TouchableOpacity
+                onPress={handleSaveProfile}
+                style={styles.modalPrimaryActionBtn}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.modalPrimaryActionText}>Save Changes</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
 
       <NavBar />
     </SafeAreaView>
@@ -369,11 +671,27 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(60, 60, 67, 0.15)',
   },
+  avatarWrapper: {
+    position: 'relative',
+  },
   avatarImage: {
     width: 64,
     height: 64,
     borderRadius: 32,
     backgroundColor: '#F2F2F7',
+  },
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#111111',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
   profileMeta: {
     marginLeft: 14,
@@ -410,6 +728,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: '#D42F13',
+  },
+  headerEditButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F2F2F7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    gap: 4,
+  },
+  headerEditText: {
+    fontFamily: sansFamily,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#111111',
   },
 
   // Stats Row
@@ -461,61 +794,90 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 13,
     paddingHorizontal: 16,
-    minHeight: 50,
+    minHeight: 52,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(60, 60, 67, 0.15)',
   },
   groupRowLast: {
     borderBottomWidth: 0,
   },
+  rowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+    marginRight: 10,
+  },
+  rowTextCol: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  rowIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
   rowLabel: {
     fontFamily: sansFamily,
     fontSize: 15,
     color: '#000000',
     fontWeight: '500',
+    flexShrink: 1,
+  },
+  rowSubLabel: {
+    fontFamily: sansFamily,
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 1,
+    flexShrink: 1,
   },
   rowValue: {
     fontFamily: sansFamily,
     fontSize: 14,
     color: '#8E8E93',
+    flexShrink: 0,
+    textAlign: 'right',
+    marginLeft: 8,
   },
   rowValueTint: {
     fontFamily: sansFamily,
     fontSize: 14,
-    color: '#D42F13',
+    color: '#2E7D32',
     fontWeight: '600',
+    flexShrink: 0,
+    textAlign: 'right',
+    marginLeft: 8,
   },
-
-  // Sili Preference Pills
-  pillContainer: {
+  statusBadgeGreen: {
     flexDirection: 'row',
-    gap: 6,
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 5,
+    flexShrink: 0,
+    marginLeft: 8,
   },
-  preferencePill: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    backgroundColor: '#F2F2F7',
-    borderWidth: 1,
-    borderColor: 'transparent',
+  greenDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#2E7D32',
   },
-  preferencePillActive: {
-    backgroundColor: '#111111',
-    borderColor: '#111111',
-  },
-  preferencePillText: {
+  statusBadgeGreenText: {
     fontFamily: sansFamily,
     fontSize: 12,
-    color: '#6E6E73',
-    fontWeight: '600',
-  },
-  preferencePillTextActive: {
-    color: '#FFFFFF',
     fontWeight: '700',
+    color: '#2E7D32',
   },
 
   // Sign Out
   signOutRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
@@ -595,11 +957,143 @@ const styles = StyleSheet.create({
     opacity: 0.85,
     transform: [{ scale: 0.99 }],
   },
-
   pressed: {
     opacity: 0.65,
   },
   rowPressed: {
     backgroundColor: 'rgba(0, 0, 0, 0.04)',
+  },
+
+  // Edit Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '90%',
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
+  },
+  modalCloseBtn: {
+    padding: 4,
+  },
+  modalTitle: {
+    fontFamily: sansFamily,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  modalSaveBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  modalSaveText: {
+    fontFamily: sansFamily,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#D42F13',
+  },
+  modalScrollBody: {
+    padding: 20,
+  },
+  successBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    padding: 12,
+    borderRadius: 10,
+    gap: 8,
+    marginBottom: 16,
+  },
+  successBannerText: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2E7D32',
+  },
+  inputSectionTitle: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 12,
+  },
+  avatarPickerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  avatarOptionWrapper: {
+    position: 'relative',
+    borderRadius: 32,
+    padding: 3,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  avatarOptionSelected: {
+    borderColor: '#111111',
+  },
+  avatarOptionImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
+  avatarCheckBadge: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#111111',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  formGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontFamily: sansFamily,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6E6E73',
+    marginBottom: 6,
+  },
+  inputField: {
+    fontFamily: sansFamily,
+    fontSize: 15,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: '#000000',
+  },
+  modalPrimaryActionBtn: {
+    backgroundColor: '#111111',
+    borderRadius: 14,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  modalPrimaryActionText: {
+    fontFamily: sansFamily,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

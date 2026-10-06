@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Pressable, Platform, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
 import { IOSTokens } from '@/constants/theme';
@@ -15,6 +15,44 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
   const pathname = usePathname();
   const { getBasketCount } = useBasket();
   const basketCount = getBasketCount();
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSubscription = Keyboard.addListener(showEvent, () => {
+      setIsKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener(hideEvent, () => {
+      setIsKeyboardVisible(false);
+    });
+
+    // Web fallback for mobile browsers where virtual keyboard resizes viewport
+    let handleViewportResize: (() => void) | undefined;
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && window.visualViewport) {
+      const initialHeight = window.innerHeight;
+      handleViewportResize = () => {
+        if (window.visualViewport) {
+          const isKbOpen = window.visualViewport.height < initialHeight - 140;
+          setIsKeyboardVisible(isKbOpen);
+        }
+      };
+      window.visualViewport.addEventListener('resize', handleViewportResize);
+    }
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+      if (handleViewportResize && window?.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleViewportResize);
+      }
+    };
+  }, []);
+
+  if (isKeyboardVisible) {
+    return null;
+  }
 
   const determineTab = (): NavTab => {
     if (currentTab) return currentTab;
