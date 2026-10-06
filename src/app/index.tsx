@@ -17,6 +17,7 @@ import { EstablishmentCard } from '@/components/establishment/EstablishmentCard'
 import { RecommendationModal } from '@/components/common/RecommendationModal';
 import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
 import { useAuth } from '@/context/AuthContext';
+import { useBusiness } from '@/context/BusinessContext';
 
 const RECENT_SUGGESTIONS = [
   'Kinalas',
@@ -38,6 +39,7 @@ const QUICK_CATEGORIES = [
 
 export default function HomeScreen() {
   const { user, isAuthenticated } = useAuth();
+  const { activePromotion, profile } = useBusiness();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -171,6 +173,49 @@ export default function HomeScreen() {
           {/* Main Feed Content */}
           {!isSearchFocused && (
             <>
+              {/* Local Merchant Promotional Broadcast (When Active) */}
+              {activePromotion && (
+                <Pressable
+                  onPress={() => {
+                    if (activePromotion.featuredFoodId) {
+                      router.push({
+                        pathname: '/food/[id]',
+                        params: { id: activePromotion.featuredFoodId },
+                      });
+                    } else {
+                      router.push({
+                        pathname: '/establishment/[id]',
+                        params: { id: activePromotion.establishmentId },
+                      });
+                    }
+                  }}
+                  style={({ pressed }) => [styles.merchantPromoCard, pressed && styles.cardPressed]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Promotion from ${profile.name}: ${activePromotion.title}`}
+                >
+                  <View style={styles.merchantPromoTopRow}>
+                    <View style={styles.merchantPromoBadge}>
+                      <Ionicons name="megaphone" size={11} color="#FFFFFF" />
+                      <Text style={styles.merchantPromoBadgeText}>{activePromotion.badgeText}</Text>
+                    </View>
+                    <Text style={styles.merchantPromoStoreName}>{profile.name}</Text>
+                  </View>
+
+                  <Text style={styles.merchantPromoTitle}>{activePromotion.title}</Text>
+                  <Text style={styles.merchantPromoDesc}>{activePromotion.description}</Text>
+
+                  <View style={styles.merchantPromoFooter}>
+                    <View style={styles.merchantPromoDistrict}>
+                      <Ionicons name="location-sharp" size={12} color="#D42F13" />
+                      <Text style={styles.merchantPromoDistrictText}>{activePromotion.targetDistrict}</Text>
+                    </View>
+                    <View style={styles.merchantPromoActionBtn}>
+                      <Text style={styles.merchantPromoActionText}>Pre-Order Deal ›</Text>
+                    </View>
+                  </View>
+                </Pressable>
+              )}
+
               {/* Spotlight Dish of the Day (Feature Box) */}
               {spotlightFood && (
                 <Pressable
@@ -247,7 +292,7 @@ export default function HomeScreen() {
                     <Ionicons name="sparkles" size={12} color="#D42F13" />
                     <Text style={styles.tryNewBadgeText}>AI FOODIE ROULETTE</Text>
                   </View>
-                  <Text style={styles.tryNewHeading}>Can't decide what to eat?</Text>
+                  <Text style={styles.tryNewHeading}>Can&apos;t decide what to eat?</Text>
                   <Text style={styles.tryNewSub}>
                     Spin to get a curated local dish & top authentic spot in Naga.
                   </Text>
@@ -665,6 +710,101 @@ const styles = StyleSheet.create({
     fontFamily: sansFamily,
     fontSize: 13,
     fontWeight: '700',
+    color: '#FFFFFF',
+  },
+
+  // Merchant Promo Card
+  merchantPromoCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 47, 19, 0.25)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 16px rgba(212, 47, 19, 0.08)',
+      } as any,
+      default: {
+        shadowColor: '#D42F13',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
+      },
+    }),
+  },
+  merchantPromoTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  merchantPromoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#D42F13',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  merchantPromoBadgeText: {
+    fontFamily: sansFamily,
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  merchantPromoStoreName: {
+    fontFamily: sansFamily,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  merchantPromoTitle: {
+    fontFamily: sansFamily,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  merchantPromoDesc: {
+    fontFamily: sansFamily,
+    fontSize: 13,
+    lineHeight: 18,
+    color: 'rgba(60, 60, 67, 0.75)',
+    marginBottom: 12,
+  },
+  merchantPromoFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 8,
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(60, 60, 67, 0.12)',
+  },
+  merchantPromoDistrict: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  merchantPromoDistrictText: {
+    fontFamily: sansFamily,
+    fontSize: 11,
+    color: '#D42F13',
+    fontWeight: '500',
+  },
+  merchantPromoActionBtn: {
+    backgroundColor: '#1C1C1E',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  merchantPromoActionText: {
+    fontFamily: sansFamily,
+    fontSize: 11,
+    fontWeight: '600',
     color: '#FFFFFF',
   },
 

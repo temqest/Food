@@ -13,8 +13,10 @@ import { router } from 'expo-router';
 import { NavBar } from '@/components/common/NavBar';
 import { RecommendationModal } from '@/components/common/RecommendationModal';
 import { CATEGORIES, FOOD_ITEMS } from '@/data/mockData';
+import { useBusiness } from '@/context/BusinessContext';
 
 export default function ExploreScreen() {
+  const { activePromotion, profile } = useBusiness();
   const [isRecommendationOpen, setIsRecommendationOpen] = useState(false);
 
   return (
@@ -34,6 +36,49 @@ export default function ExploreScreen() {
               Curated regional specialties and culinary heritage across Naga City.
             </Text>
           </View>
+
+          {/* Active Merchant Promotion Spotlight */}
+          {activePromotion && (
+            <Pressable
+              onPress={() => {
+                if (activePromotion.featuredFoodId) {
+                  router.push({
+                    pathname: '/food/[id]',
+                    params: { id: activePromotion.featuredFoodId },
+                  });
+                } else {
+                  router.push({
+                    pathname: '/establishment/[id]',
+                    params: { id: activePromotion.establishmentId },
+                  });
+                }
+              }}
+              style={({ pressed }) => [styles.promoHighlightCard, pressed && styles.cardPressed]}
+              accessibilityRole="button"
+              accessibilityLabel={`Promotion from ${profile.name}: ${activePromotion.title}`}
+            >
+              <View style={styles.promoHighlightTop}>
+                <View style={styles.promoHighlightBadge}>
+                  <Ionicons name="megaphone" size={11} color="#FFFFFF" />
+                  <Text style={styles.promoHighlightBadgeText}>{activePromotion.badgeText}</Text>
+                </View>
+                <Text style={styles.promoHighlightStore}>{profile.name}</Text>
+              </View>
+
+              <Text style={styles.promoHighlightTitle}>{activePromotion.title}</Text>
+              <Text style={styles.promoHighlightDesc}>{activePromotion.description}</Text>
+
+              <View style={styles.promoHighlightFooter}>
+                <View style={styles.promoHighlightDistrict}>
+                  <Ionicons name="location-sharp" size={12} color="#D42F13" />
+                  <Text style={styles.promoHighlightDistrictText}>{activePromotion.targetDistrict}</Text>
+                </View>
+                <View style={styles.promoHighlightAction}>
+                  <Text style={styles.promoHighlightActionText}>Order Now ›</Text>
+                </View>
+              </View>
+            </Pressable>
+          )}
 
           {/* Featured Highlight Banner */}
           <Pressable
@@ -71,7 +116,7 @@ export default function ExploreScreen() {
                 <Ionicons name="dice" size={18} color="#D42F13" />
               </View>
               <View style={styles.tryNewTextWrap}>
-                <Text style={styles.tryNewExploreTitle}>Can't pick a category?</Text>
+                <Text style={styles.tryNewExploreTitle}>Can&apos;t pick a category?</Text>
                 <Text style={styles.tryNewExploreSubtitle}>
                   Let Foodie Roulette recommend your next meal.
                 </Text>
@@ -431,6 +476,89 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#6E6E73',
+  },
+
+  // Merchant Promo Highlight Card
+  promoHighlightCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 47, 19, 0.25)',
+  },
+  promoHighlightTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  promoHighlightBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#D42F13',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  promoHighlightBadgeText: {
+    fontFamily: sansFamily,
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  promoHighlightStore: {
+    fontFamily: sansFamily,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  promoHighlightTitle: {
+    fontFamily: sansFamily,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  promoHighlightDesc: {
+    fontFamily: sansFamily,
+    fontSize: 13,
+    lineHeight: 18,
+    color: 'rgba(60, 60, 67, 0.75)',
+    marginBottom: 12,
+  },
+  promoHighlightFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 8,
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(60, 60, 67, 0.12)',
+  },
+  promoHighlightDistrict: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  promoHighlightDistrictText: {
+    fontFamily: sansFamily,
+    fontSize: 11,
+    color: '#D42F13',
+    fontWeight: '500',
+  },
+  promoHighlightAction: {
+    backgroundColor: '#1C1C1E',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  promoHighlightActionText: {
+    fontFamily: sansFamily,
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 
   rowPressed: {

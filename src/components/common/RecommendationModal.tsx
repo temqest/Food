@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
 import { FoodItem, Establishment } from '@/data/types';
-import { IOSTokens } from '@/constants/theme';
 
 interface RecommendationModalProps {
   visible: boolean;
@@ -27,38 +26,28 @@ export const RecommendationModal: React.FC<RecommendationModalProps> = ({
   onClose,
   preferredCategory,
 }) => {
-  const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
-  const [bestSpot, setBestSpot] = useState<Establishment | null>(null);
-  const [spinCount, setSpinCount] = useState(0);
+  const [spinIndex, setSpinIndex] = useState(0);
 
-  const getRandomRecommendation = () => {
-    let pool = FOOD_ITEMS;
+  const eligiblePool: FoodItem[] = useMemo(() => {
     if (preferredCategory && preferredCategory !== 'all') {
       const filtered = FOOD_ITEMS.filter((f) => f.category === preferredCategory);
-      if (filtered.length > 0) pool = filtered;
+      if (filtered.length > 0) return filtered;
     }
+    return FOOD_ITEMS;
+  }, [preferredCategory]);
 
-    // Exclude currently selected if pool has > 1
-    const eligible = pool.filter((f) => !selectedFood || f.id !== selectedFood.id);
-    const candidateList = eligible.length > 0 ? eligible : pool;
-    const picked = candidateList[Math.floor(Math.random() * candidateList.length)];
-    setSelectedFood(picked);
+  const selectedFood = eligiblePool[spinIndex % eligiblePool.length] || FOOD_ITEMS[0];
 
-    // Find best establishment offering this food
-    const spot =
-      ESTABLISHMENTS.find((e) => e.foodsOffered.some((fo) => fo.foodId === picked.id)) ||
-      ESTABLISHMENTS[0];
-    setBestSpot(spot);
-    setSpinCount((prev) => prev + 1);
+  const bestSpot = useMemo<Establishment>(() => {
+    return (
+      ESTABLISHMENTS.find((e) => e.foodsOffered.some((fo) => fo.foodId === selectedFood.id)) ||
+      ESTABLISHMENTS[0]
+    );
+  }, [selectedFood]);
+
+  const getRandomRecommendation = () => {
+    setSpinIndex((prev) => prev + 1);
   };
-
-  useEffect(() => {
-    if (visible) {
-      getRandomRecommendation();
-    }
-  }, [visible]);
-
-  if (!selectedFood) return null;
 
   return (
     <Modal
@@ -111,7 +100,7 @@ export const RecommendationModal: React.FC<RecommendationModalProps> = ({
             <View style={styles.titleSection}>
               <Text style={styles.foodName}>{selectedFood.name}</Text>
               {selectedFood.bikolName && (
-                <Text style={styles.bikolName}>Local Name: "{selectedFood.bikolName}"</Text>
+                <Text style={styles.bikolName}>Local Name: &ldquo;{selectedFood.bikolName}&rdquo;</Text>
               )}
               <Text style={styles.tagline}>{selectedFood.tagline}</Text>
             </View>
@@ -179,7 +168,7 @@ export const RecommendationModal: React.FC<RecommendationModalProps> = ({
               >
                 <Ionicons name="dice-outline" size={18} color="#111111" />
                 <Text style={styles.secondaryBtnText}>
-                  {spinCount > 1 ? 'Spin Again for Another Dish' : 'Try Another Recommendation'}
+                  {spinIndex > 0 ? 'Spin Again for Another Dish' : 'Try Another Recommendation'}
                 </Text>
               </TouchableOpacity>
             </View>

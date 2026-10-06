@@ -31,7 +31,7 @@ const AVATAR_PRESETS = [
 
 export default function ProfileScreen() {
   const { savedFoods, savedEstablishments } = useSaved();
-  const { activePreOrders, clearBasket } = useBasket();
+  const { activePreOrders } = useBasket();
   const { user, isAuthenticated, logout, updateProfile } = useAuth();
 
   // Settings Toggles
@@ -260,6 +260,35 @@ export default function ProfileScreen() {
               </View>
             </View>
           )}
+
+          {/* SECTION 0: Business & Merchant Portal */}
+          <View style={styles.sectionBlock}>
+            <Text style={styles.sectionTitle}>Business &amp; Merchant Center</Text>
+            <View style={styles.insetGroup}>
+              <Pressable
+                onPress={() => router.push('/business')}
+                style={({ pressed }) => [styles.groupRow, styles.groupRowLast, pressed && styles.rowPressed]}
+                accessibilityRole="button"
+                accessibilityLabel="Open Business & Merchant Portal"
+              >
+                <View style={styles.rowLeft}>
+                  <View style={[styles.rowIconCircle, { backgroundColor: 'rgba(212, 47, 19, 0.12)' }]}>
+                    <Ionicons name="storefront" size={17} color="#D42F13" />
+                  </View>
+                  <View style={{ flex: 1, paddingRight: 8 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={styles.rowLabel}>Merchant Portal</Text>
+                      <View style={{ backgroundColor: '#D42F13', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4 }}>
+                        <Text style={{ fontSize: 9, fontWeight: '700', color: '#FFFFFF' }}>PARTNER</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.rowSubLabel}>Manage products, orders &amp; advertise in Naga</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+              </Pressable>
+            </View>
+          </View>
 
           {/* SECTION 1: Account & Security */}
           <View style={styles.sectionBlock}>

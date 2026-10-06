@@ -42,6 +42,8 @@ interface BasketContextType {
   removeFromBasket: (id: string) => void;
   clearBasket: () => void;
   placePreOrder: () => PreOrder | null;
+  updateOrderStatus: (orderId: string, status: PreOrder['status']) => void;
+  cancelOrder: (orderId: string) => void;
   getBasketCount: () => number;
   getBasketSubtotal: () => number;
   activeTabSection: 'current' | 'history';
@@ -202,6 +204,27 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return newOrder;
   };
 
+  const updateOrderStatus = (orderId: string, status: PreOrder['status']) => {
+    setActivePreOrders((prev) =>
+      prev.map((order) => {
+        if (order.id === orderId) {
+          const estimatedMinutesRemaining =
+            status === 'received' ? 20 : status === 'preparing' ? 10 : 0;
+          return {
+            ...order,
+            status,
+            estimatedMinutesRemaining,
+          };
+        }
+        return order;
+      })
+    );
+  };
+
+  const cancelOrder = (orderId: string) => {
+    setActivePreOrders((prev) => prev.filter((order) => order.id !== orderId));
+  };
+
   return (
     <BasketContext.Provider
       value={{
@@ -216,6 +239,8 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         removeFromBasket,
         clearBasket,
         placePreOrder,
+        updateOrderStatus,
+        cancelOrder,
         getBasketCount,
         getBasketSubtotal,
         activeTabSection,
