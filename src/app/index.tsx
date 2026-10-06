@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { SearchInput } from '@/components/common/SearchInput';
 import { NavBar } from '@/components/common/NavBar';
 import { EstablishmentCard } from '@/components/establishment/EstablishmentCard';
+import { RecommendationModal } from '@/components/common/RecommendationModal';
 import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
 import { useAuth } from '@/context/AuthContext';
 
@@ -40,6 +41,7 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [isRecommendationOpen, setIsRecommendationOpen] = useState(false);
 
   const matchingSpots =
     selectedCategory === 'all'
@@ -233,6 +235,29 @@ export default function HomeScreen() {
                 })}
               </ScrollView>
 
+              {/* Try Something New - Foodie Recommendation Banner */}
+              <Pressable
+                onPress={() => setIsRecommendationOpen(true)}
+                style={({ pressed }) => [styles.tryNewBanner, pressed && styles.cardPressed]}
+                accessibilityRole="button"
+                accessibilityLabel="Try something new recommendation roulette"
+              >
+                <View style={styles.tryNewContent}>
+                  <View style={styles.tryNewBadge}>
+                    <Ionicons name="sparkles" size={12} color="#D42F13" />
+                    <Text style={styles.tryNewBadgeText}>AI FOODIE ROULETTE</Text>
+                  </View>
+                  <Text style={styles.tryNewHeading}>Can't decide what to eat?</Text>
+                  <Text style={styles.tryNewSub}>
+                    Spin to get a curated local dish & top authentic spot in Naga.
+                  </Text>
+                </View>
+                <View style={styles.tryNewActionBtn}>
+                  <Ionicons name="dice" size={18} color="#FFFFFF" />
+                  <Text style={styles.tryNewActionText}>Try New</Text>
+                </View>
+              </Pressable>
+
               {/* Section: Near You in Naga (Inset Grouped Restaurant List) */}
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Near you in Naga</Text>
@@ -263,6 +288,13 @@ export default function HomeScreen() {
 
       {/* iOS Translucent Tab Bar */}
       <NavBar currentTab="home" />
+
+      {/* Try Something New Recommendation Sheet */}
+      <RecommendationModal
+        visible={isRecommendationOpen}
+        onClose={() => setIsRecommendationOpen(false)}
+        preferredCategory={selectedCategory}
+      />
     </SafeAreaView>
   );
 }
@@ -562,6 +594,78 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     overflow: 'hidden',
+  },
+
+  // Try Something New Banner
+  tryNewBanner: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 47, 19, 0.15)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 16px rgba(212, 47, 19, 0.08)',
+      } as any,
+      default: {
+        shadowColor: '#D42F13',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
+      },
+    }),
+  },
+  tryNewContent: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  tryNewBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
+  tryNewBadgeText: {
+    fontFamily: sansFamily,
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#D42F13',
+    letterSpacing: 0.4,
+  },
+  tryNewHeading: {
+    fontFamily: sansFamily,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.2,
+  },
+  tryNewSub: {
+    fontFamily: sansFamily,
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  tryNewActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#111111',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 6,
+    flexShrink: 0,
+  },
+  tryNewActionText: {
+    fontFamily: sansFamily,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 
   pressed: {

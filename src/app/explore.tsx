@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { NavBar } from '@/components/common/NavBar';
+import { RecommendationModal } from '@/components/common/RecommendationModal';
 import { CATEGORIES, FOOD_ITEMS } from '@/data/mockData';
 
 export default function ExploreScreen() {
+  const [isRecommendationOpen, setIsRecommendationOpen] = useState(false);
+
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView
@@ -53,6 +56,30 @@ export default function ExploreScreen() {
             </View>
             <View style={styles.featureArrowCircle}>
               <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+            </View>
+          </Pressable>
+
+          {/* Try Something New Interactive Action */}
+          <Pressable
+            onPress={() => setIsRecommendationOpen(true)}
+            style={({ pressed }) => [styles.tryNewExploreCard, pressed && styles.cardPressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Spin for a random foodie recommendation"
+          >
+            <View style={styles.tryNewExploreLeft}>
+              <View style={styles.tryNewSparkleCircle}>
+                <Ionicons name="dice" size={18} color="#D42F13" />
+              </View>
+              <View style={styles.tryNewTextWrap}>
+                <Text style={styles.tryNewExploreTitle}>Can't pick a category?</Text>
+                <Text style={styles.tryNewExploreSubtitle}>
+                  Let Foodie Roulette recommend your next meal.
+                </Text>
+              </View>
+            </View>
+            <View style={styles.tryNewExplorePill}>
+              <Text style={styles.tryNewExplorePillText}>Surprise Me</Text>
+              <Ionicons name="sparkles" size={12} color="#FFFFFF" />
             </View>
           </Pressable>
 
@@ -120,6 +147,12 @@ export default function ExploreScreen() {
       </ScrollView>
 
       <NavBar currentTab="explore" />
+
+      {/* Recommendation Roulette Modal */}
+      <RecommendationModal
+        visible={isRecommendationOpen}
+        onClose={() => setIsRecommendationOpen(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -232,6 +265,78 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.18)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  // Try New Explore Card
+  tryNewExploreCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 47, 19, 0.15)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 16px rgba(212, 47, 19, 0.08)',
+      } as any,
+      default: {
+        shadowColor: '#D42F13',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 2,
+      },
+    }),
+  },
+  tryNewExploreLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+    paddingRight: 8,
+  },
+  tryNewSparkleCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(212, 47, 19, 0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tryNewTextWrap: {
+    flex: 1,
+  },
+  tryNewExploreTitle: {
+    fontFamily: sansFamily,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.2,
+  },
+  tryNewExploreSubtitle: {
+    fontFamily: sansFamily,
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 2,
+  },
+  tryNewExplorePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#111111',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 10,
+    gap: 4,
+    flexShrink: 0,
+  },
+  tryNewExplorePillText: {
+    fontFamily: sansFamily,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 
   // Section Header

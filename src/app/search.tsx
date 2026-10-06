@@ -14,6 +14,7 @@ import { SearchInput } from '@/components/common/SearchInput';
 import { NavBar } from '@/components/common/NavBar';
 import { FoodCard } from '@/components/food/FoodCard';
 import { EstablishmentCard } from '@/components/establishment/EstablishmentCard';
+import { RecommendationModal } from '@/components/common/RecommendationModal';
 import { FOOD_ITEMS, ESTABLISHMENTS, CATEGORIES } from '@/data/mockData';
 
 export default function SearchScreen() {
@@ -22,6 +23,7 @@ export default function SearchScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string>(params.category || 'all');
   const [openOnly, setOpenOnly] = useState(false);
   const [activeTab, setActiveTab] = useState<'dishes' | 'places'>('dishes');
+  const [isRecommendationOpen, setIsRecommendationOpen] = useState(false);
 
   // Filter food items
   const matchedFoods = useMemo(() => {
@@ -117,6 +119,21 @@ export default function SearchScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.filterScroll}
           >
+            {/* Try Something New Surprise Pill */}
+            <Pressable
+              onPress={() => setIsRecommendationOpen(true)}
+              style={({ pressed }) => [
+                styles.categoryFilter,
+                styles.categoryFilterSurprise,
+                pressed && styles.pressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Try something new recommendation"
+            >
+              <Ionicons name="dice" size={14} color="#D42F13" style={{ marginRight: 4 }} />
+              <Text style={styles.categoryFilterSurpriseText}>Try Something New</Text>
+            </Pressable>
+
             <Pressable
               onPress={() => setSelectedCategory('all')}
               style={({ pressed }) => [
@@ -237,6 +254,13 @@ export default function SearchScreen() {
                 <Text style={styles.emptyDesc}>
                   Try searching for another dish like Kinalas, Toasted Siopao, or Pinangat.
                 </Text>
+                <Pressable
+                  onPress={() => setIsRecommendationOpen(true)}
+                  style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.pressed]}
+                >
+                  <Ionicons name="sparkles" size={15} color="#FFFFFF" />
+                  <Text style={styles.emptyActionBtnText}>Try Foodie Roulette Instead</Text>
+                </Pressable>
               </View>
             )
           ) : matchedEstablishments.length > 0 ? (
@@ -264,12 +288,26 @@ export default function SearchScreen() {
               <Text style={styles.emptyDesc}>
                 Try adjusting your search terms or selecting a different category filter.
               </Text>
+              <Pressable
+                onPress={() => setIsRecommendationOpen(true)}
+                style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.pressed]}
+              >
+                <Ionicons name="sparkles" size={15} color="#FFFFFF" />
+                <Text style={styles.emptyActionBtnText}>Try Foodie Roulette Instead</Text>
+              </Pressable>
             </View>
           )}
         </View>
       </ScrollView>
 
       <NavBar />
+
+      {/* Try Something New Recommendation Sheet */}
+      <RecommendationModal
+        visible={isRecommendationOpen}
+        onClose={() => setIsRecommendationOpen(false)}
+        preferredCategory={selectedCategory}
+      />
     </SafeAreaView>
   );
 }
@@ -462,6 +500,33 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
+  categoryFilterSurprise: {
+    backgroundColor: 'rgba(212, 47, 19, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 47, 19, 0.25)',
+  },
+  categoryFilterSurpriseText: {
+    fontFamily: sansFamily,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#D42F13',
+  },
+  emptyActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#111111',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 6,
+    marginTop: 16,
+  },
+  emptyActionBtnText: {
+    fontFamily: sansFamily,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
   pressed: {
     opacity: 0.6,
   },
