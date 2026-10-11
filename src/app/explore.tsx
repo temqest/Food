@@ -12,11 +12,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { NavBar } from '@/components/common/NavBar';
 import { RecommendationModal } from '@/components/common/RecommendationModal';
+import { NagaCompassWidget } from '@/components/gamification/NagaCompassWidget';
+import { FoodTrailCard } from '@/components/gamification/FoodTrailCard';
 import { CATEGORIES, FOOD_ITEMS } from '@/data/mockData';
-import { useBusiness } from '@/context/BusinessContext';
+import { FOOD_TRAILS } from '@/data/gamification';
 
 export default function ExploreScreen() {
-  const { activePromotion, profile } = useBusiness();
   const [isRecommendationOpen, setIsRecommendationOpen] = useState(false);
 
   return (
@@ -30,107 +31,56 @@ export default function ExploreScreen() {
           {/* Editorial Title */}
           <View style={styles.titleSection}>
             <Text style={styles.headingSans}>
-              Explore <Text style={styles.headingSerif}>categories</Text>
+              Naga Flavor <Text style={styles.headingSerif}>codex</Text>
             </Text>
             <Text style={styles.subheadText}>
-              Curated regional specialties and culinary heritage across Naga City.
+              The official encyclopedia of Bicolano culinary heritage, guided food crawl routes, and dish lore.
             </Text>
           </View>
 
-          {/* Active Merchant Promotion Spotlight */}
-          {activePromotion && (
-            <Pressable
-              onPress={() => {
-                if (activePromotion.featuredFoodId) {
-                  router.push({
-                    pathname: '/food/[id]',
-                    params: { id: activePromotion.featuredFoodId },
-                  });
-                } else {
-                  router.push({
-                    pathname: '/establishment/[id]',
-                    params: { id: activePromotion.establishmentId },
-                  });
-                }
-              }}
-              style={({ pressed }) => [styles.promoHighlightCard, pressed && styles.cardPressed]}
-              accessibilityRole="button"
-              accessibilityLabel={`Promotion from ${profile.name}: ${activePromotion.title}`}
-            >
-              <View style={styles.promoHighlightTop}>
-                <View style={styles.promoHighlightBadge}>
-                  <Ionicons name="megaphone" size={11} color="#FFFFFF" />
-                  <Text style={styles.promoHighlightBadgeText}>{activePromotion.badgeText}</Text>
-                </View>
-                <Text style={styles.promoHighlightStore}>{profile.name}</Text>
-              </View>
-
-              <Text style={styles.promoHighlightTitle}>{activePromotion.title}</Text>
-              <Text style={styles.promoHighlightDesc}>{activePromotion.description}</Text>
-
-              <View style={styles.promoHighlightFooter}>
-                <View style={styles.promoHighlightDistrict}>
-                  <Ionicons name="location-sharp" size={12} color="#D42F13" />
-                  <Text style={styles.promoHighlightDistrictText}>{activePromotion.targetDistrict}</Text>
-                </View>
-                <View style={styles.promoHighlightAction}>
-                  <Text style={styles.promoHighlightActionText}>Order Now ›</Text>
-                </View>
-              </View>
-            </Pressable>
-          )}
-
-          {/* Featured Highlight Banner */}
-          <Pressable
-            onPress={() => {
-              router.push({
-                pathname: '/search',
-                params: { category: 'heritage-soups' },
-              });
-            }}
-            style={({ pressed }) => [styles.featureCard, pressed && styles.cardPressed]}
-          >
-            <View style={styles.featureCardContent}>
-              <View style={styles.featureBadge}>
-                <Text style={styles.featureBadgeText}>NAGA SIGNATURE</Text>
-              </View>
-              <Text style={styles.featureTitle}>🍜 Kinalas & Heritage Soups</Text>
-              <Text style={styles.featureDesc}>
-                Rich savory brain gravy, fall-off-the-bone beef head meat, and springy noodles.
-              </Text>
-            </View>
-            <View style={styles.featureArrowCircle}>
-              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-            </View>
-          </Pressable>
-
-          {/* Try Something New Interactive Action */}
-          <Pressable
-            onPress={() => setIsRecommendationOpen(true)}
-            style={({ pressed }) => [styles.tryNewExploreCard, pressed && styles.cardPressed]}
-            accessibilityRole="button"
-            accessibilityLabel="Spin for a random foodie recommendation"
-          >
-            <View style={styles.tryNewExploreLeft}>
-              <View style={styles.tryNewSparkleCircle}>
-                <Ionicons name="dice" size={18} color="#D42F13" />
-              </View>
-              <View style={styles.tryNewTextWrap}>
-                <Text style={styles.tryNewExploreTitle}>Can&apos;t pick a category?</Text>
-                <Text style={styles.tryNewExploreSubtitle}>
-                  Let Foodie Roulette recommend your next meal.
-                </Text>
-              </View>
-            </View>
-            <View style={styles.tryNewExplorePill}>
-              <Text style={styles.tryNewExplorePillText}>Surprise Me</Text>
-              <Ionicons name="sparkles" size={12} color="#FFFFFF" />
-            </View>
-          </Pressable>
-
-          {/* Section Header */}
+          {/* Section 1: Curated Food Crawl Expeditions */}
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>All Food Categories</Text>
+            <View style={styles.sectionTitleRow}>
+              <Ionicons name="footsteps" size={16} color="#D42F13" style={{ marginRight: 6 }} />
+              <Text style={styles.sectionTitle}>Food Crawl Expeditions</Text>
+            </View>
+            <Text style={styles.sectionMeta}>{FOOD_TRAILS.length} Routes</Text>
+          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.trailsScroll}
+          >
+            {FOOD_TRAILS.map((trail) => (
+              <FoodTrailCard key={trail.id} trail={trail} />
+            ))}
+          </ScrollView>
+
+          {/* Section 2: Interactive Craving Compass */}
+          <View style={styles.compassContainer}>
+            <NagaCompassWidget />
+          </View>
+
+          {/* Section 3: Insider Food Lore & Trivia Card */}
+          <View style={styles.loreCard}>
+            <View style={styles.loreHeader}>
+              <View style={styles.loreIconCircle}>
+                <Ionicons name="book" size={14} color="#D42F13" />
+              </View>
+              <Text style={styles.loreTitle}>Bikolano Kitchen Customs</Text>
+            </View>
+            <Text style={styles.loreFact}>
+              &ldquo;Kakang Gata&rdquo; (first press thick coconut cream) is never rushed over high heat. In authentic Naga cooking, the siling labuyo is bruised with the back of a spoon right before plating to release aromatics without scorching the gravy.
+            </Text>
+          </View>
+
+          {/* Section 4: Culinary Chapters (Categories) */}
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleRow}>
+              <Ionicons name="grid-outline" size={16} color="#D42F13" style={{ marginRight: 6 }} />
+              <Text style={styles.sectionTitle}>Culinary Chapters</Text>
+            </View>
             <Text style={styles.sectionMeta}>{CATEGORIES.length} Categories</Text>
           </View>
 
@@ -161,7 +111,7 @@ export default function ExploreScreen() {
                     <Ionicons
                       name={cat.icon as any}
                       size={20}
-                      color="#000000"
+                      color="#D42F13"
                     />
                   </View>
 
@@ -231,157 +181,93 @@ const styles = StyleSheet.create({
     maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 10 : 16,
+    paddingHorizontal: 16,
   },
+
+  // Editorial Title
   titleSection: {
-    paddingTop: 12,
+    paddingTop: Platform.OS === 'ios' ? 14 : 20,
     paddingBottom: 16,
   },
   headingSans: {
     fontFamily: sansFamily,
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
     color: '#000000',
-    letterSpacing: -1,
+    letterSpacing: -0.8,
   },
   headingSerif: {
     fontFamily: serifFamily,
     fontStyle: 'italic',
-    fontSize: 34,
+    fontSize: 30,
     fontWeight: '400',
-    color: '#000000',
+    color: '#D42F13',
   },
   subheadText: {
     fontFamily: sansFamily,
-    fontSize: 14,
-    color: '#8E8E93',
-    marginTop: 6,
-    lineHeight: 20,
-  },
-
-  // Featured Highlight Banner
-  featureCard: {
-    backgroundColor: '#111111',
-    borderRadius: 18,
-    padding: 18,
-    marginBottom: 22,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  featureCardContent: {
-    flex: 1,
-    paddingRight: 12,
-  },
-  featureBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#D42F13',
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 5,
-    marginBottom: 8,
-  },
-  featureBadgeText: {
-    fontFamily: sansFamily,
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-  featureTitle: {
-    fontFamily: sansFamily,
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: -0.3,
-  },
-  featureDesc: {
-    fontFamily: sansFamily,
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 13,
+    color: 'rgba(60, 60, 67, 0.65)',
     marginTop: 4,
-    lineHeight: 16,
-  },
-  featureArrowCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    lineHeight: 18,
   },
 
-  // Try New Explore Card
-  tryNewExploreCard: {
+  // Trails section
+  trailsScroll: {
+    paddingBottom: 16,
+  },
+
+  // Compass section
+  compassContainer: {
+    marginBottom: 16,
+  },
+
+  // Lore Card
+  loreCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: 18,
+    padding: 15,
     marginBottom: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: 'rgba(212, 47, 19, 0.15)',
+    borderColor: '#E5E5EA',
     ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 1,
+      },
       web: {
-        boxShadow: '0 4px 16px rgba(212, 47, 19, 0.08)',
-      } as any,
-      default: {
-        shadowColor: '#D42F13',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        elevation: 2,
+        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
       },
     }),
   },
-  tryNewExploreLeft: {
+  loreHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-    gap: 12,
-    paddingRight: 8,
+    marginBottom: 8,
+    gap: 8,
   },
-  tryNewSparkleCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(212, 47, 19, 0.10)',
+  loreIconCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#FFF2EE',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tryNewTextWrap: {
-    flex: 1,
-  },
-  tryNewExploreTitle: {
-    fontFamily: sansFamily,
-    fontSize: 15,
+  loreTitle: {
+    fontSize: 14,
     fontWeight: '700',
     color: '#000000',
-    letterSpacing: -0.2,
   },
-  tryNewExploreSubtitle: {
-    fontFamily: sansFamily,
+  loreFact: {
     fontSize: 12,
-    color: '#8E8E93',
-    marginTop: 2,
-  },
-  tryNewExplorePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#111111',
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 10,
-    gap: 4,
-    flexShrink: 0,
-  },
-  tryNewExplorePillText: {
-    fontFamily: sansFamily,
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontStyle: 'italic',
+    color: '#3C3C43',
+    lineHeight: 18,
   },
 
   // Section Header
@@ -389,43 +275,49 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
-    paddingHorizontal: 2,
+    marginBottom: 12,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   sectionTitle: {
     fontFamily: sansFamily,
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     color: '#000000',
     letterSpacing: -0.3,
   },
   sectionMeta: {
     fontFamily: sansFamily,
-    fontSize: 13,
+    fontSize: 12,
+    fontWeight: '600',
     color: '#8E8E93',
-    fontWeight: '500',
   },
 
   // Inset Group
   insetGroup: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 18,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    marginBottom: 20,
   },
   categoryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 16,
-    minHeight: 68,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
   },
   categoryRowLast: {
     borderBottomWidth: 0,
   },
   iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: '#F2F2F7',
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: '#FFF2EE',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -435,137 +327,49 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingRight: 16,
-    paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
+    borderBottomColor: '#E5E5EA',
+    paddingVertical: 2,
+    paddingRight: 2,
   },
   rowContentLast: {
     borderBottomWidth: 0,
   },
   textColumn: {
     flex: 1,
-    marginRight: 8,
+    paddingRight: 8,
   },
   categoryName: {
     fontFamily: sansFamily,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: '#000000',
-    letterSpacing: -0.2,
   },
   categoryDesc: {
     fontFamily: sansFamily,
     fontSize: 12,
     color: '#8E8E93',
-    marginTop: 2,
+    marginTop: 1,
   },
   trailingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   countBadge: {
     backgroundColor: '#F2F2F7',
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingVertical: 3,
+    borderRadius: 8,
   },
   countText: {
     fontFamily: sansFamily,
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6E6E73',
-  },
-
-  // Merchant Promo Highlight Card
-  promoHighlightCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(212, 47, 19, 0.25)',
-  },
-  promoHighlightTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  promoHighlightBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#D42F13',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  promoHighlightBadgeText: {
-    fontFamily: sansFamily,
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-  promoHighlightStore: {
-    fontFamily: sansFamily,
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  promoHighlightTitle: {
-    fontFamily: sansFamily,
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000000',
-    marginBottom: 4,
-  },
-  promoHighlightDesc: {
-    fontFamily: sansFamily,
-    fontSize: 13,
-    lineHeight: 18,
-    color: 'rgba(60, 60, 67, 0.75)',
-    marginBottom: 12,
-  },
-  promoHighlightFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 8,
-    borderTopWidth: 0.5,
-    borderTopColor: 'rgba(60, 60, 67, 0.12)',
-  },
-  promoHighlightDistrict: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  promoHighlightDistrictText: {
-    fontFamily: sansFamily,
-    fontSize: 11,
-    color: '#D42F13',
-    fontWeight: '500',
-  },
-  promoHighlightAction: {
-    backgroundColor: '#1C1C1E',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-  },
-  promoHighlightActionText: {
-    fontFamily: sansFamily,
     fontSize: 11,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#1C1C1E',
   },
 
   rowPressed: {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-  },
-  cardPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.99 }],
+    backgroundColor: 'rgba(60, 60, 67, 0.05)',
   },
 });

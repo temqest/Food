@@ -19,8 +19,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { NavBar } from '@/components/common/NavBar';
 import { useSaved } from '@/context/SavedContext';
-import { useBasket } from '@/context/BasketContext';
 import { useAuth } from '@/context/AuthContext';
+import { useQuest } from '@/context/QuestContext';
 
 const AVATAR_PRESETS = [
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
@@ -31,8 +31,8 @@ const AVATAR_PRESETS = [
 
 export default function ProfileScreen() {
   const { savedFoods, savedEstablishments } = useSaved();
-  const { activePreOrders } = useBasket();
   const { user, isAuthenticated, logout, updateProfile } = useAuth();
+  const { currentRank, tastingLog, unlockedBadgeIds } = useQuest();
 
   // Settings Toggles
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -188,7 +188,9 @@ export default function ProfileScreen() {
                   <View style={styles.badgeRow}>
                     <View style={styles.guideBadge}>
                       <Ionicons name="ribbon" size={12} color="#D42F13" />
-                      <Text style={styles.guideBadgeText}>{user.badge}</Text>
+                      <Text style={styles.guideBadgeText}>
+                        Level {currentRank.level} · {currentRank.title}
+                      </Text>
                     </View>
                   </View>
                 </View>
@@ -207,11 +209,11 @@ export default function ProfileScreen() {
               {/* Quick Stats Grid */}
               <View style={styles.statsRow}>
                 <Pressable
-                  onPress={() => router.push('/saved')}
+                  onPress={() => router.push('/basket')}
                   style={({ pressed }) => [styles.statBox, pressed && styles.pressed]}
                 >
-                  <Text style={styles.statNumber}>{totalSaved}</Text>
-                  <Text style={styles.statLabel}>Saved Items</Text>
+                  <Text style={styles.statNumber}>{tastingLog.length}</Text>
+                  <Text style={styles.statLabel}>Tastings Logged</Text>
                 </Pressable>
 
                 <View style={styles.statDivider} />
@@ -220,16 +222,19 @@ export default function ProfileScreen() {
                   onPress={() => router.push('/basket')}
                   style={({ pressed }) => [styles.statBox, pressed && styles.pressed]}
                 >
-                  <Text style={styles.statNumber}>{activePreOrders.length}</Text>
-                  <Text style={styles.statLabel}>Active Orders</Text>
+                  <Text style={styles.statNumber}>{unlockedBadgeIds.length}</Text>
+                  <Text style={styles.statLabel}>Badges Earned</Text>
                 </Pressable>
 
                 <View style={styles.statDivider} />
 
-                <View style={styles.statBox}>
-                  <Text style={styles.statNumber}>{user.reviewCount || 12}</Text>
-                  <Text style={styles.statLabel}>Reviews</Text>
-                </View>
+                <Pressable
+                  onPress={() => router.push('/saved')}
+                  style={({ pressed }) => [styles.statBox, pressed && styles.pressed]}
+                >
+                  <Text style={styles.statNumber}>{totalSaved}</Text>
+                  <Text style={styles.statLabel}>Saved Spots</Text>
+                </Pressable>
               </View>
             </View>
           ) : (

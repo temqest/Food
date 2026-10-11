@@ -6,6 +6,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { SavedProvider } from '@/context/SavedContext';
 import { BasketProvider } from '@/context/BasketContext';
 import { BusinessProvider } from '@/context/BusinessContext';
+import { QuestProvider } from '@/context/QuestContext';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -17,9 +18,10 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <SavedProvider>
-        <BasketProvider>
-          <BusinessProvider>
-            <StatusBar style="dark" />
+        <QuestProvider>
+          <BasketProvider>
+            <BusinessProvider>
+              <StatusBar style="dark" />
             <Stack
               screenOptions={{
                 headerShown: false,
@@ -44,7 +46,8 @@ export default function RootLayout() {
             </Stack>
           </BusinessProvider>
         </BasketProvider>
-      </SavedProvider>
-    </AuthProvider>
+      </QuestProvider>
+    </SavedProvider>
+  </AuthProvider>
   );
 }

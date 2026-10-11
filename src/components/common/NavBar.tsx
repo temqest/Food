@@ -92,10 +92,10 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
     },
     {
       tab: 'basket' as NavTab,
-      label: 'Basket',
+      label: 'Passport',
       route: '/basket',
-      activeIcon: 'bag-handle' as const,
-      inactiveIcon: 'bag-handle-outline' as const,
+      activeIcon: 'ribbon' as const,
+      inactiveIcon: 'ribbon-outline' as const,
       badgeCount: basketCount,
     },
     {

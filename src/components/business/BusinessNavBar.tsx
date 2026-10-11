@@ -8,7 +8,7 @@ export type BusinessTab = 'orders' | 'menu' | 'promote' | 'store';
 interface BusinessNavBarProps {
   currentTab: BusinessTab;
   onSelectTab: (tab: BusinessTab) => void;
-  onCenterPress: () => void;
+  onCenterPress?: () => void;
   ordersBadgeCount?: number;
 }
 

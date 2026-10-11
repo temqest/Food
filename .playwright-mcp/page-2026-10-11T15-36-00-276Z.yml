@@ -1,0 +1,291 @@
+- generic [ref=e1]:
+  - generic [ref=e294]:
+    - generic [ref=e295]:
+      - 'button "Location: Naga City, Centro" [ref=e296] [cursor=pointer]':
+        - generic [ref=e298]: Naga City
+        - generic [ref=e299]: ·
+        - generic [ref=e300]: Centro
+        - generic [ref=e301]: 
+      - generic [ref=e302]:
+        - 'button "Explorer Rank: Level 3 Broth Seeker, 540 XP" [ref=e634] [cursor=pointer]':
+          - generic [ref=e304]: 
+          - generic [ref=e306]: Lvl 3
+        - button "Open profile" [ref=e310] [cursor=pointer]
+    - generic [ref=e315]:
+      - generic [ref=e317]:
+        - generic "Silito the Bicol Chili Mascot. Tap to shuffle tip." [ref=e318] [cursor=pointer]: Silito
+        - generic [ref=e328]:
+          - generic [ref=e329]:
+            - generic [ref=e330]:
+              - generic [ref=e331]: Marhay na banggi, Maria! 🍢
+              - generic [ref=e332]: Lvl 3
+            - generic [ref=e334] [cursor=pointer]: 
+          - generic [ref=e336]: Night Market Vibes
+          - generic [ref=e337]: Centro and Plaza Quezon are bustling with charcoal grills, spicy chicken isaw, and savory street merienda under the evening breeze.
+          - generic [ref=e339] [cursor=pointer]:
+            - generic [ref=e340]: Explore Night Eats ›
+            - generic [ref=e341]: 
+      - generic [ref=e344]:
+        - generic [ref=e345]: 
+        - textbox "Search Kinalas, Toasted Siopao, Sinanglay..." [ref=e346]
+        - button "Filter options" [ref=e347] [cursor=pointer]:
+          - generic [ref=e348]: 
+      - generic [ref=e635]:
+        - generic [ref=e636]:
+          - generic [ref=e637]:
+            - generic [ref=e638]: 
+            - generic [ref=e639]: TODAY’S STILITIO UNBOXING
+          - generic [ref=e640] [cursor=pointer]:
+            - generic [ref=e641]: 
+            - generic [ref=e642]: Spin Another Drop
+        - generic [ref=e646] [cursor=pointer]:
+          - generic [ref=e647]: Authentic Balaw Bicol Express
+          - generic [ref=e648]: at Bob Marlin Bicolano Cuisine · Magsaysay Avenue
+          - generic [ref=e649]:
+            - generic [ref=e650]:
+              - generic [ref=e651]: 
+              - generic [ref=e652]: +70 XP Claimed
+            - generic [ref=e653]: Tap for Lore ›
+      - generic [ref=e377]:
+        - generic [ref=e378]:
+          - generic [ref=e379]:
+            - generic [ref=e380]: 
+            - generic [ref=e382]:
+              - generic [ref=e383]: Daily Food Quests
+              - generic [ref=e384]: Explore Naga’s food corridors for bonus XP
+          - generic [ref=e385]:
+            - generic [ref=e386]: 
+            - generic [ref=e387]: 0/4 Done
+        - generic [ref=e389]:
+          - generic [ref=e390]:
+            - generic [ref=e391]:
+              - generic [ref=e392]:
+                - generic [ref=e393]: 
+                - generic [ref=e394]: Bagumbayan
+              - generic [ref=e395]:
+                - generic [ref=e396]: 
+                - generic [ref=e397]: +50 XP
+            - generic [ref=e398]: Broth Patrol
+            - generic [ref=e399]: Slurp a piping hot bowl of Kinalas with extra chili paste & brain gravy.
+            - generic [ref=e400]:
+              - generic [ref=e401]: 
+              - generic [ref=e402]: Best for Lunch or Rainy Days
+            - generic [ref=e403]:
+              - 'button "Claim quest: Broth Patrol" [ref=e404] [cursor=pointer]':
+                - generic [ref=e405]: Slurp & Log
+                - generic [ref=e406]: 
+              - generic [ref=e407] [cursor=pointer]: 
+          - generic [ref=e409]:
+            - generic [ref=e410]:
+              - generic [ref=e411]:
+                - generic [ref=e412]: 
+                - generic [ref=e413]: Centro
+              - generic [ref=e414]:
+                - generic [ref=e415]: 
+                - generic [ref=e416]: +40 XP
+            - generic [ref=e417]: 4 PM Merienda Gold
+            - generic [ref=e418]: Grab a freshly baked Toasted Siopao while the crust is still flaky & amber-hot.
+            - generic [ref=e419]:
+              - generic [ref=e420]: 
+              - generic [ref=e421]: "Peak Freshness: 2:30 PM – 5:00 PM"
+            - generic [ref=e422]:
+              - 'button "Claim quest: 4 PM Merienda Gold" [ref=e423] [cursor=pointer]':
+                - generic [ref=e424]: Claim Merienda XP
+                - generic [ref=e425]: 
+              - generic [ref=e426] [cursor=pointer]: 
+          - generic [ref=e428]:
+            - generic [ref=e429]:
+              - generic [ref=e430]:
+                - generic [ref=e431]: 
+                - generic [ref=e432]: Magsaysay Ave
+              - generic [ref=e433]:
+                - generic [ref=e434]: 
+                - generic [ref=e435]: +60 XP
+            - generic [ref=e436]: Sili Heat Challenge
+            - generic [ref=e437]: Tackle tender Tilapia in rich kakang gata & wild crushed siling labuyo.
+            - generic [ref=e438]:
+              - generic [ref=e439]: 
+              - generic [ref=e440]: Dinner with Mountain Rice
+            - generic [ref=e441]:
+              - 'button "Claim quest: Sili Heat Challenge" [ref=e442] [cursor=pointer]':
+                - generic [ref=e443]: Accept Challenge
+                - generic [ref=e444]: 
+              - generic [ref=e445] [cursor=pointer]: 
+          - generic [ref=e447]:
+            - generic [ref=e448]:
+              - generic [ref=e449]:
+                - generic [ref=e450]: 
+                - generic [ref=e451]: Diversion
+              - generic [ref=e452]:
+                - generic [ref=e453]: 
+                - generic [ref=e454]: +45 XP
+            - generic [ref=e455]: Pili Nut Artisan Scout
+            - generic [ref=e456]: Taste native honey-glazed roasted pili nuts or handmade mazapan.
+            - generic [ref=e457]:
+              - generic [ref=e458]: 
+              - generic [ref=e459]: Afternoon Sweet Treat
+            - generic [ref=e460]:
+              - 'button "Claim quest: Pili Nut Artisan Scout" [ref=e461] [cursor=pointer]':
+                - generic [ref=e462]: Discover Pili
+                - generic [ref=e463]: 
+              - generic [ref=e464] [cursor=pointer]: 
+      - generic [ref=e467]:
+        - generic [ref=e468] [cursor=pointer]: All Flavors
+        - generic [ref=e470] [cursor=pointer]: 🍜 Comfort Soups
+        - generic [ref=e472] [cursor=pointer]: 🥥 Gata & Sili
+        - generic [ref=e474] [cursor=pointer]: 🥟 Merienda Run
+        - generic [ref=e476] [cursor=pointer]: 🍢 Night Grills
+      - 'button "Hero spotlight dish: Kinalas" [ref=e479] [cursor=pointer]':
+        - generic [ref=e482]:
+          - generic [ref=e483]:
+            - generic [ref=e484]:
+              - generic [ref=e485]: 
+              - generic [ref=e486]: HERITAGE SPOTLIGHT
+            - generic [ref=e487]: at Cha Cha’s Kinalas & Sinanglay · Barlin St / Santa Cruz
+          - generic [ref=e488]: Kinalas
+          - generic [ref=e489]: "Bikolano: Kinalas na Baka / Orig"
+          - generic [ref=e490]: Naga’s crown jewel noodle soup drenched in savory brain gravy
+          - generic [ref=e491]:
+            - generic [ref=e492]: ₱70 – ₱120
+            - generic [ref=e493]:
+              - generic [ref=e494]: Taste Dish Lore
+              - generic [ref=e495]: 
+      - generic [ref=e496]:
+        - generic [ref=e497]:
+          - generic [ref=e498]:
+            - generic [ref=e499]: 
+            - generic [ref=e501]:
+              - generic [ref=e502]: Naga District Conquest
+              - generic [ref=e503]: Log authentic spots across all 4 corridors
+          - generic [ref=e504] [cursor=pointer]: Open Map ›
+        - generic [ref=e507]:
+          - generic [ref=e508] [cursor=pointer]:
+            - generic [ref=e509]:
+              - generic [ref=e510]: 
+              - generic [ref=e512]: 25%
+            - generic [ref=e514]: Bagumbayan & Barlin
+            - generic [ref=e515]: Broth & Kinalas Heartland
+            - generic [ref=e518]:
+              - generic [ref=e519]: 1 of 4 spots logged
+              - generic [ref=e520]: 
+          - generic [ref=e521] [cursor=pointer]:
+            - generic [ref=e522]:
+              - generic [ref=e523]: 
+              - generic [ref=e525]: 17%
+            - generic [ref=e527]: Centro & Plaza Quezon
+            - generic [ref=e528]: Heritage Bakeries & Grills
+            - generic [ref=e531]:
+              - generic [ref=e532]: 1 of 6 spots logged
+              - generic [ref=e533]: 
+          - generic [ref=e534] [cursor=pointer]:
+            - generic [ref=e535]:
+              - generic [ref=e536]: 
+              - generic [ref=e538]: 20%
+            - generic [ref=e540]: Magsaysay Dining Strip
+            - generic [ref=e541]: Cafes & Fiery Feasts
+            - generic [ref=e544]:
+              - generic [ref=e545]: 1 of 5 spots logged
+              - generic [ref=e546]: 
+          - generic [ref=e547] [cursor=pointer]:
+            - generic [ref=e548]:
+              - generic [ref=e549]: 
+              - generic [ref=e551]: 33%
+            - generic [ref=e553]: Peñafrancia Riverside
+            - generic [ref=e554]: Pilgrimage Merienda & Lore
+            - generic [ref=e557]:
+              - generic [ref=e558]: 1 of 3 spots logged
+              - generic [ref=e559]: 
+      - generic [ref=e560]:
+        - generic [ref=e561]:
+          - generic [ref=e562]: Authentic Spots in Naga
+          - generic [ref=e563]: 5 heritage carinderias & bakeries
+        - generic [ref=e564] [cursor=pointer]: View Map ›
+      - generic [ref=e566]:
+        - button "Cha Cha’s Kinalas & Sinanglay, Open" [ref=e567] [cursor=pointer]:
+          - generic [ref=e570]:
+            - generic [ref=e571]:
+              - generic [ref=e572]: Cha Cha’s Kinalas & Sinanglay
+              - generic [ref=e573]: Kinalas Special · Barlin St / Santa Cruz · 400 m
+              - generic [ref=e574]: Open · Open today · 7:00 AM – 8:30 PM
+            - generic [ref=e575]: 
+        - button "Aling Cely’s Heritage Kinalas, Open" [ref=e577] [cursor=pointer]:
+          - generic [ref=e580]:
+            - generic [ref=e581]:
+              - generic [ref=e582]: Aling Cely’s Heritage Kinalas
+              - generic [ref=e583]: Aling Cely’s Extra Meat Kinalas · Bagumbayan Sur · 1.2 km
+              - generic [ref=e584]: Open · Open today · 6:30 AM – 7:00 PM
+            - generic [ref=e585]: 
+        - button "Baker’s Plaza Bakery & Cafe, Open" [ref=e587] [cursor=pointer]:
+          - generic [ref=e590]:
+            - generic [ref=e591]:
+              - generic [ref=e592]: Baker’s Plaza Bakery & Cafe
+              - generic [ref=e593]: Fresh Baked Toasted Siopao · Panganiban Drive · 800 m
+              - generic [ref=e594]: Open · Open today · 6:00 AM – 9:00 PM
+            - generic [ref=e595]: 
+        - button "Bob Marlin Bicolano Cuisine, Open" [ref=e597] [cursor=pointer]:
+          - generic [ref=e600]:
+            - generic [ref=e601]:
+              - generic [ref=e602]: Bob Marlin Bicolano Cuisine
+              - generic [ref=e603]: Marlin’s Signature Bicol Express · Magsaysay Avenue · 1.6 km
+              - generic [ref=e604]: Open · Open today · 11:00 AM – 10:00 PM
+            - generic [ref=e605]: 
+        - button "J. Emanuel Pastries & Pili Delights, Open" [ref=e607] [cursor=pointer]:
+          - generic [ref=e610]:
+            - generic [ref=e611]:
+              - generic [ref=e612]: J. Emanuel Pastries & Pili Delights
+              - generic [ref=e613]: Honey-Glazed Crispy Pili Nuts · Diversion / Magsaysay · 2.1 km
+              - generic [ref=e614]: Open · Open today · 8:00 AM – 8:00 PM
+            - generic [ref=e615]: 
+    - generic [ref=e617]:
+      - tab "Home" [ref=e618] [cursor=pointer]:
+        - generic [ref=e619]: 
+      - tab "Categories" [ref=e621] [cursor=pointer]:
+        - generic [ref=e622]: 
+      - tab "Map" [ref=e624] [cursor=pointer]:
+        - generic [ref=e625]: 
+      - tab "Passport" [ref=e626] [cursor=pointer]:
+        - generic [ref=e627]:
+          - generic [ref=e628]: 
+          - generic [ref=e629]: "2"
+      - tab "Saved" [ref=e631] [cursor=pointer]:
+        - generic [ref=e632]: 
+  - dialog [ref=e655]:
+    - generic [ref=e658]:
+      - generic [active] [ref=e659] [cursor=pointer]: 
+      - generic [ref=e661]:
+        - generic [ref=e662]:
+          - generic [ref=e663]: 
+          - generic [ref=e664]: STILITIO CRATE REVEALED
+          - generic [ref=e665]: 
+        - generic [ref=e666]:
+          - generic [ref=e667]: 
+          - generic [ref=e668]: LEGENDARY HERITAGE
+      - generic [ref=e672]:
+        - generic [ref=e673]: 
+        - generic [ref=e674]: +70 XP
+      - generic [ref=e675]: Authentic Balaw Bicol Express
+      - generic [ref=e676]: "Bikol: Sinilihan"
+      - generic [ref=e677]: at Bob Marlin Bicolano Cuisine · Magsaysay Avenue
+      - generic [ref=e678]:
+        - generic [ref=e679]: "Spice Level:"
+        - generic [ref=e680]:
+          - generic [ref=e681]: 
+          - generic [ref=e682]: 
+          - generic [ref=e683]: 
+          - generic [ref=e684]: 
+          - generic [ref=e685]: 
+      - generic [ref=e686]:
+        - generic [ref=e687]:
+          - generic [ref=e688]: 
+          - generic [ref=e689]: Local Insider Hack
+        - generic [ref=e690]: True Naga sinilihan has more wild green chilies than pork! The sauce should glisten with pure coconut oil separation.
+      - generic [ref=e691]:
+        - generic [ref=e692] [cursor=pointer]:
+          - generic [ref=e693]: Taste Dish Lore
+          - generic [ref=e694]: 
+        - generic [ref=e695] [cursor=pointer]:
+          - generic [ref=e696]: 
+          - generic [ref=e697]: Locate on Map
+      - generic [ref=e698] [cursor=pointer]:
+        - generic [ref=e699]: 
+        - generic [ref=e700]: Roll another mystery drop (+25 bonus XP)

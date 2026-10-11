@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,19 +14,50 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
 import { useSaved } from '@/context/SavedContext';
 import { useBasket } from '@/context/BasketContext';
+import { useQuest } from '@/context/QuestContext';
+import { DISH_INSIDER_TIPS } from '@/data/gamification';
+import { PassportStampModal } from '@/components/gamification/PassportStampModal';
 
 export default function FoodDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { isFoodSaved, toggleSaveFood } = useSaved();
   const { addToBasket, setActiveTabSection } = useBasket();
+  const { isFoodLogged } = useQuest();
+
+  const [stampModalVisible, setStampModalVisible] = useState(false);
 
   const food = FOOD_ITEMS.find((f) => f.id === id) || FOOD_ITEMS[0];
   const saved = isFoodSaved(food.id);
+  const isLogged = isFoodLogged(food.id);
 
   // Establishments serving this food
   const servingEstablishments = ESTABLISHMENTS.filter((est) =>
     est.foodsOffered.some((item) => item.foodId === food.id)
   );
+
+  const primaryEst = servingEstablishments[0] || ESTABLISHMENTS[0];
+  const insiderTip = DISH_INSIDER_TIPS[food.id];
+  const siliLevel = insiderTip?.siliLevel || 2;
+
+  const handleOpenStamp = () => {
+    setStampModalVisible(true);
+  };
+
+  const handlePreOrder = () => {
+    const offering = primaryEst.foodsOffered.find((f) => f.foodId === food.id);
+    addToBasket({
+      foodId: food.id,
+      foodName: food.name,
+      price: offering ? offering.price : 85,
+      establishmentId: primaryEst.id,
+      establishmentName: primaryEst.name,
+      establishmentAddress: primaryEst.address,
+      image: food.image,
+      quantity: 1,
+    });
+    setActiveTabSection('current');
+    router.push('/basket');
+  };
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -42,19 +73,28 @@ export default function FoodDetailScreen() {
           <Ionicons name="arrow-back" size={24} color="#000000" />
         </Pressable>
 
-        <Pressable
-          onPress={() => toggleSaveFood(food.id)}
-          style={({ pressed }) => [styles.navIconButton, pressed && styles.pressed]}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={saved ? 'Remove from saved' : 'Save dish'}
-        >
-          <Ionicons
-            name={saved ? 'bookmark' : 'bookmark-outline'}
-            size={22}
-            color={saved ? '#D42F13' : '#000000'}
-          />
-        </Pressable>
+        <View style={styles.topBarRight}>
+          {isLogged && (
+            <View style={styles.loggedBadge}>
+              <Ionicons name="checkmark-circle" size={13} color="#34C759" />
+              <Text style={styles.loggedBadgeText}>Tasted</Text>
+            </View>
+          )}
+
+          <Pressable
+            onPress={() => toggleSaveFood(food.id)}
+            style={({ pressed }) => [styles.navIconButton, pressed && styles.pressed]}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={saved ? 'Remove from saved' : 'Save dish'}
+          >
+            <Ionicons
+              name={saved ? 'bookmark' : 'bookmark-outline'}
+              size={22}
+              color={saved ? '#D42F13' : '#000000'}
+            />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView
@@ -83,25 +123,52 @@ export default function FoodDetailScreen() {
             <Text style={styles.tagline}>{food.tagline}</Text>
           </View>
 
-          {/* Inset Group 1: Dish Overview */}
+          {/* Sili Heat & Overview Group */}
           <View style={styles.insetGroup}>
+            <View style={styles.groupRow}>
+              <Text style={styles.groupRowLabel}>Bicolano Sili Heat</Text>
+              <View style={styles.heatMeterRow}>
+                {[1, 2, 3, 4, 5].map((lvl) => (
+                  <Ionicons
+                    key={lvl}
+                    name="flame"
+                    size={16}
+                    color={lvl <= siliLevel ? '#D42F13' : '#E5E5EA'}
+                  />
+                ))}
+                <Text style={styles.heatMeterText}>
+                  {siliLevel >= 4 ? 'Fiery Labuyo' : siliLevel === 3 ? 'Authentic Kick' : 'Mild'}
+                </Text>
+              </View>
+            </View>
             <View style={styles.groupRow}>
               <Text style={styles.groupRowLabel}>Typical Price</Text>
               <Text style={styles.groupRowValueBold}>{food.priceRange}</Text>
             </View>
-            <View style={styles.groupRow}>
-              <Text style={styles.groupRowLabel}>Category</Text>
-              <Text style={styles.groupRowValue}>{food.categoryLabel}</Text>
-            </View>
             <View style={[styles.groupRow, styles.groupRowLast]}>
               <Text style={styles.groupRowLabel}>Serving Places</Text>
               <Text style={styles.groupRowValue}>
-                {servingEstablishments.length} spots in Naga
+                {servingEstablishments.length} authentic spots in Naga
               </Text>
             </View>
           </View>
 
-          {/* Flavor Profile Pills (Mirroring Welcome Screen Style) */}
+          {/* Insider Secret Hack Card */}
+          {insiderTip && (
+            <View style={styles.insiderCard}>
+              <View style={styles.insiderHeader}>
+                <Ionicons name="bulb" size={16} color="#D42F13" />
+                <Text style={styles.insiderTitle}>Nagueño Secret Hack</Text>
+              </View>
+              <Text style={styles.insiderHack}>{insiderTip.secretHack}</Text>
+              <View style={styles.lingoBox}>
+                <Text style={styles.lingoLabel}>Local Ordering Lingo:</Text>
+                <Text style={styles.lingoText}>{insiderTip.orderingLingo}</Text>
+              </View>
+            </View>
+          )}
+
+          {/* Flavor Profile Pills */}
           <View style={styles.sectionBlock}>
             <Text style={styles.sectionHeader}>Flavor Profile</Text>
             <View style={styles.flavorTagsContainer}>
@@ -124,14 +191,14 @@ export default function FoodDetailScreen() {
 
           {/* Cultural Heritage & Description */}
           <View style={styles.sectionBlock}>
-            <Text style={styles.sectionHeader}>About This Dish</Text>
+            <Text style={styles.sectionHeader}>Lore & Background</Text>
             <View style={styles.insetGroup}>
               <View style={styles.textBlock}>
                 <Text style={styles.bodyText}>{food.description}</Text>
               </View>
               {food.culturalContext && (
                 <View style={[styles.textBlock, styles.textBlockDivider]}>
-                  <Text style={styles.contextHeader}>Cultural Heritage</Text>
+                  <Text style={styles.contextHeader}>Cultural Roots in Naga</Text>
                   <Text style={styles.bodyText}>{food.culturalContext}</Text>
                 </View>
               )}
@@ -140,7 +207,7 @@ export default function FoodDetailScreen() {
 
           {/* Serving Establishments Inset Group */}
           <View style={styles.sectionBlock}>
-            <Text style={styles.sectionHeader}>Where to Get It in Naga</Text>
+            <Text style={styles.sectionHeader}>Where to Taste It in Naga</Text>
             <View style={styles.insetGroup}>
               {servingEstablishments.map((est, index) => {
                 const offering = est.foodsOffered.find((f) => f.foodId === food.id);
@@ -202,33 +269,43 @@ export default function FoodDetailScreen() {
             </View>
           </View>
 
-          {/* Primary Action Button */}
-          <Pressable
-            onPress={() => {
-              const est = servingEstablishments[0] || ESTABLISHMENTS[0];
-              const offering = est.foodsOffered.find((f) => f.foodId === food.id);
-              addToBasket({
-                foodId: food.id,
-                foodName: food.name,
-                price: offering ? offering.price : 85,
-                establishmentId: est.id,
-                establishmentName: est.name,
-                establishmentAddress: est.address,
-                image: food.image,
-                quantity: 1,
-              });
-              setActiveTabSection('current');
-              router.push('/basket');
-            }}
-            style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryPressed]}
-            accessibilityRole="button"
-            accessibilityLabel="Pre-order dish"
-          >
-            <Ionicons name="bag-handle-outline" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-            <Text style={styles.primaryButtonText}>Pre-Order Dish</Text>
-          </Pressable>
+          {/* Action Buttons: Stamp Passport & Reserve Pass */}
+          <View style={styles.actionContainer}>
+            <Pressable
+              onPress={handleOpenStamp}
+              style={({ pressed }) => [styles.stampButton, pressed && styles.primaryPressed]}
+              accessibilityRole="button"
+              accessibilityLabel="Stamp passport for this dish"
+            >
+              <Ionicons name="ribbon-outline" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+              <Text style={styles.stampButtonText}>
+                {isLogged ? 'Log Another Tasting (+60 XP)' : 'Stamp My Passport (I Ate This!)'}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={handlePreOrder}
+              style={({ pressed }) => [styles.secondaryPassButton, pressed && styles.rowPressed]}
+              accessibilityRole="button"
+              accessibilityLabel="Reserve dine-in pass"
+            >
+              <Ionicons name="ticket-outline" size={16} color="#D42F13" style={{ marginRight: 6 }} />
+              <Text style={styles.secondaryPassText}>Reserve Dine-In Pass</Text>
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
+
+      {/* Passport Stamp Logger Modal */}
+      <PassportStampModal
+        visible={stampModalVisible}
+        onClose={() => setStampModalVisible(false)}
+        foodId={food.id}
+        foodName={food.name}
+        establishmentId={primaryEst.id}
+        establishmentName={primaryEst.name}
+        image={food.image}
+      />
     </SafeAreaView>
   );
 }
@@ -258,14 +335,38 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'ios' ? 4 : 10,
-    paddingBottom: 6,
+    paddingBottom: 8,
+    backgroundColor: '#F2F2F7',
+    zIndex: 10,
+  },
+  topBarRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  loggedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F9EE',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  loggedBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#34C759',
+    marginLeft: 4,
   },
   navIconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 19,
+    backgroundColor: '#FFFFFF',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E5EA',
   },
   scrollView: {
     flex: 1,
@@ -277,98 +378,163 @@ const styles = StyleSheet.create({
     maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
+
+  // Hero Photo Banner
   heroImageWrapper: {
     width: '100%',
     height: 220,
     borderRadius: 18,
     overflow: 'hidden',
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#E5E5EA',
+    marginTop: 4,
     marginBottom: 16,
   },
   heroImage: {
     width: '100%',
     height: '100%',
   },
+
+  // Title Section
   titleSection: {
-    paddingBottom: 16,
+    marginBottom: 16,
   },
   foodTitle: {
     fontFamily: sansFamily,
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: '800',
     color: '#000000',
-    letterSpacing: -0.8,
+    letterSpacing: -0.6,
   },
   bikolName: {
     fontFamily: sansFamily,
     fontSize: 14,
-    color: '#6E6E73',
-    marginTop: 3,
+    color: '#8E8E93',
+    marginTop: 2,
   },
   bikolItalic: {
     fontFamily: serifFamily,
     fontStyle: 'italic',
-    color: '#000000',
-    fontWeight: '500',
+    color: '#D42F13',
+    fontWeight: '600',
   },
   tagline: {
     fontFamily: sansFamily,
     fontSize: 14,
-    color: '#8E8E93',
-    marginTop: 6,
     lineHeight: 20,
+    color: 'rgba(60, 60, 67, 0.75)',
+    marginTop: 6,
   },
 
-  // Inset Group
+  // Inset Groups
   insetGroup: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     overflow: 'hidden',
-    marginBottom: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E5EA',
+    marginBottom: 16,
   },
   groupRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 13,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
+    borderBottomColor: '#F2F2F7',
   },
   groupRowLast: {
     borderBottomWidth: 0,
   },
   groupRowLabel: {
     fontFamily: sansFamily,
-    fontSize: 15,
-    color: '#000000',
-    fontWeight: '500',
+    fontSize: 14,
+    color: 'rgba(60, 60, 67, 0.60)',
   },
   groupRowValue: {
     fontFamily: sansFamily,
     fontSize: 14,
-    color: '#8E8E93',
+    fontWeight: '500',
+    color: '#000000',
   },
   groupRowValueBold: {
     fontFamily: sansFamily,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: '#D42F13',
   },
 
+  // Heat meter
+  heatMeterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  heatMeterText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#D42F13',
+    marginLeft: 6,
+  },
+
+  // Insider Secret Hack Card
+  insiderCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 47, 19, 0.15)',
+  },
+  insiderHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    gap: 6,
+  },
+  insiderTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#D42F13',
+    letterSpacing: 0.2,
+  },
+  insiderHack: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: 'rgba(60, 60, 67, 0.85)',
+    marginBottom: 10,
+  },
+  lingoBox: {
+    backgroundColor: '#FFF0EE',
+    padding: 10,
+    borderRadius: 8,
+  },
+  lingoLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#D42F13',
+    marginBottom: 2,
+  },
+  lingoText: {
+    fontSize: 13,
+    fontWeight: '600',
+    fontStyle: 'italic',
+    color: '#1C1C1E',
+  },
+
   // Flavor Profile
   sectionBlock: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   sectionHeader: {
     fontFamily: sansFamily,
     fontSize: 18,
     fontWeight: '700',
     color: '#000000',
+    marginBottom: 8,
     letterSpacing: -0.3,
-    marginBottom: 10,
   },
   flavorTagsContainer: {
     flexDirection: 'row',
@@ -376,139 +542,161 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   flavorPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 9999,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  flavorPillDashed: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: 'rgba(0, 0, 0, 0.35)',
-    borderStyle: 'dashed',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   flavorPillSolid: {
-    backgroundColor: 'rgba(254, 215, 170, 0.65)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(234, 88, 12, 0.6)',
+    backgroundColor: '#FFFFFF',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E5EA',
+  },
+  flavorPillDashed: {
+    backgroundColor: '#FFF0EE',
+    borderWidth: 1,
     borderStyle: 'dashed',
+    borderColor: 'rgba(212, 47, 19, 0.3)',
   },
   flavorPillText: {
-    fontFamily: serifFamily,
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#000000',
+    fontFamily: sansFamily,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1C1C1E',
   },
 
+  // Text Blocks
   textBlock: {
     padding: 16,
   },
   textBlockDivider: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(60, 60, 67, 0.15)',
+    borderTopColor: '#F2F2F7',
   },
   contextHeader: {
     fontFamily: sansFamily,
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '700',
-    color: '#000000',
-    marginBottom: 6,
+    color: '#D42F13',
+    marginBottom: 4,
   },
   bodyText: {
     fontFamily: sansFamily,
-    fontSize: 14,
-    lineHeight: 21,
-    color: '#48484A',
+    fontSize: 13,
+    lineHeight: 19,
+    color: 'rgba(60, 60, 67, 0.80)',
   },
 
-  // Establishment row
+  // Establishments List
   establishmentRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
-    paddingHorizontal: 16,
-    minHeight: 72,
+    paddingHorizontal: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#F2F2F7',
   },
   establishmentRowLast: {
     borderBottomWidth: 0,
   },
   estThumbnail: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
-    backgroundColor: '#F2F2F7',
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    backgroundColor: '#E5E5EA',
+    marginRight: 12,
   },
   estContent: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
-    paddingBottom: 10,
-    minHeight: 56,
+    justifyContent: 'space-between',
   },
   estContentLast: {
     borderBottomWidth: 0,
-    paddingBottom: 0,
   },
   estInfo: {
     flex: 1,
-    justifyContent: 'center',
   },
   estName: {
     fontFamily: sansFamily,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: '#000000',
   },
   estSubhead: {
     fontFamily: sansFamily,
     fontSize: 12,
-    color: '#8E8E93',
-    marginTop: 2,
+    color: 'rgba(60, 60, 67, 0.60)',
+    marginTop: 1,
   },
   estStatus: {
     fontFamily: sansFamily,
-    fontSize: 12,
-    marginTop: 2,
+    fontSize: 11,
     fontWeight: '600',
+    marginTop: 2,
   },
   statusOpen: {
     color: '#34C759',
   },
   statusClosed: {
-    color: '#FF3B30',
+    color: '#8E8E93',
   },
 
-  // Primary Button
-  primaryButton: {
+  // Action Buttons
+  actionContainer: {
+    marginTop: 8,
+    gap: 10,
+  },
+  stampButton: {
+    backgroundColor: '#D42F13',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: '#111111',
-    marginTop: 4,
-    marginBottom: 24,
+    paddingVertical: 14,
+    borderRadius: 14,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#D42F13',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.25,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0 3px 10px rgba(212, 47, 19, 0.25)',
+      },
+    }),
   },
-  primaryButtonText: {
-    fontFamily: sansFamily,
-    fontSize: 16,
-    fontWeight: '600',
+  stampButtonText: {
     color: '#FFFFFF',
-    letterSpacing: -0.2,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  secondaryPassButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 47, 19, 0.25)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  secondaryPassText: {
+    color: '#D42F13',
+    fontSize: 14,
+    fontWeight: '600',
   },
 
-  pressed: {
-    opacity: 0.6,
-  },
   primaryPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.99 }],
+    opacity: 0.88,
   },
   rowPressed: {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    backgroundColor: 'rgba(60, 60, 67, 0.05)',
+  },
+  pressed: {
+    opacity: 0.8,
   },
 });
