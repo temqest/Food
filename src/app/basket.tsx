@@ -18,6 +18,7 @@ import { useQuest } from '@/context/QuestContext';
 import { COLLECTIBLE_BADGES, EXPLORER_RANKS } from '@/data/gamification';
 import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
 import { PassportStampModal } from '@/components/gamification/PassportStampModal';
+import { ActiveQuestLogWidget } from '@/components/gamification/ActiveQuestLogWidget';
 
 type PassportTab = 'stamps' | 'badges' | 'passes';
 
@@ -321,8 +322,13 @@ export default function PassportScreen() {
                 })}
               </View>
 
+              {/* Active Daily Food Quests */}
+              <View style={{ marginTop: 22, marginHorizontal: -16 }}>
+                <ActiveQuestLogWidget />
+              </View>
+
               {/* Ranks Ladder */}
-              <Text style={[styles.sectionHeading, { marginTop: 24 }]}>Naga Explorer Titles</Text>
+              <Text style={[styles.sectionHeading, { marginTop: 8 }]}>Naga Explorer Titles</Text>
               <View style={styles.rankLadderCard}>
                 {EXPLORER_RANKS.map((rank, idx) => {
                   const isCurrent = currentRank.level === rank.level;

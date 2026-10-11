@@ -1,137 +1,64 @@
-# Implementation Plan (Revised & Approved) - Gamified Naga City Food Discovery Experience
+# Implementation Plan (Streamlined & Content-First) - Discovering Naga Food Places
 
-## 1. Executive Summary & Vision
-Transform the Naga City food discovery app into an engaging, gamified exploration journey celebrating Bicolano food heritage. The app turns routine food lookup into a cultural expedition powered by **Silito** (the fiery chili mascot), the **Interactive Stilitio Mystery Box**, **Active Food Quests**, **District Conquest Progression**, and an **Authentic Naga Food Codex**.
+## 1. Problem Statement & User Correction
+The previous iteration stacked multiple separate gamification widgets on the Home screen:
+- Companion banner box
+- Standalone mystery loot crate
+- Daily quests widget
+- Category pills
+- Hero card
+- District conquest widget
+- Eatery list
 
----
-
-## 2. Architecture & Tech Lead Review Resolutions
-
-Following the audit from `@griller` in `plan_review.md`, the plan incorporates:
-
-### A. Cross-Platform Animation Performance
-- All animations use React Native's `Animated` API with `useNativeDriver: Platform.OS !== 'web'`.
-- Animations exclusively animate GPU-accelerated properties: `transform` (`scale`, `translateY`, `rotate`) and `opacity`.
-- Zero layout thrashing or layout re-renders during unboxing and wobbles.
-
-### B. Visual Pacing & Reduced Cognitive Load (Home Screen)
-- **Top Header**: Minimalist iOS-style district switcher (`Naga City · Centro`), level badge (`Lvl 3 · Broth Seeker`), and profile avatar.
-- **Interactive Silito Hero Banner**: Silito acts as the conversational guide introducing today's flavor and teasing the Mystery Box.
-- **The Stilitio Mystery Tasting Box (`SilitoMysteryBox.tsx`)**:
-  - Compact tactile card with vibrant gradients, gold-and-cayenne border, and floating crate icon.
-  - Tapping opens the interactive unboxing sequence (wobble -> flash -> dish reveal modal).
-  - Once opened today, displays an elegant *"Tasting Discovered Today: +50 XP"* chip with a re-roll button so it doesn't push down content.
-- **Active Quests Strip (`ActiveQuestLogWidget.tsx`)**:
-  - Horizontal scroll of crisp quest cards with progress bar and one-tap *"Claim +40 XP"* action.
-- **District Conquest Tracker (`DistrictProgressWidget.tsx`)**:
-  - Visual district cards with percentage bars for Bagumbayan, Centro, Magsaysay, and Peñafrancia.
-- **Authentic Eatery Feed**:
-  - Inset grouped table cards with dish tags and direct crawl route triggers.
+**Result**: A noisy, bloated "widget dashboard" where food places were buried.
+**User Directive**: The app exists to **discover and learn authentic food places in Naga City**. Gamification should support and enrich food discovery, not dominate the screen as a stack of competing boxes.
 
 ---
 
-## 3. Explicit State & Data Contract (`QuestContext.tsx`)
+## 2. Redesign Principles: Content-First Discovery
 
-```typescript
-export interface MysteryDrop {
-  id: string;
-  foodId: string;
-  foodName: string;
-  bikolName?: string;
-  establishmentId: string;
-  establishmentName: string;
-  neighborhood: string;
-  image: string;
-  rarity: 'Common Gem' | 'Secret Local Hack' | 'Legendary Heritage';
-  xpReward: number;
-  insiderSecret: string;
-}
-
-export interface QuestContextType {
-  xp: number;
-  currentRank: ExplorerRank;
-  nextRank: ExplorerRank | null;
-  rankProgressPercent: number;
-  unlockedBadgeIds: string[];
-  unlockedBadges: BadgeItem[];
-  completedQuestIds: string[];
-  tastingLog: TastingEntry[];
-  trails: FoodTrail[];
-  
-  // Mystery Box State
-  isMysteryBoxOpenedToday: boolean;
-  mysteryDrop: MysteryDrop | null;
-  openMysteryBox: () => MysteryDrop;
-  rerollMysteryBox: () => MysteryDrop;
-  
-  // Quests & XP
-  claimQuestReward: (questId: string) => { xpAwarded: number; newBadgeAwarded?: BadgeItem };
-  addXp: (amount: number) => void;
-  logTasting: (entry: Omit<TastingEntry, 'id' | 'date'>) => { newBadgeAwarded?: BadgeItem };
-  isFoodLogged: (foodId: string) => boolean;
-  isBadgeUnlocked: (badgeId: string) => boolean;
-  
-  // District Progress
-  getDistrictProgress: (districtName: string) => { total: number; visited: number; percent: number };
-}
-```
+1. **Food Places are the Hero**:
+   - The Home screen must immediately show authentic Naga carinderias, bakeries, and heritage spots.
+   - Real photos, dish signatures, neighborhoods, and open hours lead the viewport.
+2. **Eliminate Standalone Box Clutter**:
+   - Remove the standalone companion speech box.
+   - Remove the standalone mystery loot crate from the home feed.
+   - Move detailed quest logs and district conquest to the **Passport (`basket.tsx`)** and **Explore Codex (`explore.tsx`)** tabs where they naturally belong.
+3. **In-Content Gamification**:
+   - Integrate the "Surprise Me / Silito Flavor Roll" directly into the search bar as a quiet, tactile discovery tool (dice button).
+   - Display tasting XP rewards (`+60 XP`), spice meters, and heritage badges directly on the establishment and food cards.
+4. **Clean iOS-Native Pacing**:
+   - Quiet top header: `Naga City · Centro` + subtle level chip.
+   - Single unified search field with quick flavor dice.
+   - Quiet category filter pills.
+   - Featured Heritage Spotlight dish.
+   - Inset grouped list of authentic Naga eateries with clear photos and signature dishes.
 
 ---
 
-## 4. Component Structure & Specifications
+## 3. Screen Breakdown
 
-### 1. `SilitoMysteryBox.tsx` (Interactive Stilitio Mystery Box)
-- **Props**: None (connects to `useQuest`).
-- **States**:
-  - `IDLE`: Radiant pulsing chest with floating animation, flame particles, and *"Tap to Unbox"* prompt.
-  - `WOBBLING`: 400ms rapid alternating rotation (`-10deg` to `10deg`), spring scale.
-  - `REVEALED_MODAL`: Full celebration overlay showing unboxed dish, dish image, rarity pill, secret insider hack, +50 XP badge with confetti effect, and actions: *"Taste Dish Lore"* and *"Find on Map"*.
-  - `OPENED_CARD`: Clean collapsed card showing today's discovered dish, timer/re-roll button.
+### Home Screen (`src/app/index.tsx`)
+1. **Header**: Minimal native header with location switcher (`Naga City · Centro`) and subtle level indicator (`Lvl 3`).
+2. **Search & Quick Flavor Roll**:
+   - Clean search field with inline action: a dice button that triggers the Silito Craving Roll / Mystery Drop modal without eating screen space.
+3. **Filter Pills**: Quiet horizontal scroll of cuisine moods (Soups, Gata & Sili, Merienda, Night Grills).
+4. **Heritage Dish Spotlight**:
+   - High-quality photography, Bikol name, flavor tags, and price.
+5. **Authentic Naga Eateries**:
+   - Beautiful native grouped table of real spots (Cha-Cha's, Pan De Naga, Bob Marlin, Aling Cely's, Geewan).
+   - Clean metadata: neighborhood, distance, open status, signature dish, and inline tasting XP.
 
-### 2. `ActiveQuestLogWidget.tsx` (Daily Quest Log)
-- **Features**:
-  - Displays daily quests filtered by current time/district context.
-  - Shows completion state: Incomplete vs. Ready to Claim vs. Claimed.
-  - One-tap claim button with optimistic XP increment and celebratory toast/badge check.
+### Explore Codex (`src/app/explore.tsx`)
+- The cultural repository: Guided food crawl trails (Barlin Kinalas, Fiery Gata, 4 PM Merienda), Craving Compass, and culinary chapters.
 
-### 3. `DistrictProgressWidget.tsx` (Enhanced District Conquest)
-- Displays 4 key Naga districts:
-  - *Bagumbayan / Barlin*: Broth & Kinalas Heartland.
-  - *Centro & Plaza Quezon*: Heritage Bakeries & Night Grills.
-  - *Magsaysay Ave*: Modern Strip & Fiery Feasts.
-  - *Peñafrancia Riverside*: Pilgrimage Delicacies & River Lore.
-- Each with calculated completion percentages based on `tastingLog`.
-
-### 4. `SilitoCompanion.tsx` (Enhanced Companion)
-- Expressive SVG chili character with mood states (Morning sabaw, afternoon siopao, spicy night out).
-- Dynamic Bikol greetings (*"Marhay na aldaw!"*, *"Kalas na!"*).
-- Action buttons linked to Mystery Box and Compass.
-
-### 5. `NagaCompassWidget.tsx` (Naga Craving Compass)
-- Interactive mood roulette with 4 quick filters: *Surprise Me*, *Sabaw Comfort*, *Fiery Gata*, *Merienda*.
-- Spins and lands on an authentic food item with an insider hack.
+### Passport Tab (`src/app/basket.tsx`)
+- The dedicated home for gamified progression: Explorer Rank ladder, Tasting Stamp Journal, Collectible Badges, and Active Quests.
 
 ---
 
-## 5. Screen Overhauls
-
-1. **`src/app/index.tsx` (Home Screen)**:
-   - Integrates Silito Companion, Stilitio Mystery Box, Daily Quests, District Conquest, and Eateries.
-2. **`src/app/explore.tsx` (Codex Screen)**:
-   - Features Food Crawl Trails (Barlin Kinalas, Fiery Gata, 4 PM Merienda) with direct map launch links, Naga Craving Compass, and Dish Codex.
-3. **`src/app/map.tsx` (Map Screen)**:
-   - Highlights crawl routes, district boundaries, and quick tasting check-ins.
-4. **`src/app/basket.tsx` (Passport Screen)**:
-   - Polished tasting journal stamps, collectible badge rack, and rank roadmap.
-
----
-
-## 6. Execution Roadmap for @distributor
-- **Task 1**: Update `src/data/gamification.ts` with mystery drops, district data, and secrets.
-- **Task 2**: Update `src/context/QuestContext.tsx` with mystery box methods, quest claiming, and district calculations.
-- **Task 3**: Create `src/components/gamification/SilitoMysteryBox.tsx` with cross-platform animations and unbox modal.
-- **Task 4**: Create `src/components/gamification/ActiveQuestLogWidget.tsx` with claimable quests.
-- **Task 5**: Polish `SilitoCompanion.tsx`, `DistrictProgressWidget.tsx`, and `NagaCompassWidget.tsx`.
-- **Task 6**: Overhaul `src/app/index.tsx` and integrate all gamification modules.
-- **Task 7**: Polish `src/app/explore.tsx`, `src/app/map.tsx`, and `src/app/basket.tsx`.
-- **Task 8**: Maintain `progress.md` and hand off to `@verifier`.
+## 4. Execution Steps
+1. Refactor `src/app/index.tsx` to remove the widget gauntlet and put authentic food places first.
+2. Wire the lucky mystery roll into the search bar / header as a lightweight tool.
+3. Ensure Passport screen (`basket.tsx`) houses active quests and rank progression cleanly.
+4. Verify with `tsc`, `lint`, and Playwright screenshots.

@@ -1,0 +1,89 @@
+- generic [ref=f1e8]:
+  - generic [ref=f1e9]:
+    - 'button "Location: Naga City, Centro" [ref=f1e10] [cursor=pointer]':
+      - generic [ref=f1e12]: Naga City
+      - generic [ref=f1e13]: ·
+      - generic [ref=f1e14]: Centro
+    - generic [ref=f1e15]:
+      - 'button "Explorer Rank: Level 3 Broth Seeker" [ref=f1e16] [cursor=pointer]':
+        - generic [ref=f1e17]: Lvl 3
+      - button "Open profile" [ref=f1e18] [cursor=pointer]
+  - generic [ref=f1e23]:
+    - generic [ref=f1e26]:
+      - textbox "Search dishes or authentic spots in Naga..." [ref=f1e27]
+      - button "Filter options" [ref=f1e28] [cursor=pointer]
+    - generic [ref=f1e30]:
+      - generic [ref=f1e31] [cursor=pointer]: All Flavors
+      - generic [ref=f1e33] [cursor=pointer]: 🍜 Comfort Soups
+      - generic [ref=f1e35] [cursor=pointer]: 🥥 Gata & Sili
+      - generic [ref=f1e37] [cursor=pointer]: 🥟 Merienda Run
+      - generic [ref=f1e39] [cursor=pointer]: 🍢 Night Grills
+    - 'button "Hero spotlight dish: Kinalas" [ref=f1e42] [cursor=pointer]':
+      - generic [ref=f1e45]:
+        - generic [ref=f1e46]:
+          - generic [ref=f1e47]: HERITAGE SPOTLIGHT
+          - generic [ref=f1e49]: at Cha Cha’s Kinalas & Sinanglay · Barlin St / Santa Cruz
+        - generic [ref=f1e50]: Kinalas
+        - generic [ref=f1e51]: "Bikolano: Kinalas na Baka / Orig"
+        - generic [ref=f1e52]: Naga’s crown jewel noodle soup drenched in savory brain gravy
+        - generic [ref=f1e53]:
+          - generic [ref=f1e54]: ₱70 – ₱120
+          - generic [ref=f1e55]: Taste Dish Lore
+    - button "Roll Silito's secret tasting box" [ref=f1e58] [cursor=pointer]:
+      - generic [ref=f1e61]:
+        - generic [ref=f1e62]: Can't pick a flavor?
+        - generic [ref=f1e63]: Roll Silito’s secret tasting box (+50 XP)
+      - generic [ref=f1e64]: Roll
+    - generic [ref=f1e66]:
+      - generic [ref=f1e67]:
+        - generic [ref=f1e68]: Authentic Spots in Naga
+        - generic [ref=f1e69]: 8 heritage carinderias, bakeries & dining spots
+      - generic [ref=f1e70] [cursor=pointer]: View Map ›
+    - generic [ref=f1e72]:
+      - button "Cha Cha’s Kinalas & Sinanglay, Open" [ref=f1e73] [cursor=pointer]:
+        - generic [ref=f1e77]:
+          - generic [ref=f1e78]: Cha Cha’s Kinalas & Sinanglay
+          - generic [ref=f1e79]: Kinalas Special · Barlin St / Santa Cruz · 400 m
+          - generic [ref=f1e80]: Open · Open today · 7:00 AM – 8:30 PM
+      - button "Aling Cely’s Heritage Kinalas, Open" [ref=f1e81] [cursor=pointer]:
+        - generic [ref=f1e85]:
+          - generic [ref=f1e86]: Aling Cely’s Heritage Kinalas
+          - generic [ref=f1e87]: Aling Cely’s Extra Meat Kinalas · Bagumbayan Sur · 1.2 km
+          - generic [ref=f1e88]: Open · Open today · 6:30 AM – 7:00 PM
+      - button "Baker’s Plaza Bakery & Cafe, Open" [ref=f1e89] [cursor=pointer]:
+        - generic [ref=f1e93]:
+          - generic [ref=f1e94]: Baker’s Plaza Bakery & Cafe
+          - generic [ref=f1e95]: Fresh Baked Toasted Siopao · Panganiban Drive · 800 m
+          - generic [ref=f1e96]: Open · Open today · 6:00 AM – 9:00 PM
+      - button "Bob Marlin Bicolano Cuisine, Open" [ref=f1e97] [cursor=pointer]:
+        - generic [ref=f1e101]:
+          - generic [ref=f1e102]: Bob Marlin Bicolano Cuisine
+          - generic [ref=f1e103]: Marlin’s Signature Bicol Express · Magsaysay Avenue · 1.6 km
+          - generic [ref=f1e104]: Open · Open today · 11:00 AM – 10:00 PM
+      - button "J. Emanuel Pastries & Pili Delights, Open" [ref=f1e105] [cursor=pointer]:
+        - generic [ref=f1e109]:
+          - generic [ref=f1e110]: J. Emanuel Pastries & Pili Delights
+          - generic [ref=f1e111]: Honey-Glazed Crispy Pili Nuts · Diversion / Magsaysay · 2.1 km
+          - generic [ref=f1e112]: Open · Open today · 8:00 AM – 8:00 PM
+      - button "Geewan Bicolano Heritage Eatery, Open" [ref=f1e113] [cursor=pointer]:
+        - generic [ref=f1e117]:
+          - generic [ref=f1e118]: Geewan Bicolano Heritage Eatery
+          - generic [ref=f1e119]: Fresh Geewan Pinangat · Centro / Plaza Rizal · 200 m
+          - generic [ref=f1e120]: Open · Open today · 7:30 AM – 7:30 PM
+      - button "Naga People’s Mall (Carinderia Row), Open" [ref=f1e121] [cursor=pointer]:
+        - generic [ref=f1e125]:
+          - generic [ref=f1e126]: Naga People’s Mall (Carinderia Row)
+          - generic [ref=f1e127]: Market-Style Pancit Bato Guisado · Centro / People’s Mall · 500 m
+          - generic [ref=f1e128]: Open · Open today · 5:30 AM – 6:00 PM
+      - button "Kape Bicolano & Pili Lounge, Open" [ref=f1e129] [cursor=pointer]:
+        - generic [ref=f1e133]:
+          - generic [ref=f1e134]: Kape Bicolano & Pili Lounge
+          - generic [ref=f1e135]: Hand-Crafted Pili Nut Shake · Magsaysay Avenue · 1.4 km
+          - generic [ref=f1e136]: Open · Open today · 9:00 AM – 11:00 PM
+  - generic [ref=f1e137]:
+    - tab "Home" [ref=f1e138] [cursor=pointer]
+    - tab "Categories" [ref=f1e140] [cursor=pointer]
+    - tab "Map" [ref=f1e142] [cursor=pointer]
+    - tab "Passport" [ref=f1e143] [cursor=pointer]:
+      - generic [ref=f1e144]: "2"
+    - tab "Saved" [ref=f1e147] [cursor=pointer]

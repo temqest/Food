@@ -15,10 +15,7 @@ import { SearchInput } from '@/components/common/SearchInput';
 import { NavBar } from '@/components/common/NavBar';
 import { EstablishmentCard } from '@/components/establishment/EstablishmentCard';
 import { RecommendationModal } from '@/components/common/RecommendationModal';
-import { SilitoCompanion } from '@/components/gamification/SilitoCompanion';
 import { SilitoMysteryBox } from '@/components/gamification/SilitoMysteryBox';
-import { ActiveQuestLogWidget } from '@/components/gamification/ActiveQuestLogWidget';
-import { DistrictProgressWidget } from '@/components/gamification/DistrictProgressWidget';
 import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
 import { useAuth } from '@/context/AuthContext';
 import { useQuest } from '@/context/QuestContext';
@@ -42,7 +39,7 @@ const MOOD_FILTERS = [
 
 export default function HomeScreen() {
   const { user, isAuthenticated } = useAuth();
-  const { currentRank, xp, rankProgressPercent } = useQuest();
+  const { currentRank } = useQuest();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -51,14 +48,14 @@ export default function HomeScreen() {
   // Filter establishments based on selected mood/category
   const matchingSpots =
     selectedCategory === 'all'
-      ? ESTABLISHMENTS.slice(0, 5)
+      ? ESTABLISHMENTS
       : ESTABLISHMENTS.filter((e) =>
           e.foodsOffered.some(
             (f) => FOOD_ITEMS.find((fi) => fi.id === f.foodId)?.category === selectedCategory
           )
         );
 
-  const nearbySpots = matchingSpots.length > 0 ? matchingSpots : ESTABLISHMENTS.slice(0, 4);
+  const nearbySpots = matchingSpots.length > 0 ? matchingSpots : ESTABLISHMENTS;
 
   // Hero dish adapts dynamically to the selected category or defaults to Kinalas
   const heroFood =
@@ -108,25 +105,16 @@ export default function HomeScreen() {
         </Pressable>
 
         <View style={styles.headerRightRow}>
-          {/* Gamified Explorer Rank Chip with XP Progress */}
+          {/* Subtle Level Chip - Tapping opens Passport */}
           <Pressable
             onPress={() => router.push('/basket')}
             style={({ pressed }) => [styles.levelChip, pressed && styles.pressed]}
             hitSlop={6}
             accessibilityRole="button"
-            accessibilityLabel={`Explorer Rank: Level ${currentRank.level} ${currentRank.title}, ${xp} XP`}
+            accessibilityLabel={`Explorer Rank: Level ${currentRank.level} ${currentRank.title}`}
           >
-            <View style={styles.flameIconWrap}>
-              <Ionicons name="flame" size={12} color="#D42F13" />
-            </View>
-            <View style={styles.levelChipContent}>
-              <Text style={styles.levelChipText}>Lvl {currentRank.level}</Text>
-              <View style={styles.miniProgressTrack}>
-                <View
-                  style={[styles.miniProgressFill, { width: `${rankProgressPercent}%` }]}
-                />
-              </View>
-            </View>
+            <Ionicons name="flame" size={12} color="#D42F13" />
+            <Text style={styles.levelChipText}>Lvl {currentRank.level}</Text>
           </Pressable>
 
           <Pressable
@@ -154,16 +142,13 @@ export default function HomeScreen() {
         keyboardDismissMode="on-drag"
       >
         <View style={styles.mainContainer}>
-          {/* Conversational Mascot Companion Banner */}
-          <SilitoCompanion />
-
           {/* Minimalist Search Field */}
           <View style={styles.searchWrapper}>
             <SearchInput
               value={searchQuery}
               onChangeText={setSearchQuery}
               onSubmit={handleSearchSubmit}
-              placeholder="Search Kinalas, Toasted Siopao, Sinanglay..."
+              placeholder="Search dishes or authentic spots in Naga..."
               onFilterPress={() => router.push('/search')}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}
@@ -204,15 +189,9 @@ export default function HomeScreen() {
             </View>
           )}
 
-          {/* Main Feed Content */}
+          {/* Main Feed Content - Content is the Hero */}
           {!isSearchFocused && (
             <>
-              {/* Centerpiece 1: Interactive Stilitio Mystery Box ("Loot Box" Flavor Drop) */}
-              <SilitoMysteryBox />
-
-              {/* Centerpiece 2: Active Daily Quests with Claimable XP */}
-              <ActiveQuestLogWidget />
-
               {/* Tactile Mood Filter Pills */}
               <ScrollView
                 horizontal
@@ -245,7 +224,7 @@ export default function HomeScreen() {
                 })}
               </ScrollView>
 
-              {/* Centerpiece 3: Single Hero Spotlight Card (Food is the Hero) */}
+              {/* Single Hero Spotlight Card (Food Photography carries the screen) */}
               <View style={styles.heroSection}>
                 <Pressable
                   onPress={() =>
@@ -289,15 +268,15 @@ export default function HomeScreen() {
                 </Pressable>
               </View>
 
-              {/* Centerpiece 4: Naga District Conquest Progress */}
-              <DistrictProgressWidget />
+              {/* Quiet, Non-Intrusive Silito Mystery Roll Tool */}
+              <SilitoMysteryBox compact={true} />
 
-              {/* Curated Local Spots Header */}
+              {/* Curated Authentic Eateries Section (The Core Content!) */}
               <View style={styles.sectionHeader}>
                 <View>
                   <Text style={styles.sectionTitle}>Authentic Spots in Naga</Text>
                   <Text style={styles.sectionSubTitle}>
-                    {matchingSpots.length} heritage carinderias &amp; bakeries
+                    {nearbySpots.length} heritage carinderias, bakeries &amp; dining spots
                   </Text>
                 </View>
                 <Pressable
@@ -414,39 +393,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 14,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E5E5EA',
-    gap: 5,
-  },
-  flameIconWrap: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#FFF2EE',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  levelChipContent: {
-    gap: 2,
+    gap: 4,
   },
   levelChipText: {
     fontFamily: sansFamily,
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: 11,
+    fontWeight: '700',
     color: '#1C1C1E',
-  },
-  miniProgressTrack: {
-    width: 32,
-    height: 3,
-    backgroundColor: '#E5E5EA',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  miniProgressFill: {
-    height: '100%',
-    backgroundColor: '#D42F13',
-    borderRadius: 2,
   },
   profileAvatarBtn: {
     width: 34,
@@ -563,7 +519,7 @@ const styles = StyleSheet.create({
   // Single Hero Spotlight Card
   heroSection: {
     paddingHorizontal: 16,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   heroCard: {
     width: '100%',
@@ -684,6 +640,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     marginBottom: 10,
+    marginTop: 6,
   },
   sectionTitle: {
     fontFamily: sansFamily,

@@ -15,7 +15,11 @@ import { router } from 'expo-router';
 import { useQuest } from '@/context/QuestContext';
 import { MysteryDrop } from '@/data/gamification';
 
-export const SilitoMysteryBox: React.FC = () => {
+interface SilitoMysteryBoxProps {
+  compact?: boolean;
+}
+
+export const SilitoMysteryBox: React.FC<SilitoMysteryBoxProps> = ({ compact = false }) => {
   const {
     isMysteryBoxOpenedToday,
     mysteryDrop,
@@ -146,8 +150,32 @@ export const SilitoMysteryBox: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* If already opened today, show the sleek unboxed summary with Re-roll option */}
-      {isMysteryBoxOpenedToday && currentDisplayDrop ? (
+      {compact ? (
+        <Pressable
+          onPress={handleOpenBox}
+          style={({ pressed }) => [styles.compactCard, pressed && styles.cardPressed]}
+          accessibilityRole="button"
+          accessibilityLabel="Roll Silito's secret tasting box"
+        >
+          <View style={styles.compactLeft}>
+            <View style={styles.compactIconCircle}>
+              <Ionicons name="dice" size={17} color="#D42F13" />
+            </View>
+            <View style={styles.compactTextWrap}>
+              <Text style={styles.compactTitle}>Can&apos;t pick a flavor?</Text>
+              <Text style={styles.compactSubtitle} numberOfLines={1}>
+                {isMysteryBoxOpenedToday && currentDisplayDrop
+                  ? `Unboxed: ${currentDisplayDrop.foodName} (Tap to roll)`
+                  : 'Roll Silito’s secret tasting box (+50 XP)'}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.compactPill}>
+            <Text style={styles.compactPillText}>Roll</Text>
+            <Ionicons name="sparkles" size={11} color="#FFFFFF" />
+          </View>
+        </Pressable>
+      ) : isMysteryBoxOpenedToday && currentDisplayDrop ? (
         <View style={styles.openedCard}>
           <View style={styles.openedTopRow}>
             <View style={styles.openedBadge}>
@@ -404,6 +432,73 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
     marginBottom: 16,
+  },
+  compactCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 1,
+      },
+      web: {
+        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
+      },
+    }),
+  },
+  compactLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 10,
+  },
+  compactIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: '#FFF2EE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  compactTextWrap: {
+    flex: 1,
+  },
+  compactTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  compactSubtitle: {
+    fontSize: 11,
+    color: '#8E8E93',
+    marginTop: 1,
+  },
+  compactPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#D42F13',
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 10,
+    gap: 4,
+  },
+  compactPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   boxCard: {
     backgroundColor: '#1C1C1E',
