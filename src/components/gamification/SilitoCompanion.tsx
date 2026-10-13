@@ -6,6 +6,7 @@ import {
   Pressable,
   Platform,
   Animated,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -163,17 +164,12 @@ export const SilitoCompanion: React.FC = () => {
           hitSlop={8}
           accessibilityLabel="Silito the Bicol Chili Mascot. Tap to shuffle tip."
         >
-          <Animated.View style={[styles.chiliGraphic, { transform: [{ scale: bounceAnim }] }]}>
-            <View style={styles.chiliStem} />
-            <View style={styles.chiliBody}>
-              {/* Cute Mascot Eyes */}
-              <View style={styles.eyesRow}>
-                <View style={styles.eye} />
-                <View style={styles.eye} />
-              </View>
-              {/* Happy Smile */}
-              <View style={styles.smile} />
-            </View>
+          <Animated.View style={[styles.mascotImageWrapper, { transform: [{ scale: bounceAnim }] }]}>
+            <Image
+              source={require('../../../assets/maskot/maskot.png')}
+              style={styles.mascotImage}
+              resizeMode="contain"
+            />
           </Animated.View>
           <View style={styles.mascotBadgePill}>
             <Text style={styles.mascotBadgeText}>Silito</Text>
@@ -248,50 +244,15 @@ const styles = StyleSheet.create({
     marginRight: 12,
     paddingTop: 2,
   },
-  chiliGraphic: {
-    width: 44,
-    height: 48,
+  mascotImageWrapper: {
+    width: 52,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chiliStem: {
-    width: 6,
-    height: 7,
-    backgroundColor: '#34C759',
-    borderTopLeftRadius: 3,
-    borderTopRightRadius: 3,
-    marginBottom: -1,
-  },
-  chiliBody: {
-    width: 32,
-    height: 38,
-    backgroundColor: '#D42F13',
-    borderRadius: 16,
-    borderBottomLeftRadius: 18,
-    borderBottomRightRadius: 8,
-    transform: [{ rotate: '-8deg' }],
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 4,
-  },
-  eyesRow: {
-    flexDirection: 'row',
-    gap: 6,
-    marginBottom: 4,
-  },
-  eye: {
-    width: 4,
-    height: 5,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 2,
-  },
-  smile: {
-    width: 8,
-    height: 4,
-    borderBottomWidth: 2,
-    borderBottomColor: '#FFFFFF',
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4,
+  mascotImage: {
+    width: '100%',
+    height: '100%',
   },
   mascotBadgePill: {
     backgroundColor: '#FFF2EE',

@@ -96,7 +96,7 @@ const DEFAULT_PROFILE: BusinessProfile = {
   address: 'Barlin Street, Barangay Santa Cruz, Naga City',
   neighborhood: 'Barlin St / Santa Cruz',
   contactNumber: '+63 917 555 8291',
-  openingHours: 'Open today · 7:00 AM – 8:30 PM',
+  openingHours: '7:00 AM – 8:30 PM',
   isOpenNow: true,
   heroImage: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80',
   atmosphereTags: ['Casual Dining', 'Open Air Kitchen', 'Heritage Recipe', 'Fast Service'],
@@ -258,7 +258,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setProfile((prev) => ({
       ...prev,
       isOpenNow: !prev.isOpenNow,
-      openingHours: !prev.isOpenNow ? 'Open today · 7:00 AM – 8:30 PM' : 'Closed · Opens tomorrow 7:00 AM',
+      openingHours: !prev.isOpenNow ? '7:00 AM – 8:30 PM' : 'Opens tomorrow 7:00 AM',
     }));
   };
 

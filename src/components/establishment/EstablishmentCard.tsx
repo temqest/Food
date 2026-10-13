@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { FOOD_ITEMS } from '@/data/mockData';
 import { Establishment } from '@/data/types';
 import { IOSTokens } from '@/constants/theme';
 import { useSaved } from '@/context/SavedContext';
@@ -37,10 +38,20 @@ export const EstablishmentCard: React.FC<EstablishmentCardProps> = ({
   };
 
   const primaryFood = establishment.foodsOffered[0];
+  const matchedFood = FOOD_ITEMS.find((f) => f.id === primaryFood?.foodId);
+  const dishName = matchedFood ? matchedFood.name : primaryFood?.foodName.split('(')[0].trim();
+
   const distanceFormatted =
     establishment.distanceKm < 1
       ? `${Math.round(establishment.distanceKm * 1000)} m`
       : `${establishment.distanceKm} km`;
+
+  // Clean opening hours: strip any redundant "Open today · " or "Open · "
+  const cleanHours = establishment.openingHours
+    ? establishment.openingHours
+        .replace(/^(Open today|Open|Closed)\s*[·•-]?\s*/i, '')
+        .trim()
+    : '';
 
   // Standard Inset Grouped Table Row (iOS HIG native pattern)
   if (layout === 'row') {
@@ -69,8 +80,8 @@ export const EstablishmentCard: React.FC<EstablishmentCardProps> = ({
             </Text>
 
             <Text style={styles.rowSubhead} numberOfLines={1}>
-              {primaryFood ? `${primaryFood.foodName.split('(')[0].trim()} · ` : ''}
               {establishment.neighborhood} · {distanceFormatted}
+              {dishName ? ` · ${dishName}` : ''}
             </Text>
 
             <Text
@@ -81,7 +92,7 @@ export const EstablishmentCard: React.FC<EstablishmentCardProps> = ({
               numberOfLines={1}
             >
               {establishment.isOpenNow ? 'Open' : 'Closed'}
-              {establishment.openingHours ? ` · ${establishment.openingHours}` : ''}
+              {cleanHours ? ` · ${cleanHours}` : ''}
             </Text>
           </View>
 
@@ -127,6 +138,7 @@ export const EstablishmentCard: React.FC<EstablishmentCardProps> = ({
         <Text style={styles.cardName}>{establishment.name}</Text>
         <Text style={styles.cardMeta}>
           {establishment.neighborhood} · {distanceFormatted}
+          {dishName ? ` · ${dishName}` : ''}
         </Text>
         <Text
           style={[
@@ -134,7 +146,8 @@ export const EstablishmentCard: React.FC<EstablishmentCardProps> = ({
             establishment.isOpenNow ? styles.statusOpen : styles.statusClosed,
           ]}
         >
-          {establishment.isOpenNow ? 'Open Now' : 'Closed'}
+          {establishment.isOpenNow ? 'Open' : 'Closed'}
+          {cleanHours ? ` · ${cleanHours}` : ''}
         </Text>
       </View>
     </Pressable>
