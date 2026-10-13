@@ -10,7 +10,6 @@ import {
   NativeScrollEvent,
   Image,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 // ============================================================================
@@ -190,13 +189,6 @@ const CravingPill: React.FC<CravingPillProps> = React.memo(
             resizeMode="contain"
           />
         </View>
-
-        {/* 3. Selected Active Sparkle Indicator */}
-        {isSelected ? (
-          <View style={styles.selectedSparkleBadge}>
-            <Ionicons name="sparkles" size={9} color="#FFB703" />
-          </View>
-        ) : null}
       </Pressable>
     );
   }
@@ -469,32 +461,5 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#1E1D1B',
     letterSpacing: -0.2,
-  },
-
-  /* Selected Active Sparkle */
-  selectedSparkleBadge: {
-    position: 'absolute',
-    top: 3,
-    right: -2,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 2,
-    borderWidth: 1,
-    borderColor: '#FFB703',
-    zIndex: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.15,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 2,
-      },
-      web: {
-        boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-      },
-    }),
   },
 });

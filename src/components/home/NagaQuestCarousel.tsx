@@ -27,6 +27,10 @@ export const banner3 = require('@/assets/maskot/carousel-3.jpg');
 
 export const DEFAULT_BANNER_IMAGES = [banner1, banner2, banner3];
 
+// Authentic die-cut sticker icons for scrapbook card overlays
+export const BROTH_STICKER = require('@/assets/icons/kinalas_bowl.png');
+export const SILI_STICKER = require('@/assets/icons/sili_pepper.png');
+
 // ============================================================================
 // THEME PALETTE
 // Warm Cream, Terracotta, Forest Green, Warm Yellow, Charcoal Text
@@ -178,7 +182,7 @@ const FloatingFoodBowlSticker: React.FC = () => (
   </View>
 );
 
-/** 3. Bottom-Left: Floating steaming bowl illustration sticker overlapping card edge */
+/** 3. Bottom-Left: Authentic Kinalas Broth Bowl sticker overlapping card edge */
 interface SteamingBowlProps {
   floatY?: Animated.AnimatedInterpolation<number>;
 }
@@ -187,27 +191,19 @@ const SteamingBowlSticker: React.FC<SteamingBowlProps> = ({ floatY }) => (
   <Animated.View
     style={[
       styles.steamingBowlStickerContainer,
-      floatY ? { transform: [{ rotate: '-8deg' }, { translateY: floatY }] } : null,
+      floatY ? { transform: [{ rotate: '-6deg' }, { translateY: floatY }] } : null,
     ]}
     pointerEvents="none"
   >
-    <View style={styles.steamingBowlDieCut}>
-      {/* Hand-drawn steam curls */}
-      <View style={styles.steamCurlsRow}>
-        <Text style={styles.steamCurl}>~</Text>
-        <Text style={[styles.steamCurl, styles.steamCurlMiddle]}>~</Text>
-        <Text style={styles.steamCurl}>~</Text>
-      </View>
-      {/* Bowl illustration glyph */}
-      <View style={styles.bowlIllustrationCircle}>
-        <Ionicons name="cafe" size={13} color={THEME.terracotta} />
-      </View>
-      <Text style={styles.bowlStickerLabel}>HOT BROTH</Text>
-    </View>
+    <Image
+      source={BROTH_STICKER}
+      style={styles.carouselStickerImage}
+      resizeMode="contain"
+    />
   </Animated.View>
 );
 
-/** 4. Bottom-Right: Red chili pepper ("sili") sticker illustration overlapping card edge */
+/** 4. Bottom-Right: Authentic Red Chili Pepper ("sili") sticker overlapping card edge */
 interface SiliPepperProps {
   floatY?: Animated.AnimatedInterpolation<number>;
 }
@@ -216,19 +212,15 @@ const SiliPepperSticker: React.FC<SiliPepperProps> = ({ floatY }) => (
   <Animated.View
     style={[
       styles.siliStickerContainer,
-      floatY ? { transform: [{ rotate: '-13deg' }, { translateY: floatY }] } : null,
+      floatY ? { transform: [{ rotate: '-10deg' }, { translateY: floatY }] } : null,
     ]}
     pointerEvents="none"
   >
-    <View style={styles.siliDieCut}>
-      {/* Green pepper calyx / stem */}
-      <View style={styles.siliStem} />
-      {/* Red labuyo pepper body */}
-      <View style={styles.siliBody}>
-        <Ionicons name="flame" size={11} color="#FFF275" style={styles.siliFlame} />
-        <Text style={styles.siliLabel}>SILI</Text>
-      </View>
-    </View>
+    <Image
+      source={SILI_STICKER}
+      style={styles.carouselStickerImage}
+      resizeMode="contain"
+    />
   </Animated.View>
 );
 
@@ -377,25 +369,14 @@ const CardItem: React.FC<CardItemProps> = React.memo(
 
           {/* Layout Split: RIGHT SIDE = Quest Details & Micro-UI */}
           <View style={styles.detailsColumn}>
-            {/* 1. Top Label Badge: Hand-drawn style badge "Food Quest" */}
-            <View style={styles.topBadgeRow}>
-              <View style={styles.foodQuestBadge}>
-                <Ionicons
-                  name="sparkles"
-                  size={8.5}
-                  color={THEME.terracotta}
-                  style={styles.badgeSparkle}
-                />
-                <Text style={styles.foodQuestBadgeText}>
-                  {item.category?.toUpperCase() || 'FOOD QUEST'}
-                </Text>
-              </View>
-              {item.xpBonus ? (
+            {/* 1. Top Row: XP Bonus Badge */}
+            {item.xpBonus ? (
+              <View style={styles.topBadgeRow}>
                 <View style={styles.xpBonusBadge}>
                   <Text style={styles.xpBonusText}>+{item.xpBonus} XP</Text>
                 </View>
-              ) : null}
-            </View>
+              </View>
+            ) : null}
 
             {/* 2. Main Title: Bold, warm dark green typography */}
             <Text style={styles.questTitle} numberOfLines={2}>
@@ -807,28 +788,8 @@ const styles = StyleSheet.create({
   topBadgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     paddingRight: 16, // Space for postmark stamp
-  },
-  foodQuestBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: THEME.terracottaSoft,
-    paddingHorizontal: 6.5,
-    paddingVertical: 2,
-    borderRadius: 9,
-    borderWidth: 1,
-    borderColor: 'rgba(224, 83, 60, 0.25)',
-    transform: [{ rotate: '-1deg' }],
-  },
-  badgeSparkle: {
-    marginRight: 2.5,
-  },
-  foodQuestBadgeText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: THEME.terracotta,
-    letterSpacing: 0.4,
   },
   xpBonusBadge: {
     backgroundColor: THEME.forestGreenSoft,
@@ -1047,107 +1008,50 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  /* 3. Floating Steaming Bowl Illustration Sticker (Bottom-Left Overlapping Edge) */
+  /* 3. Floating Broth Bowl Sticker (Bottom-Left Overlapping Edge) */
   steamingBowlStickerContainer: {
     position: 'absolute',
-    bottom: -9,
-    left: -7,
+    bottom: -10,
+    left: -8,
     zIndex: 26,
+    width: 38,
+    height: 38,
     ...Platform.select({
       ios: {
         shadowColor: THEME.charcoal,
         shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.22,
-        shadowRadius: 5,
+        shadowOpacity: 0.18,
+        shadowRadius: 4,
       },
       android: {
-        elevation: 5,
+        elevation: 4,
       },
     }),
-  },
-  steamingBowlDieCut: {
-    backgroundColor: THEME.cream,
-    borderWidth: 2.2,
-    borderColor: '#FFFFFF',
-    borderRadius: 11,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    alignItems: 'center',
-  },
-  steamCurlsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 7,
-    marginTop: -2,
-  },
-  steamCurl: {
-    fontSize: 8.5,
-    fontWeight: '800',
-    color: THEME.terracotta,
-    marginHorizontal: 1,
-  },
-  steamCurlMiddle: {
-    marginTop: -2,
-  },
-  bowlIllustrationCircle: {
-    marginTop: -2,
-  },
-  bowlStickerLabel: {
-    fontSize: 7,
-    fontWeight: '900',
-    color: THEME.forestGreen,
-    letterSpacing: 0.4,
-    marginTop: 1,
   },
 
   /* 4. Red Chili Pepper ("sili") Sticker (Bottom-Right Overlapping Edge) */
   siliStickerContainer: {
     position: 'absolute',
-    bottom: -9,
-    right: -7,
+    bottom: -10,
+    right: -8,
     zIndex: 26,
+    width: 38,
+    height: 38,
     ...Platform.select({
       ios: {
         shadowColor: THEME.charcoal,
         shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.25,
-        shadowRadius: 5,
+        shadowOpacity: 0.20,
+        shadowRadius: 4,
       },
       android: {
-        elevation: 5,
+        elevation: 4,
       },
     }),
   },
-  siliDieCut: {
-    backgroundColor: '#E02618',
-    borderWidth: 2.2,
-    borderColor: '#FFFFFF',
-    borderRadius: 11,
-    paddingHorizontal: 6.5,
-    paddingVertical: 3,
-    alignItems: 'center',
-  },
-  siliStem: {
-    width: 5,
-    height: 3.5,
-    backgroundColor: '#2E7D32',
-    borderTopLeftRadius: 2,
-    borderTopRightRadius: 2,
-    marginBottom: 1,
-  },
-  siliBody: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  siliFlame: {
-    marginRight: 1.5,
-  },
-  siliLabel: {
-    fontSize: 7.5,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
+  carouselStickerImage: {
+    width: 38,
+    height: 38,
   },
 
   /* ---------------- Pagination Dots ---------------- */
