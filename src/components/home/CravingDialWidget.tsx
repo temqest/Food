@@ -135,9 +135,9 @@ export interface CravingDialWidgetProps {
   onSelectCraving?: (id: string, categoryId: string) => void;
 }
 
-// Carousel dimensions & snapping (snug pills with clean breathing room)
-const ITEM_WIDTH = 118;
-const ITEM_GAP = 10;
+// Carousel dimensions & snapping (compact snug track)
+const ITEM_WIDTH = 114;
+const ITEM_GAP = 8;
 const SNAP_INTERVAL = ITEM_WIDTH + ITEM_GAP;
 const REPEAT_COUNT = 30; // 30 x 8 = 240 items for seamless infinite loop
 
@@ -343,15 +343,15 @@ export default CravingDialWidget;
 // ============================================================================
 const styles = StyleSheet.create({
   container: {
-    marginTop: 2,
-    marginBottom: 6,
+    marginTop: 0,
+    marginBottom: 4,
   },
 
   /* ---------------- Dial Track Container ---------------- */
   trackContainer: {
     backgroundColor: '#FAF5ED', // Warm soft cream banner track
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
+    borderTopWidth: 0.5,
+    borderBottomWidth: 0.5,
     borderColor: 'rgba(216, 203, 181, 0.45)',
   },
 
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   },
   flatListContent: {
     paddingHorizontal: 16,
-    paddingVertical: 10, // Crucial: gives 10px headroom above & below, preventing ANY clipping!
+    paddingVertical: 4, // Compact vertical padding: keeps track short & snug
     alignItems: 'center',
     overflow: 'visible',
   },
@@ -369,12 +369,11 @@ const styles = StyleSheet.create({
   /* ---------------- Pill Sticker Die-Cut Layout ---------------- */
   pillWrapper: {
     width: ITEM_WIDTH,
-    height: 52, // Wraps 38px capsule + 44px sticker with zero clipping
+    height: 44, // Compact wrapper height (down from 52)
     marginRight: ITEM_GAP,
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'flex-start',
-    // NO boxShadow here! Clean transparent wrapper eliminates ghost rectangular boxes.
   },
   pillPressed: {
     transform: [{ scale: 0.96 }],
@@ -383,46 +382,46 @@ const styles = StyleSheet.create({
 
   /* Organic Capsule matching user reference */
   pillDieCut: {
-    height: 38,
+    height: 35, // Compact capsule height
     width: '100%',
-    borderRadius: 19,
-    borderWidth: 2,
+    borderRadius: 17.5,
+    borderWidth: 1.8,
     borderColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 42,
-    paddingRight: 10,
+    paddingLeft: 38,
+    paddingRight: 9,
     ...Platform.select({
       ios: {
         shadowColor: '#2D2B2A',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: { width: 0, height: 1.5 },
         shadowOpacity: 0.12,
-        shadowRadius: 3.5,
+        shadowRadius: 3,
       },
       android: {
-        elevation: 2.5,
+        elevation: 2,
       },
       web: {
-        boxShadow: '0 2px 6px rgba(45, 43, 42, 0.12)',
+        boxShadow: '0 2px 5px rgba(45, 43, 42, 0.12)',
       },
     }),
   },
   pillDieCutSelected: {
-    borderWidth: 2.5,
+    borderWidth: 2.2,
     borderColor: '#FFFFFF',
     transform: [{ scale: 1.02 }],
     ...Platform.select({
       ios: {
         shadowColor: '#2D2B2A',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.20,
-        shadowRadius: 5,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.18,
+        shadowRadius: 4,
       },
       android: {
-        elevation: 4,
+        elevation: 3,
       },
       web: {
-        boxShadow: '0 3px 8px rgba(45, 43, 42, 0.20)',
+        boxShadow: '0 2px 7px rgba(45, 43, 42, 0.18)',
       },
     }),
   },
@@ -431,16 +430,16 @@ const styles = StyleSheet.create({
   overflowIconWrap: {
     position: 'absolute',
     left: -4,
-    top: 4,
-    width: 44,
-    height: 44,
+    top: 3,
+    width: 38,
+    height: 38,
     zIndex: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   overflowIconImage: {
-    width: 42,
-    height: 42,
+    width: 38,
+    height: 38,
   },
 
   /* Right 2-Line Bold Typography with snug spacing */
@@ -449,15 +448,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pillTextLine1: {
-    fontSize: 11,
-    lineHeight: 13.5,
+    fontSize: 10.5,
+    lineHeight: 12.5,
     fontWeight: '800',
     color: '#1E1D1B',
     letterSpacing: -0.2,
   },
   pillTextLine2: {
-    fontSize: 11,
-    lineHeight: 13.5,
+    fontSize: 10.5,
+    lineHeight: 12.5,
     fontWeight: '800',
     color: '#1E1D1B',
     letterSpacing: -0.2,
