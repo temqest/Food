@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
   forgotPasswordRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 6,
+    marginTop: 16,
     marginBottom: 24,
   },
   forgotPasswordText: {

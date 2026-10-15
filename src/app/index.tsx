@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   ScrollView,
@@ -7,8 +7,11 @@ import {
 import { NavBar } from '@/components/common/NavBar';
 import { MascotHero } from '@/components/home/MascotHero';
 import { CravingDialWidget } from '@/components/home/CravingDialWidget';
+import { FoodShowcaseBox } from '@/components/home/FoodShowcaseBox';
 
 export default function HomeScreen() {
+  const [selectedCravingId, setSelectedCravingId] = useState<string>('heritage-noodles');
+
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView
@@ -19,8 +22,14 @@ export default function HomeScreen() {
         {/* Top Header, Greeting & Naga Quest Infinite Postcard Carousel */}
         <MascotHero />
 
-        {/* Interactive Craving Dial (Discovery Widget) */}
-        <CravingDialWidget />
+        {/* Interactive Craving Dial (Carousel of themes & flavors) */}
+        <CravingDialWidget
+          selectedId={selectedCravingId}
+          onSelectCraving={(id) => setSelectedCravingId(id)}
+        />
+
+        {/* Food Showcase Box (Directly below the carousel, synced to selected craving) */}
+        <FoodShowcaseBox activeCravingId={selectedCravingId} />
       </ScrollView>
 
       {/* iOS Translucent Floating Tab Bar */}
@@ -39,6 +48,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
   },
   scrollContent: {
-    paddingBottom: 110,
+    paddingBottom: 80,
   },
 });
