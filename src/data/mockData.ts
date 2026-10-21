@@ -582,3 +582,22 @@ export const ESTABLISHMENTS: Establishment[] = [
     atmosphereTags: ['Air-Conditioned', 'WiFi Available', 'Evening Chill', 'Laptop Friendly'],
   },
 ];
+
+/**
+ * Quick lookup helper to retrieve a food item by its unique ID.
+ */
+export const getFoodById = (id: string): FoodItem | undefined =>
+  FOOD_ITEMS.find((food) => food.id === id);
+
+/**
+ * Quick lookup helper to retrieve an establishment by its unique ID.
+ */
+export const getEstablishmentById = (id: string): Establishment | undefined =>
+  ESTABLISHMENTS.find((est) => est.id === id);
+
+/**
+ * Filter food items by category.
+ */
+export const getFoodsByCategory = (category: FoodCategory): FoodItem[] =>
+  FOOD_ITEMS.filter((food) => food.category === category);
+
