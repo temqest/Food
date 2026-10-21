@@ -43,3 +43,17 @@
 - [ ] **Task 8: Verification & QA (`@verifier`)**
   - Run `npx tsc --noEmit` and `npx expo lint`.
   - Review UI visual design, animations, and cross-platform compatibility.
+
+---
+
+## 📌 Recent Milestones & State Optimizations (Completed)
+
+- [x] **SavedContext Memoization**: Optimized `SavedContext` using `useMemo` for filtered datasets and `useCallback` for stable action references.
+- [x] **Strong Type Contracts**: Added runtime type guards (`isFoodCategory`, `isEstablishmentType`, `isPriceLevel`) and constant arrays to `types.ts`.
+- [x] **Data Barrel Exports**: Consolidated data layer access via `src/data/index.ts`.
+- [x] **Derived State Hooks**: Created `useSavedCounts` and `useSavedFoodsByCategory` in `src/hooks/use-saved-helpers.ts`.
+- [x] **Geo & App Metadata**: Centralized Naga City center coordinates and cultural branding in `theme.ts`.
+- [x] **Component Render Optimization**: Memoized `HintRow` component using `React.memo`.
+- [x] **Apple HIG Accessibility**: Added minimum touch target utilities (44pt) in `global.css`.
+- [x] **Documentation & Queries**: Added authentic project documentation in `README.md` and fast query helpers (`getFoodById`, `getEstablishmentById`, `getFoodsByCategory`) in `mockData.ts`.
+
