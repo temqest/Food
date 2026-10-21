@@ -1,56 +1,78 @@
-# Welcome to your Expo app 👋
+# 🌶️ Naga Food Discovery (Taste the Heart of Bicol)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+An iOS Human Interface Guidelines (HIG)-grounded mobile culinary exploration app dedicated to discovering authentic Bicolano dishes and local food establishments across **Naga City, Camarines Sur**.
 
-## Get started
+---
 
-1. Install dependencies
+## 🌟 Key Features
 
-   ```bash
-   npm install
-   ```
+- **🍲 Heritage Dish Discovery**: Explore iconic dishes such as Kinalas, Sinantol, Bicol Express, Laing, and Toasted Siopao with historical and cultural context.
+- **🧭 Craving Dial & Surprise Me**: Quick dynamic filters based on craving profiles (Savory, Spicy, Soupy, Merienda) and an interactive randomizer spinner.
+- **🗺️ Interactive Naga Food Map**: Discover authentic food stops across Centro, Peñafrancia, Magsaysay, Bagumbayan, and Dayangdang.
+- **🏆 Gamified Culinary Quests**: Complete tasting quests, earn explorer XP, and level up from *Foodie Bagito* to *Bicolano Gourmet Master*.
+- **❤️ Saved Favorites**: Bookmark must-visit carinderias, bakeries, and heritage food stations with offline-ready local state.
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 🛠️ Tech Stack & Architecture
 
-In the output, you'll find options to open the app in a
+- **Framework**: [Expo](https://expo.dev) / React Native
+- **Routing**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based navigation)
+- **Language**: TypeScript (Strict typing)
+- **Styling**: Vanilla React Native StyleSheet + iOS HIG Tokens (`#D42F13` Sili Red accent)
+- **Design System**: Native mobile iOS aesthetic with support for Light and Dark modes.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 📂 Project Structure
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```text
+frontend/
+├── src/
+│   ├── app/                # Expo Router screens and tab navigators
+│   │   ├── _layout.tsx     # Root stack and providers
+│   │   ├── index.tsx       # Home screen with Craving Dial & Quests
+│   │   ├── explore.tsx     # Filterable food catalog
+│   │   ├── map.tsx         # Naga City map coordinates and eatery pins
+│   │   ├── saved.tsx       # Saved dishes and bookmarks
+│   │   └── profile.tsx     # User explorer stats, ranks, and achievements
+│   ├── components/         # Modular, memoized UI components
+│   ├── constants/          # Theme tokens, spacing, typography, and Naga geo constants
+│   ├── context/            # React state providers (SavedContext)
+│   ├── data/               # Mock dataset, types, and gamification presets
+│   ├── hooks/              # Custom React hooks (theming, saved queries)
+│   └── types/              # Ambient declarations and shared contracts
+└── assets/                 # App icons, splash screens, and food media
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-### Other setup steps
+## 🚀 Getting Started
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### 1. Install Dependencies
 
-## Learn more
+```bash
+npm install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+### 2. Start the Development Server
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npx expo start
+```
 
-## Join the community
+Press `a` for Android Emulator, `i` for iOS Simulator, or `w` for Web.
 
-Join our community of developers creating universal apps.
+### 3. Quality & Verification Commands
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+npx tsc --noEmit     # Type check
+npx expo lint        # Code formatting and linting
+npx expo-doctor      # Dependency and environment diagnosis
+```
+
+---
+
+## 📜 Cultural Dedication
+
+Created with passion for the rich culinary heritage of Naga City, Bicol — honoring the cooks, vendors, and carinderias preserving traditional flavors.
