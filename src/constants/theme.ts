@@ -166,3 +166,16 @@ export const BorderRadius = {
 
 export const BottomTabInset = Platform.select({ ios: 100, android: 96, default: 96 });
 export const MaxContentWidth = 600; // Constrain to native mobile column on large screens
+
+export const NAGA_APP_CONFIG = {
+  appName: 'Naga Food Discovery',
+  tagline: 'Taste the Heart of Bicol',
+  city: 'Naga City, Camarines Sur',
+  region: 'Bicol Region (Region V), Philippines',
+  centerCoordinates: {
+    latitude: 13.6218,
+    longitude: 123.1948,
+    label: 'Plaza Quezon, Centro Naga',
+  },
+} as const;
+
