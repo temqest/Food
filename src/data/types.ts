@@ -78,3 +78,33 @@ export interface SearchFilters {
   openOnly?: boolean;
   sortBy?: 'distance' | 'price' | 'popularity';
 }
+
+export const FOOD_CATEGORIES: readonly FoodCategory[] = [
+  'heritage-soups',
+  'gata-sili',
+  'pili-delicacies',
+  'bakery-merienda',
+  'street-grill',
+  'coolers-beverages',
+] as const;
+
+export const ESTABLISHMENT_TYPES: readonly EstablishmentType[] = [
+  'kinalas-station',
+  'carinderia',
+  'bakery',
+  'restaurant',
+  'pasalubong-center',
+  'street-stall',
+] as const;
+
+export const PRICE_LEVELS: readonly PriceLevel[] = ['budget', 'moderate', 'upscale'] as const;
+
+export const isFoodCategory = (value: unknown): value is FoodCategory =>
+  typeof value === 'string' && (FOOD_CATEGORIES as readonly string[]).includes(value);
+
+export const isEstablishmentType = (value: unknown): value is EstablishmentType =>
+  typeof value === 'string' && (ESTABLISHMENT_TYPES as readonly string[]).includes(value);
+
+export const isPriceLevel = (value: unknown): value is PriceLevel =>
+  typeof value === 'string' && (PRICE_LEVELS as readonly string[]).includes(value);
+
