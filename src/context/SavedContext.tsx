@@ -1,7 +1,10 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
 import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
 import { FoodItem, Establishment } from '@/data/types';
 
+/**
+ * State and action handlers for user-saved dishes and establishments.
+ */
 interface SavedContextType {
   savedFoodIds: string[];
   savedEstablishmentIds: string[];
@@ -14,8 +17,6 @@ interface SavedContextType {
   clearAllSaved: () => void;
 }
 
-//add
-
 const SavedContext = createContext<SavedContextType | undefined>(undefined);
 
 export const SavedProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -23,28 +24,35 @@ export const SavedProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [savedFoodIds, setSavedFoodIds] = useState<string[]>(['kinalas']);
   const [savedEstablishmentIds, setSavedEstablishmentIds] = useState<string[]>(['cha-chas-kinalas']);
 
-  const toggleSaveFood = (id: string) => {
+  const toggleSaveFood = useCallback((id: string) => {
     setSavedFoodIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
-  };
+  }, []);
 
-  const toggleSaveEstablishment = (id: string) => {
+  const toggleSaveEstablishment = useCallback((id: string) => {
     setSavedEstablishmentIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
-  };
+  }, []);
 
-  const isFoodSaved = (id: string) => savedFoodIds.includes(id);
-  const isEstablishmentSaved = (id: string) => savedEstablishmentIds.includes(id);
+  const isFoodSaved = useCallback((id: string) => savedFoodIds.includes(id), [savedFoodIds]);
+  const isEstablishmentSaved = useCallback((id: string) => savedEstablishmentIds.includes(id), [savedEstablishmentIds]);
 
-  const savedFoods = FOOD_ITEMS.filter((f) => savedFoodIds.includes(f.id));
-  const savedEstablishments = ESTABLISHMENTS.filter((e) => savedEstablishmentIds.includes(e.id));
+  const savedFoods = useMemo(
+    () => FOOD_ITEMS.filter((f) => savedFoodIds.includes(f.id)),
+    [savedFoodIds]
+  );
 
-  const clearAllSaved = () => {
+  const savedEstablishments = useMemo(
+    () => ESTABLISHMENTS.filter((e) => savedEstablishmentIds.includes(e.id)),
+    [savedEstablishmentIds]
+  );
+
+  const clearAllSaved = useCallback(() => {
     setSavedFoodIds([]);
     setSavedEstablishmentIds([]);
-  };
+  }, []);
 
   return (
     <SavedContext.Provider
