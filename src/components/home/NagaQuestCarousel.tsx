@@ -325,8 +325,8 @@ const CardItem: React.FC<CardItemProps> = React.memo(
         onJoin(item.id);
       } else {
         router.push({
-          pathname: '/map',
-          params: { questId: item.id, title: item.title },
+          pathname: '/trail/[id]',
+          params: { id: item.id, title: item.title },
         });
       }
     };

@@ -10,10 +10,10 @@ interface FoodTrailCardProps {
 
 export const FoodTrailCard: React.FC<FoodTrailCardProps> = ({ trail }) => {
   const handlePress = () => {
-    // Route to map or search with trail context
+    // Route to dedicated food trail expedition screen
     router.push({
-      pathname: '/map',
-      params: { trailId: trail.id },
+      pathname: '/trail/[id]',
+      params: { id: trail.id },
     });
   };
 

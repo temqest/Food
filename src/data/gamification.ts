@@ -171,7 +171,7 @@ export const FOOD_TRAILS: FoodTrail[] = [
     difficulty: 'Flavor Sprint',
     icon: 'restaurant',
     heroImage: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
-    establishmentIds: ['cha-chas-kinalas', 'aling-celys-kinalasan'],
+    establishmentIds: ['cha-chas-kinalas', 'aling-celys-kinalasan', 'naga-peoples-mall-stalls'],
     foodIds: ['kinalas', 'toasted-siopao'],
     xpBonus: 150,
   },
@@ -187,7 +187,7 @@ export const FOOD_TRAILS: FoodTrail[] = [
     difficulty: 'Fiery Gauntlet',
     icon: 'flame',
     heroImage: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
-    establishmentIds: ['bob-marlin-restaurant', 'geewan-bicolano-eatery'],
+    establishmentIds: ['geewan-bicolano-eatery', 'cha-chas-kinalas', 'bob-marlin-restaurant'],
     foodIds: ['sinanglay', 'pinangat', 'bicol-express'],
     xpBonus: 180,
   },
@@ -203,11 +203,36 @@ export const FOOD_TRAILS: FoodTrail[] = [
     difficulty: 'Easy Stroll',
     icon: 'cafe',
     heroImage: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
-    establishmentIds: ['pan-de-naga-heritage', 'bakers-plaza-naga'],
+    establishmentIds: ['pan-de-naga-heritage', 'bakers-plaza-naga', 'j-emanuel-pili'],
     foodIds: ['toasted-siopao', 'crispy-pili', 'mazapan-de-pili'],
     xpBonus: 120,
   },
 ];
+
+/**
+ * Resolves a trail by either its trail ID, quest ID alias, or slug keyword.
+ */
+export function getTrailById(idOrSlug?: string): FoodTrail | undefined {
+  if (!idOrSlug) return FOOD_TRAILS[0];
+  const normalized = idOrSlug.toLowerCase();
+
+  // Direct match
+  const direct = FOOD_TRAILS.find((t) => t.id === idOrSlug || t.id.toLowerCase() === normalized);
+  if (direct) return direct;
+
+  // Quest ID to Trail ID alias mapping
+  if (normalized.includes('kinalas')) {
+    return FOOD_TRAILS.find((t) => t.id === 'trail-barlin-kinalas');
+  }
+  if (normalized.includes('centro') || normalized.includes('merienda') || normalized.includes('siopao')) {
+    return FOOD_TRAILS.find((t) => t.id === 'trail-heritage-merienda');
+  }
+  if (normalized.includes('spice') || normalized.includes('gata') || normalized.includes('sili')) {
+    return FOOD_TRAILS.find((t) => t.id === 'trail-gata-sili-trial');
+  }
+
+  return FOOD_TRAILS[0];
+}
 
 export interface QuestItem {
   id: string;
