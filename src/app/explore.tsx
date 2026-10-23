@@ -1,24 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
+  SafeAreaView,
   Pressable,
   Platform,
-  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { NavBar } from '@/components/common/NavBar';
-import { RecommendationModal } from '@/components/common/RecommendationModal';
-import { NagaCompassWidget } from '@/components/gamification/NagaCompassWidget';
-import { FoodTrailCard } from '@/components/gamification/FoodTrailCard';
-import { CATEGORIES, FOOD_ITEMS } from '@/data/mockData';
-import { FOOD_TRAILS } from '@/data/gamification';
+import { PassportStampModal } from '@/components/gamification/PassportStampModal';
+import { CodexHeroHeader } from '@/components/codex/CodexHeroHeader';
+import { CodexFilterBar } from '@/components/codex/CodexFilterBar';
+import { DishCodexCard } from '@/components/codex/DishCodexCard';
+import { DishDossierModal } from '@/components/codex/DishDossierModal';
+import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
+import { DISH_INSIDER_TIPS } from '@/data/gamification';
+import { FoodItem, Establishment } from '@/data/types';
+import { useQuest } from '@/context/QuestContext';
 
 export default function ExploreScreen() {
-  const [isRecommendationOpen, setIsRecommendationOpen] = useState(false);
+  const { isFoodLogged } = useQuest();
+
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  // Modals & Interactive Sheet State
+  const [inspectedFood, setInspectedFood] = useState<FoodItem | null>(null);
+  const [stampTargetFood, setStampTargetFood] = useState<FoodItem | null>(null);
+
+  // Filtered Dishes
+  const filteredDishes = useMemo(() => {
+    return FOOD_ITEMS.filter((food) => {
+      // 1. Text Search Query
+      if (searchQuery.trim().length > 0) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchesName = food.name.toLowerCase().includes(q);
+        const matchesBikol = food.bikolName?.toLowerCase().includes(q) ?? false;
+        const matchesTagline = food.tagline.toLowerCase().includes(q);
+        const matchesDesc = food.description.toLowerCase().includes(q);
+        const matchesFlavor = food.flavorProfile.some((f) => f.toLowerCase().includes(q));
+
+        if (!matchesName && !matchesBikol && !matchesTagline && !matchesDesc && !matchesFlavor) {
+          return false;
+        }
+      }
+
+      // 2. Category Filter
+      if (selectedCategory !== 'all' && food.category !== selectedCategory) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [searchQuery, selectedCategory]);
+
+  // Establishments helpers
+  const getServingEstablishmentsForFood = (foodId: string): Establishment[] => {
+    return ESTABLISHMENTS.filter((est) =>
+      est.foodsOffered.some((item) => item.foodId === foodId)
+    );
+  };
+
+  const getPrimaryEstablishmentForFood = (foodId: string): Establishment | undefined => {
+    const spots = getServingEstablishmentsForFood(foodId);
+    return spots[0] || ESTABLISHMENTS[0];
+  };
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -28,136 +77,103 @@ export default function ExploreScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.mainContainer}>
-          {/* Editorial Title */}
-          <View style={styles.titleSection}>
-            <Text style={styles.headingSans}>
-              Naga Flavor <Text style={styles.headingSerif}>codex</Text>
-            </Text>
-            <Text style={styles.subheadText}>
-              The official encyclopedia of Bicolano culinary heritage, guided food crawl routes, and dish lore.
-            </Text>
-          </View>
+          {/* Large Title & Search Header */}
+          <CodexHeroHeader
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          />
 
-          {/* Section 1: Curated Food Crawl Expeditions */}
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleRow}>
-              <Ionicons name="footsteps" size={16} color="#D42F13" style={{ marginRight: 6 }} />
-              <Text style={styles.sectionTitle}>Food Crawl Expeditions</Text>
+          {/* Clean Category Filter Strip */}
+          <CodexFilterBar
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
+
+          {/* Dishes List */}
+          {filteredDishes.length > 0 ? (
+            <View style={styles.dishesList}>
+              {filteredDishes.map((food) => {
+                const insiderTip = DISH_INSIDER_TIPS[food.id];
+                const isLogged = isFoodLogged(food.id);
+                const primaryEst = getPrimaryEstablishmentForFood(food.id);
+
+                return (
+                  <DishCodexCard
+                    key={food.id}
+                    food={food}
+                    insiderTip={insiderTip}
+                    isLogged={isLogged}
+                    primaryEstablishment={primaryEst}
+                    onInspect={() => setInspectedFood(food)}
+                  />
+                );
+              })}
             </View>
-            <Text style={styles.sectionMeta}>{FOOD_TRAILS.length} Routes</Text>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.trailsScroll}
-          >
-            {FOOD_TRAILS.map((trail) => (
-              <FoodTrailCard key={trail.id} trail={trail} />
-            ))}
-          </ScrollView>
-
-          {/* Section 2: Interactive Craving Compass */}
-          <View style={styles.compassContainer}>
-            <NagaCompassWidget />
-          </View>
-
-          {/* Section 3: Insider Food Lore & Trivia Card */}
-          <View style={styles.loreCard}>
-            <View style={styles.loreHeader}>
-              <View style={styles.loreIconCircle}>
-                <Ionicons name="book" size={14} color="#D42F13" />
-              </View>
-              <Text style={styles.loreTitle}>Bikolano Kitchen Customs</Text>
+          ) : (
+            /* Clean Empty State */
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyTitle}>No Dishes Found</Text>
+              <Text style={styles.emptyDesc}>
+                Try adjusting your search terms or chapter filter.
+              </Text>
+              <Pressable
+                onPress={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('all');
+                }}
+                style={styles.resetButton}
+                accessibilityRole="button"
+                accessibilityLabel="Clear search and show all dishes"
+              >
+                <Text style={styles.resetButtonText}>Show All Dishes</Text>
+              </Pressable>
             </View>
-            <Text style={styles.loreFact}>
-              &ldquo;Kakang Gata&rdquo; (first press thick coconut cream) is never rushed over high heat. In authentic Naga cooking, the siling labuyo is bruised with the back of a spoon right before plating to release aromatics without scorching the gravy.
+          )}
+
+          {/* Quiet Footer Note */}
+          <View style={styles.footerNote}>
+            <Text style={styles.footerCount}>
+              {filteredDishes.length} {filteredDishes.length === 1 ? 'dish' : 'dishes'} recorded in the Codex
             </Text>
-          </View>
-
-          {/* Section 4: Culinary Chapters (Categories) */}
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleRow}>
-              <Ionicons name="grid-outline" size={16} color="#D42F13" style={{ marginRight: 6 }} />
-              <Text style={styles.sectionTitle}>Culinary Chapters</Text>
-            </View>
-            <Text style={styles.sectionMeta}>{CATEGORIES.length} Categories</Text>
-          </View>
-
-          {/* Inset Grouped Table of Categories */}
-          <View style={styles.insetGroup}>
-            {CATEGORIES.map((cat, index) => {
-              const count = FOOD_ITEMS.filter((f) => f.category === cat.id).length;
-              const isLast = index === CATEGORIES.length - 1;
-
-              return (
-                <Pressable
-                  key={cat.id}
-                  onPress={() => {
-                    router.push({
-                      pathname: '/search',
-                      params: { category: cat.id },
-                    });
-                  }}
-                  style={({ pressed }) => [
-                    styles.categoryRow,
-                    isLast && styles.categoryRowLast,
-                    pressed && styles.rowPressed,
-                  ]}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${cat.label}, ${count} dishes`}
-                >
-                  <View style={styles.iconCircle}>
-                    <Ionicons
-                      name={cat.icon as any}
-                      size={20}
-                      color="#D42F13"
-                    />
-                  </View>
-
-                  <View style={[styles.rowContent, isLast && styles.rowContentLast]}>
-                    <View style={styles.textColumn}>
-                      <Text style={styles.categoryName}>{cat.label}</Text>
-                      <Text style={styles.categoryDesc} numberOfLines={1}>
-                        {cat.description}
-                      </Text>
-                    </View>
-
-                    <View style={styles.trailingContainer}>
-                      <View style={styles.countBadge}>
-                        <Text style={styles.countText}>{count} dishes</Text>
-                      </View>
-                      <Ionicons
-                        name="chevron-forward"
-                        size={16}
-                        color="#C7C7CC"
-                      />
-                    </View>
-                  </View>
-                </Pressable>
-              );
-            })}
+            <Text style={styles.footerHint}>
+              Tap any dish to inspect cultural heritage, local ordering phrases, and verified spots.
+            </Text>
           </View>
         </View>
       </ScrollView>
 
+      {/* iOS Translucent Tab Bar */}
       <NavBar currentTab="explore" />
 
-      {/* Recommendation Roulette Modal */}
-      <RecommendationModal
-        visible={isRecommendationOpen}
-        onClose={() => setIsRecommendationOpen(false)}
+      {/* Deep Codex Dossier Modal */}
+      <DishDossierModal
+        visible={!!inspectedFood}
+        food={inspectedFood}
+        insiderTip={inspectedFood ? DISH_INSIDER_TIPS[inspectedFood.id] : undefined}
+        servingEstablishments={inspectedFood ? getServingEstablishmentsForFood(inspectedFood.id) : []}
+        isLogged={inspectedFood ? isFoodLogged(inspectedFood.id) : false}
+        onClose={() => setInspectedFood(null)}
+        onLogTasting={(targetFood) => {
+          setInspectedFood(null);
+          setStampTargetFood(targetFood);
+        }}
       />
+
+      {/* Passport Stamp Tasting Modal */}
+      {stampTargetFood && (
+        <PassportStampModal
+          visible={!!stampTargetFood}
+          onClose={() => setStampTargetFood(null)}
+          foodId={stampTargetFood.id}
+          foodName={stampTargetFood.name}
+          establishmentId={getPrimaryEstablishmentForFood(stampTargetFood.id)?.id || 'cha-chas-kinalas'}
+          establishmentName={getPrimaryEstablishmentForFood(stampTargetFood.id)?.name || "Cha-Cha's Kinalas"}
+          image={stampTargetFood.image}
+        />
+      )}
     </SafeAreaView>
   );
 }
-
-const serifFamily = Platform.select({
-  ios: 'Georgia',
-  android: 'serif',
-  web: 'Georgia, "Times New Roman", serif',
-  default: 'Georgia',
-});
 
 const sansFamily = Platform.select({
   ios: 'system-ui',
@@ -183,193 +199,61 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingHorizontal: 16,
   },
-
-  // Editorial Title
-  titleSection: {
-    paddingTop: Platform.OS === 'ios' ? 14 : 20,
-    paddingBottom: 16,
+  dishesList: {
+    gap: 0,
   },
-  headingSans: {
-    fontFamily: sansFamily,
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#000000',
-    letterSpacing: -0.8,
-  },
-  headingSerif: {
-    fontFamily: serifFamily,
-    fontStyle: 'italic',
-    fontSize: 30,
-    fontWeight: '400',
-    color: '#D42F13',
-  },
-  subheadText: {
-    fontFamily: sansFamily,
-    fontSize: 13,
-    color: 'rgba(60, 60, 67, 0.65)',
-    marginTop: 4,
-    lineHeight: 18,
-  },
-
-  // Trails section
-  trailsScroll: {
-    paddingBottom: 16,
-  },
-
-  // Compass section
-  compassContainer: {
-    marginBottom: 16,
-  },
-
-  // Lore Card
-  loreCard: {
+  emptyState: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 15,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 1,
-      },
-      web: {
-        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
-      },
-    }),
-  },
-  loreHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    gap: 8,
-  },
-  loreIconCircle: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: '#FFF2EE',
+    borderRadius: 16,
+    padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
+    marginVertical: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E5EA',
   },
-  loreTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  loreFact: {
-    fontSize: 12,
-    fontStyle: 'italic',
-    color: '#3C3C43',
-    lineHeight: 18,
-  },
-
-  // Section Header
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  sectionTitle: {
+  emptyTitle: {
     fontFamily: sansFamily,
     fontSize: 17,
-    fontWeight: '800',
-    color: '#000000',
-    letterSpacing: -0.3,
-  },
-  sectionMeta: {
-    fontFamily: sansFamily,
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#8E8E93',
-  },
-
-  // Inset Group
-  insetGroup: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    marginBottom: 20,
-  },
-  categoryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-  },
-  categoryRowLast: {
-    borderBottomWidth: 0,
-  },
-  iconCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: '#FFF2EE',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  rowContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5EA',
-    paddingVertical: 2,
-    paddingRight: 2,
-  },
-  rowContentLast: {
-    borderBottomWidth: 0,
-  },
-  textColumn: {
-    flex: 1,
-    paddingRight: 8,
-  },
-  categoryName: {
-    fontFamily: sansFamily,
-    fontSize: 15,
     fontWeight: '700',
     color: '#000000',
+    marginBottom: 4,
   },
-  categoryDesc: {
+  emptyDesc: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    color: 'rgba(60, 60, 67, 0.6)',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  resetButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  resetButtonText: {
+    fontFamily: sansFamily,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#D42F13',
+  },
+  footerNote: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+  },
+  footerCount: {
+    fontFamily: sansFamily,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#8E8E93',
+    marginBottom: 3,
+  },
+  footerHint: {
     fontFamily: sansFamily,
     fontSize: 12,
-    color: '#8E8E93',
-    marginTop: 1,
-  },
-  trailingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  countBadge: {
-    backgroundColor: '#F2F2F7',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  countText: {
-    fontFamily: sansFamily,
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#1C1C1E',
-  },
-
-  rowPressed: {
-    backgroundColor: 'rgba(60, 60, 67, 0.05)',
+    color: 'rgba(60, 60, 67, 0.45)',
+    textAlign: 'center',
+    lineHeight: 16,
+    maxWidth: 320,
   },
 });

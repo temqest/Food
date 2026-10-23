@@ -74,3 +74,31 @@ When adding new trails or editing this screen:
 4. [ ] Verify that the winding road connects seamlessly banner-to-banner.
 5. [ ] Verify that stop circular badges alternate corners and overextend outside the top edge.
 6. [ ] Verify that the hero food photos are appetizing, large, and unobstructed.
+
+---
+
+## 4. Naga Flavor Codex Principles & Anti-Clutter Rules
+
+### 4.1 Single-Purpose Direction
+- **The Goal**: The Codex is an authentic culinary field encyclopedia: browse iconic dishes, read their story, see where to eat them, and tap into deep lore.
+- **Anti-Feature Creep**: Do NOT slap floating action buttons (like Craving Dials or Roulettes) in the header next to the Large Title.
+- **Header Standard**: Clean iOS Large Title (`Flavor Codex`, 34px / 700) + concise subtitle + full-width 38px search field.
+
+### 4.2 Anti-Box-in-a-Box Clutter
+- **The Pitfall**: Layering 5+ nested boxes inside a single card (overextending stamp row + tilted price tape + lingo quote box + establishment strip + dual action buttons).
+- **The Fix**: Keep the card calm and uncluttered:
+  - 160px hero food photo with quiet price pill.
+  - Clean title + Bikol native name + 2-line description.
+  - Single quiet meta line (`Eatery · Spice level · Inspect ›`).
+  - The whole card is a single tappable surface that opens the rich `DishDossierModal` for deep lore, local ordering quotes, and map directions.
+
+### 4.3 Clean Single-Tier Filters
+- Use a single horizontal category pill bar (`All · Soups & Broths · Gata & Sili · Pili Sweets · Merienda · Night Grills · Coolers`).
+- Never stack multiple competing filter rows (no separate heat index bars or ingredient carousels above the content).
+
+### 4.4 Checklist for Codex Updates
+1. [ ] Run `npx tsc --noEmit` (0 errors).
+2. [ ] Audit at **375px × 812px** mobile viewport in Playwright.
+3. [ ] Verify no cards contain nested boxes or competing button rows.
+4. [ ] Verify tapping any dish card smoothly opens the deep Dossier Sheet.
+
