@@ -300,7 +300,7 @@ export default function SearchScreen() {
         </View>
       </ScrollView>
 
-      <NavBar />
+      <NavBar currentTab="search" />
 
       {/* Try Something New Recommendation Sheet */}
       <RecommendationModal

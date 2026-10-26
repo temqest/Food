@@ -87,18 +87,18 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
       inactiveIcon: 'home-outline',
     },
     {
-      tab: 'explore',
-      label: 'Categories',
-      route: '/explore',
-      activeIcon: 'grid',
-      inactiveIcon: 'grid-outline',
-    },
-    {
       tab: 'map',
       label: 'Map',
       route: '/map',
       activeIcon: 'map',
       inactiveIcon: 'map-outline',
+    },
+    {
+      tab: 'search',
+      label: 'Search',
+      route: '/search',
+      activeIcon: 'search',
+      inactiveIcon: 'search-outline',
       isCenter: true,
     },
     {

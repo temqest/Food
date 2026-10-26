@@ -83,7 +83,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `components/trail/` | `TrailHeroBanner`, `TrailProgressBar`, `TrailSteppingBridge`, `TrailStopStation`, `TrailFinishCrest`, `TrailStopDetailsSheet` | Winding road journey map, gamified crawl stops, and milestone crest. |
 | `components/codex/` | `CodexHeroHeader`, `CodexFilterBar`, `DishCodexCard`, `DishDossierModal` | Clean culinary encyclopedia cards, category filters, and deep lore bottom sheet. |
 | `components/home/` | `MascotHero`, `NagaQuestCarousel`, `CravingDialWidget`, `FoodShowcaseBox` | Dynamic greetings, streak flame button, banner carousel, and interactive flavor dial. |
-| `components/common/` | `NavBar`, `SearchInput`, `RecommendationModal`, `UserAvatar` | Floating iOS glass-style bottom navigation bar, search inputs, modal sheets, and universal native Android/iOS `SvgXml` avatar renderer. |
+| `components/common/` | `NavBar`, `SearchInput`, `RecommendationModal`, `UserAvatar` | Floating bottom navigation pill: Home (`/`), Map (`/map`), Search elevated center button (`/search`), Feed (`/feed`), Saved (`/saved`), search inputs, modal sheets, and universal native Android/iOS `SvgXml` avatar renderer. |
 | `components/map/` | `MapboxMapView` | Mapbox GL mobile/web interactive map with custom marker callouts. |
 | `components/gamification/` | `PassportStampModal`, `SilitoMysteryBox` | Tasting journal stamps, celebratory unboxing animations. |
 
@@ -92,6 +92,19 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 ## 5. AI Action & Modification Log
 
 *Every AI session must append its actions here:*
+
+### [2026-10-26] - NavBar Reconfiguration (Map to Tab 2, Search to Center, Codex Unlinked)
+- **User Request**: 
+  1. Replace current Codex place with the Map.
+  2. Map's center place becomes a Search icon for the Search screen.
+  3. Don't delete Codex, just unlink it.
+- **Changes Applied**:
+  - [`NavBar.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/common/NavBar.tsx):
+    - Position 2: Replaced `explore` (Flavor Codex) with `map` (`label: 'Map'`, `route: '/map'`, `activeIcon: 'map'`, `inactiveIcon: 'map-outline'`).
+    - Position 3 (Center elevated button): Replaced `map` with `search` (`label: 'Search'`, `route: '/search'`, `activeIcon: 'search'`, `inactiveIcon: 'search-outline'`, `isCenter: true`).
+    - Unlinked Flavor Codex (`/explore`) from the navbar while leaving all codex screens, cards, modals, and lore sheets untouched.
+  - [`search.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/search.tsx): Passed `currentTab="search"` to `<NavBar />`.
+
 
 ### [2026-10-26] - DiceBear Adventurer Neutral Avatars & Native Android SvgXml
 - **User Request**: "use this isntead: import { Style, Avatar } from '@dicebear/core'; import definition from '@dicebear/styles/adventurer-neutral.json' with { type: 'json' }; const style = new Style(definition); const avatar = new Avatar(style, { ...options }); const svg = avatar.toString();"
