@@ -345,27 +345,15 @@ export default function BusinessDashboardScreen() {
                         {prod.inStock ? 'In Stock' : 'Sold Out'}
                       </Text>
 
-                      <View style={styles.itemActionsBottomRow}>
-                        <Pressable
-                          onPress={() => handleEditProductPress(prod)}
-                          style={({ pressed }) => [styles.actionSmallBtn, pressed && styles.pressed]}
-                          hitSlop={8}
-                          accessibilityRole="button"
-                          accessibilityLabel={`Edit ${prod.name}`}
-                        >
-                          <Ionicons name="pencil-outline" size={14} color="#000000" />
-                        </Pressable>
-
-                        <Pressable
-                          onPress={() => handleDeleteProductPress(prod)}
-                          style={({ pressed }) => [styles.actionSmallBtn, pressed && styles.pressed]}
-                          hitSlop={8}
-                          accessibilityRole="button"
-                          accessibilityLabel={`Delete ${prod.name}`}
-                        >
-                          <Ionicons name="trash-outline" size={14} color="#8E8E93" />
-                        </Pressable>
-                      </View>
+                      <Pressable
+                        onPress={() => handleDeleteProductPress(prod)}
+                        style={({ pressed }) => [styles.trashBtn, pressed && styles.pressed]}
+                        hitSlop={8}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Delete ${prod.name}`}
+                      >
+                        <Ionicons name="trash-outline" size={14} color="#8E8E93" />
+                      </Pressable>
                     </View>
                   </View>
                 );
@@ -955,15 +943,6 @@ const styles = StyleSheet.create({
   },
   stockRed: {
     color: '#C62828',
-  },
-  itemActionsBottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 2,
-  },
-  actionSmallBtn: {
-    padding: 4,
   },
   trashBtn: {
     padding: 4,

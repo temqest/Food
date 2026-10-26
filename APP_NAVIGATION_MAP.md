@@ -101,6 +101,12 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 
 *Every AI session must append its actions here:*
 
+### [2026-10-26] - Store Menu: Removed Redundant Pen Icon (`/business`)
+- **User Request**: "remove the pen icon, in the food tab"
+- **Architectural & Design Upgrades Applied**:
+  - In [`business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx), removed the redundant pencil icon from the food item action column.
+  - Tapping anywhere on the food tab / card directly triggers the Edit Dish modal, maintaining a clean, uncrowded action column with only the in-stock switch, stock status text, and trash button.
+
 ### [2026-10-26] - Social Media Feed: Photo Upload & Camera Integration (`/feed`)
 - **User Request**: "can u also apply the same picture picker in the social media page too"
 - **Architectural & Design Upgrades Applied**:
