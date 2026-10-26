@@ -119,3 +119,37 @@ When adding new trails or editing this screen:
 - **Caption & Insider Tip**: Clean expandable caption + highlighted Bicolano local tip / spice meter.
 - **Creation Entry**: Always provide an unmissable "+ Share Trip" action with establishment and dish tagging.
 
+---
+
+## 6. Food Detail Page Design & Sensory Editorial Architecture (`/food/[id]`)
+
+### 6.1 Full-Bleed Hero Standard
+- Food info pages must treat photography as the visual thesis. Extend hero photography full-bleed to $y=0$ behind a translucent status bar with custom SVG gradient scrimming.
+- Use circular floating frosted action buttons with `useSafeAreaInsets()` for top padding (`Math.max(insets.top, RNStatusBar.currentHeight || 24)`).
+
+### 6.2 Sensory Hierarchy & "Eat Like a Local" Rituals
+- Break down the culinary experience into immediate visual data:
+  - **Sili Heat Meter**: Flame level indicators (1–5) reflecting genuine Bicolano spice levels.
+  - **The Flavor Anatomy**: Taste note chips (Creamy Gata, Siling Labuyo, Umami Gravy, Citrus Calamansi) with matching icons.
+  - **Nagueño Dining Ritual**: Dedicated warm card highlighting ordering lingo in local dialect and insider eating hacks from `DISH_INSIDER_TIPS`.
+  - **Rich Establishment Discovery Cards**: Replace plain 48px list items with rich eatery cards displaying venue hero images, signature offering prices, distance from Naga center, and live open/closed status.
+
+### 6.3 Sticky Action Bar Discipline
+- Critical user actions ("Stamp Passport +60 XP", "Reserve Pass", "Open on Map") must be pinned in a floating bottom frosted container with safe area inset padding (`Math.max(insets.bottom, 16)`), always within comfortable thumb reach.
+
+---
+
+## 7. Mobile Input & Virtual Keyboard Usability
+- **Never enable `autoFocus` on tab-level search screens**: Users landing on `/search` or browsing screens often intend to tap filters, browse categories, or view favorites. Setting `autoFocus={true}` forces the virtual keyboard open on navigation, causing viewport displacement and layout shift. Only use `autoFocus` when the user explicitly triggers an in-page search action or dedicated search modal.
+
+---
+
+## 8. Icon & Text Pill Layout Invariant (`flexDirection: 'row'`)
+- React Native components default to `flexDirection: 'column'`. All `<Pressable>` or `<TouchableOpacity>` tags that pair an icon with descriptive text (such as action pills or filter buttons) must explicitly declare `flexDirection: 'row'` and `alignItems: 'center'`. Omitting this causes icons and labels to break across separate vertical rows.
+
+---
+
+## 9. Route Preservation Invariants
+- When modifying navigation bars or bottom tabs, decouple UI visibility from file-system routing. Never delete or move route files in `src/app/` solely to remove them from a tab bar; keep the route active for deep links and modal navigation.
+
+
