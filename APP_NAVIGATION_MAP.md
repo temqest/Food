@@ -574,6 +574,38 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
   - `npx tsc --noEmit` verified with 0 errors.
   - Visual rendering verified in Chrome DevTools viewport.
 
+### [2026-10-26] - Store Menu: Full Card Click to Edit, Removed Pen Icon & Real Photo Picker
+- **User Requests**:
+  1. In store menu, add option to upload picture of the food and remove predefined pictures.
+  2. Make categories food-centric (soups, mains, rice meals, snacks, sides, desserts, drinks).
+  3. Make the edit modal open on clicking the food card/tab itself instead of only clicking the title.
+  4. Remove the pen icon from the food tab.
+- **Architectural & UI Upgrades Applied**:
+  - In [`business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx), wrapped the entire dish card content in an outer `Pressable` trigger calling `openEditProduct(product)`.
+  - Removed the redundant edit pencil icon button (`editPenButton`) from the food item card.
+  - Kept the in-stock toggle switch isolated from the edit click trigger so toggling availability doesn't open the modal.
 
-
-
+### [2026-10-26] - Community Feed: Unified Single-Screen Post Composer & Tagging Redesign (`CreatePostModal.tsx`)
+- **User Requests**:
+  1. "the choose from gallery text doesnt fit well inside the button as its to many for that little of a space"
+  2. "you have removed the option to add caption, towards the post, and even tag food / place there"
+- **Issues Identified**:
+  - The previous 2-step Instagram flow hid caption, food tags, and eatery tags under an unannounced second step (`step === 'details'`) requiring the user to pick a photo and locate a small "Next" header button. This made it appear that captions and tagging were removed.
+  - The gallery and camera buttons were split 50/50 horizontally in a single row, severely crowding the text "Choose from Gallery" on mobile screens.
+- **Architectural & UI Upgrades Applied**:
+  1. **Unified Single-Screen Composer**:
+     - Eliminated multi-step progression entirely.
+     - Placed author header, persistent multiline caption input, photo attachment controls, and tagging chips all on a single scrollable sheet.
+  2. **Full-Width Action Buttons (Zero Text Cramping)**:
+     - Stacked the gallery button (`Choose from Gallery`) and camera button (`Take Photo with Camera`) vertically in full width (`width: '100%'`) with comfortable horizontal padding, completely eliminating line breaks and text cramming.
+  3. **Photo Attachment & Preview Controls**:
+     - Tapping "Choose from Gallery" or "Take Photo with Camera" opens the native image picker with aspect ratio editing.
+     - When an image is attached, renders a 16:9 / 4:3 high-definition preview card with quick action buttons: "Change", "Take Photo", and "Remove Photo" (trash action).
+  4. **Dedicated Interactive Tagging Sections**:
+     - **Tag Food / Dish**: Quick-tap chips from `FOOD_ITEMS` (Kinalas, Bicol Express, Toasted Siopao, Sinanglay, etc.) and an active tag pill with 1-tap clear.
+     - **Tag Eatery / Spot**: Quick-tap chips from `ESTABLISHMENTS` (Cha-cha's, Geewan, Bob Marlin, Aling Cely's, etc.) and an active tag pill with 1-tap clear.
+     - **Tag Foodies**: Quick-tap chips for community members (`@mariasantos`, `@paoloeats`, `@triciadee`).
+  5. **Direct Submission**:
+     - Primary "Share Post" button in the header and sticky bottom bar creates post with attached caption, image, food tag, eatery tag, foodie tags, and district metadata.
+- **Verification**:
+  - `npx tsc --noEmit` verified with 0 errors.
