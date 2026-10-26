@@ -6,8 +6,8 @@ import {
   ScrollView,
   Pressable,
   Platform,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, router } from 'expo-router';
 import { SearchInput } from '@/components/common/SearchInput';
@@ -71,7 +71,7 @@ export default function SearchScreen() {
   }, [query, matchedFoods, openOnly]);
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
       {/* Minimal Icon-Only Back Button */}
       <View style={styles.topBar}>
         <Pressable

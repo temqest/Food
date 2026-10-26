@@ -1,5 +1,7 @@
 # Engineering & Design Learnings: Mobile Journey Maps & Food Apps
 
+> 📍 **App Navigation & Architecture Atlas**: For the complete screen route table, component atlas, safe area configuration, and AI change history, see [`../APP_NAVIGATION_MAP.md`](file:///c:/Users/Admin/Desktop/Dev/food/APP_NAVIGATION_MAP.md).
+
 This document records the design philosophy, UX guidelines, technical pitfalls, and strict **DO's and DON'Ts** established during the development of the Naga Food Trail experience.
 
 ---

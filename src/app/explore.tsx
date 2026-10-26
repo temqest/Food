@@ -4,11 +4,10 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   Pressable,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavBar } from '@/components/common/NavBar';
 import { PassportStampModal } from '@/components/gamification/PassportStampModal';
 import { CodexHeroHeader } from '@/components/codex/CodexHeroHeader';
@@ -70,7 +69,7 @@ export default function ExploreScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

@@ -6,8 +6,8 @@ import {
   ScrollView,
   Pressable,
   Platform,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { NavBar } from '@/components/common/NavBar';
@@ -22,7 +22,7 @@ export default function SavedScreen() {
   const totalSaved = savedFoods.length + savedEstablishments.length;
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

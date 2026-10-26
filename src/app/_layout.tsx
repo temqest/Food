@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from '@/context/AuthContext';
 import { SavedProvider } from '@/context/SavedContext';
 import { BasketProvider } from '@/context/BasketContext';
@@ -16,39 +17,41 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <AuthProvider>
-      <SavedProvider>
-        <QuestProvider>
-          <BasketProvider>
-            <BusinessProvider>
-              <StatusBar style="dark" />
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: '#F2F2F7' },
-              }}
-            >
-              <Stack.Screen name="index" />
-              <Stack.Screen name="welcome" />
-              <Stack.Screen name="login" />
-              <Stack.Screen name="signup" />
-              <Stack.Screen name="onboarding" />
-              <Stack.Screen name="forgot-password" />
-              <Stack.Screen name="explore" />
-              <Stack.Screen name="map" />
-              <Stack.Screen name="saved" />
-              <Stack.Screen name="basket" />
-              <Stack.Screen name="profile" />
-              <Stack.Screen name="search" />
-              <Stack.Screen name="business" />
-              <Stack.Screen name="food/[id]" />
-              <Stack.Screen name="establishment/[id]" />
-              <Stack.Screen name="trail/[id]" />
-            </Stack>
-          </BusinessProvider>
-        </BasketProvider>
-      </QuestProvider>
-    </SavedProvider>
-  </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <SavedProvider>
+          <QuestProvider>
+            <BasketProvider>
+              <BusinessProvider>
+                <StatusBar style="dark" />
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: '#F2F2F7' },
+                  }}
+                >
+                  <Stack.Screen name="index" />
+                  <Stack.Screen name="welcome" />
+                  <Stack.Screen name="login" />
+                  <Stack.Screen name="signup" />
+                  <Stack.Screen name="onboarding" />
+                  <Stack.Screen name="forgot-password" />
+                  <Stack.Screen name="explore" />
+                  <Stack.Screen name="map" />
+                  <Stack.Screen name="saved" />
+                  <Stack.Screen name="basket" />
+                  <Stack.Screen name="profile" />
+                  <Stack.Screen name="search" />
+                  <Stack.Screen name="business" />
+                  <Stack.Screen name="food/[id]" />
+                  <Stack.Screen name="establishment/[id]" />
+                  <Stack.Screen name="trail/[id]" />
+                </Stack>
+              </BusinessProvider>
+            </BasketProvider>
+          </QuestProvider>
+        </SavedProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

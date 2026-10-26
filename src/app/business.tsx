@@ -9,10 +9,10 @@ import {
   Switch,
   Alert,
   Platform,
-  SafeAreaView,
   TextInput,
   Modal,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useBusiness, BusinessProduct } from '@/context/BusinessContext';
@@ -138,7 +138,7 @@ export default function BusinessDashboardScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
       {/* Sleek Native iOS Mobile App Header */}
       <View style={styles.topHeader}>
         <Pressable

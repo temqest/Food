@@ -6,6 +6,7 @@ import {
   Pressable,
   Image,
   Platform,
+  StatusBar as RNStatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -35,7 +36,10 @@ export const TrailHeroBanner: React.FC<TrailHeroBannerProps> = ({
     return banner1;
   }, [trail.id, trail.heroImage]);
 
-  const topInset = Math.max(insets.top, 16);
+  const topInset = Math.max(
+    insets.top,
+    Platform.OS === 'android' ? (RNStatusBar.currentHeight || 28) : 20
+  );
   const totalBannerHeight = 260 + topInset;
 
   return (

@@ -7,8 +7,8 @@ import {
   Pressable,
   Image,
   Platform,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, router } from 'expo-router';
 import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
@@ -60,7 +60,7 @@ export default function FoodDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
       {/* Minimal Top Navigation Bar */}
       <View style={styles.topBar}>
         <Pressable

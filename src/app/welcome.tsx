@@ -5,11 +5,11 @@ import {
   StyleSheet,
   Pressable,
   Platform,
-  SafeAreaView,
   StatusBar,
   Animated,
   Easing,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 interface PillItem {
@@ -126,7 +126,7 @@ function MarqueeRow({
 
 export default function WelcomeScreen() {
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={['top', 'bottom', 'left', 'right']}>
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.mainLayout}>

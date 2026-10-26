@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import {
   StyleSheet,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavBar } from '@/components/common/NavBar';
 import { MascotHero } from '@/components/home/MascotHero';
 import { CravingDialWidget } from '@/components/home/CravingDialWidget';
@@ -13,7 +13,7 @@ export default function HomeScreen() {
   const [selectedCravingId, setSelectedCravingId] = useState<string>('heritage-noodles');
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

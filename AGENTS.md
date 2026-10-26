@@ -1,5 +1,11 @@
 This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
 
+## 0. Navigation Atlas & Continuous Maintenance (MANDATORY)
+
+- **Read First**: Before searching or grepping the codebase, read [`../APP_NAVIGATION_MAP.md`](file:///c:/Users/Admin/Desktop/Dev/food/APP_NAVIGATION_MAP.md) (or [`APP_NAVIGATION_MAP.md`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/APP_NAVIGATION_MAP.md)). It contains the full route table, component index, global context map, and safe area spacing standards.
+- **Update Always**: Every time you navigate, learn, fix, update, create, or delete any file or component, update [`APP_NAVIGATION_MAP.md`](file:///c:/Users/Admin/Desktop/Dev/food/APP_NAVIGATION_MAP.md) with what you did and learned so future agents can navigate immediately.
+- **Safe Area Standard**: Always import `SafeAreaView` from `'react-native-safe-area-context'`, never from `'react-native'`. Ensure `<SafeAreaProvider>` wraps the root layout in `src/app/_layout.tsx`.
+
 ## Expo has changed — do not trust your training data
 
 Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:

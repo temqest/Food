@@ -13,6 +13,8 @@ import { Establishment } from '@/data/types';
 import { MAPBOX_TOKEN, NAGA_CITY_CENTER, MAPBOX_STYLES } from '@/constants/mapbox';
 import { BrandColors } from '@/constants/theme';
 
+const WebViewComponent = WebView as any;
+
 interface MapboxMapViewProps {
   establishments: Establishment[];
   selectedId?: string;
@@ -30,7 +32,7 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
   onInteractionStart,
   onInteractionEnd,
 }) => {
-  const webViewRef = useRef<WebView>(null);
+  const webViewRef = useRef<any>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const isMapReadyRef = useRef(false);
 
@@ -439,7 +441,7 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
           title="Naga Interactive Map"
         />
       ) : (
-        <WebView
+        <WebViewComponent
           ref={webViewRef}
           originWhitelist={['*']}
           source={{ html: staticHtmlContent }}
