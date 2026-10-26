@@ -249,14 +249,14 @@ export default function BasketScreen() {
                       style={({ pressed }) => [styles.emptyPrimaryBtn, pressed && styles.pressed]}
                     >
                       <Ionicons name="search" size={16} color="#FFFFFF" />
-                      <Text style={styles.emptyPrimaryText}>Search Dishes & Spots</Text>
+                      <Text style={styles.emptyPrimaryText} numberOfLines={1}>Search Dishes</Text>
                     </Pressable>
                     <Pressable
-                      onPress={() => router.push('/explore')}
+                      onPress={() => router.push('/map')}
                       style={({ pressed }) => [styles.emptySecondaryBtn, pressed && styles.pressed]}
                     >
-                      <Ionicons name="book-outline" size={16} color="#111111" />
-                      <Text style={styles.emptySecondaryText}>Flavor Codex</Text>
+                      <Ionicons name="map-outline" size={16} color="#111111" />
+                      <Text style={styles.emptySecondaryText} numberOfLines={1}>View Map</Text>
                     </Pressable>
                   </View>
                 </View>
@@ -1203,7 +1203,8 @@ const styles = StyleSheet.create({
   emptyCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    padding: 32,
+    paddingVertical: 28,
+    paddingHorizontal: 20,
     alignItems: 'center',
     textAlign: 'center',
     marginVertical: 12,
@@ -1231,19 +1232,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,
-    maxWidth: 340,
+    maxWidth: 320,
   },
   emptyActionsRow: {
+    width: '100%',
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   emptyPrimaryBtn: {
+    flex: 1,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
     backgroundColor: '#D42F13',
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     borderRadius: 14,
   },
   emptyPrimaryText: {
@@ -1252,12 +1257,15 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   emptySecondaryBtn: {
+    flex: 1,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
     backgroundColor: '#F2F2F7',
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     borderRadius: 14,
   },
   emptySecondaryText: {

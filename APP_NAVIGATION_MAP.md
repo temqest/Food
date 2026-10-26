@@ -335,6 +335,10 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
   - Removed redundant "Accepts Maya, GCash..." subfield notice below QR Ph in [`payment.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/payment.tsx).
   - Verified with `npx tsc --noEmit` (0 errors).
 
-
-
-
+- **2026-10-26 (Empty Basket State Button Redesign & Overflow Fix)**:
+  - Addressed issue where the action buttons in the empty basket state ([`basket.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/basket.tsx)) overflowed the card box on mobile viewports.
+  - Replaced `"Flavor Codex"` (`/explore`) with `"View Map"` (`/map`) using `map-outline` icon.
+  - Shortened `"Search Dishes & Spots"` to `"Search Dishes"` (`/search`) to avoid excessive horizontal width.
+  - Constrained both buttons with `flex: 1`, `minWidth: 0`, and `numberOfLines={1}` so they flex evenly and fit within the card without exceeding borders.
+  - Refined `emptyCard` padding from `32` to `paddingVertical: 28, paddingHorizontal: 20` for optimal mobile screen fit.
+  - Verified with `npx tsc --noEmit` (0 errors).
