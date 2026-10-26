@@ -17,12 +17,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useBusiness, BusinessProduct } from '@/context/BusinessContext';
 import { useBasket } from '@/context/BasketContext';
+import { useSocialFeed } from '@/context/SocialFeedContext';
 import { AddProductModal } from '@/components/business/AddProductModal';
 import { CreatePromotionModal } from '@/components/business/CreatePromotionModal';
+import { CreateBusinessPostModal } from '@/components/business/CreateBusinessPostModal';
+import { BusinessPostCard } from '@/components/business/BusinessPostCard';
+import { CommentsBottomSheet } from '@/components/feed/CommentsBottomSheet';
 import { BusinessOrderCard } from '@/components/business/BusinessOrderCard';
 import { PromotionCard } from '@/components/business/PromotionCard';
 import { BusinessNavBar, BusinessTab } from '@/components/business/BusinessNavBar';
 import { ESTABLISHMENTS } from '@/data/mockData';
+import { SocialPost } from '@/data/socialFeedData';
 import { IOSTokens } from '@/constants/theme';
 
 export default function BusinessDashboardScreen() {
@@ -44,8 +49,9 @@ export default function BusinessDashboardScreen() {
   } = useBusiness();
 
   const { activePreOrders, updateOrderStatus, cancelOrder } = useBasket();
+  const { posts, deletePost } = useSocialFeed();
 
-  // Mobile Bottom Navigation Tab: orders | menu | promote | store
+  // Mobile Bottom Navigation Tab: orders | menu | posts | promote | store
   const [activeTab, setActiveTab] = useState<BusinessTab>('orders');
   const [orderFilter, setOrderFilter] = useState<'received' | 'preparing' | 'ready' | 'completed'>('received');
 
@@ -54,6 +60,8 @@ export default function BusinessDashboardScreen() {
   const [editingProduct, setEditingProduct] = useState<BusinessProduct | null>(null);
   const [isCreatePromoOpen, setIsCreatePromoOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const [selectedPostForComments, setSelectedPostForComments] = useState<SocialPost | null>(null);
 
   // Edit store profile state
   const [editStoreName, setEditStoreName] = useState(profile.name);
@@ -68,6 +76,32 @@ export default function BusinessDashboardScreen() {
   );
 
   const displayedOrders = storeOrders.filter((order) => order.status === orderFilter);
+
+  // Filter posts for this establishment (only view their own posts)
+  const businessPosts = posts.filter((post) => {
+    const matchesEstId =
+      post.establishmentId === profile.id ||
+      (post.establishmentId === 'chacha-kinalas' && profile.id === 'cha-chas-kinalas') ||
+      (post.establishmentId === 'cha-chas-kinalas' && profile.id === 'chacha-kinalas');
+    const matchesAuthorId =
+      post.author.id === profile.id ||
+      post.author.id === `biz_${profile.id.replace(/[^a-z0-9]/gi, '')}`;
+    const matchesName =
+      post.author.isBusiness &&
+      post.author.name.toLowerCase().includes(profile.name.toLowerCase().split(' ')[0]);
+    const matchesCreated = Boolean(
+      post.establishmentName &&
+        post.establishmentName.toLowerCase().includes(profile.name.toLowerCase().split(' ')[0])
+    );
+    return matchesEstId || matchesAuthorId || matchesName || matchesCreated;
+  });
+
+  const totalPostLikes = businessPosts.reduce((acc, p) => acc + (p.likesCount || 0), 0);
+  const storeFollowersCount = profile.followersCount || 1420;
+  const formattedFollowers =
+    storeFollowersCount >= 1000
+      ? `${(storeFollowersCount / 1000).toFixed(1)}k`
+      : `${storeFollowersCount}`;
 
   const newOrdersCount = storeOrders.filter((o) => o.status === 'received').length;
   const inKitchenCount = storeOrders.filter((o) => o.status === 'preparing').length;
@@ -126,6 +160,8 @@ export default function BusinessDashboardScreen() {
         return 'Kitchen Orders';
       case 'menu':
         return 'Store Menu';
+      case 'posts':
+        return 'Store Posts';
       case 'promote':
         return 'Promote & Reach';
       case 'store':
@@ -364,6 +400,99 @@ export default function BusinessDashboardScreen() {
           </View>
         )}
 
+        {/* ================= TAB: SOCIAL POSTS ================= */}
+        {activeTab === 'posts' && (
+          <View style={styles.tabContainer}>
+            {/* Top Action Row */}
+            <View style={styles.menuHeaderRow}>
+              <View style={styles.headerTitlesCol}>
+                <Text style={styles.sectionHeading}>Store Posts</Text>
+                <Text style={styles.sectionSubheading} numberOfLines={2}>
+                  {businessPosts.length} broadcast{businessPosts.length === 1 ? '' : 's'} on Naga community feed
+                </Text>
+              </View>
+
+              <Pressable
+                onPress={() => setIsCreatePostOpen(true)}
+                style={({ pressed }) => [styles.primaryActionBtn, pressed && styles.pressed]}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Create new store post"
+              >
+                <Ionicons name="camera" size={15} color="#FFFFFF" />
+                <Text style={styles.primaryActionBtnText}>New Post</Text>
+              </Pressable>
+            </View>
+
+            {/* Merchant Social Profile Header Card */}
+            <View style={styles.bizSocialHeaderCard}>
+              <View style={styles.bizSocialProfileRow}>
+                <Image source={{ uri: profile.heroImage }} style={styles.bizSocialAvatar} />
+                <View style={styles.bizSocialMeta}>
+                  <View style={styles.bizSocialNameRow}>
+                    <Text style={styles.bizSocialName} numberOfLines={1}>
+                      {profile.name}
+                    </Text>
+                    <Ionicons name="checkmark-circle" size={16} color="#34C759" style={{ marginLeft: 4 }} />
+                  </View>
+                  <Text style={styles.bizSocialHandle}>
+                    @{profile.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
+                  </Text>
+                </View>
+              </View>
+
+              {/* 3-Col Social Metrics Strip: Followers -> Foodie Likes -> Posts */}
+              <View style={styles.bizSocialStatsRow}>
+                <View style={styles.bizSocialStatItem}>
+                  <Text style={styles.bizSocialStatNum}>{formattedFollowers}</Text>
+                  <Text style={styles.bizSocialStatLabel}>Followers</Text>
+                </View>
+                <View style={styles.bizSocialStatDivider} />
+                <View style={styles.bizSocialStatItem}>
+                  <Text style={styles.bizSocialStatNum}>{totalPostLikes}</Text>
+                  <Text style={styles.bizSocialStatLabel}>Foodie Likes</Text>
+                </View>
+                <View style={styles.bizSocialStatDivider} />
+                <View style={styles.bizSocialStatItem}>
+                  <Text style={styles.bizSocialStatNum}>{businessPosts.length}</Text>
+                  <Text style={styles.bizSocialStatLabel}>Posts</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Posts Feed / List */}
+            {businessPosts.length === 0 ? (
+              <View style={styles.emptyPostsCard}>
+                <View style={styles.emptyPostsIconCircle}>
+                  <Ionicons name="images-outline" size={32} color="#D42F13" />
+                </View>
+                <Text style={styles.emptyPostsTitle}>No store posts yet</Text>
+                <Text style={styles.emptyPostsSubtitle}>
+                  Broadcast your daily specials, kitchen steaming pots, and secret seasonings directly to thousands of foodies across Naga City.
+                </Text>
+                <Pressable
+                  onPress={() => setIsCreatePostOpen(true)}
+                  style={({ pressed }) => [styles.createFirstPostBtn, pressed && styles.pressed]}
+                >
+                  <Ionicons name="add-circle" size={18} color="#FFFFFF" />
+                  <Text style={styles.createFirstPostBtnText}>Create Your First Post</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.businessPostsList}>
+                {businessPosts.map((post) => (
+                  <BusinessPostCard
+                    key={post.id}
+                    post={post}
+                    onOpenComments={(p) => setSelectedPostForComments(p)}
+                    onDeletePost={deletePost}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
         {/* ================= TAB 3: PROMOTE & ADVERTISE ================= */}
         {activeTab === 'promote' && (
           <View style={styles.tabContainer}>
@@ -557,7 +686,6 @@ export default function BusinessDashboardScreen() {
       <BusinessNavBar
         currentTab={activeTab}
         onSelectTab={setActiveTab}
-        onCenterPress={() => setIsAddProductOpen(true)}
         ordersBadgeCount={newOrdersCount}
       />
 
@@ -584,6 +712,17 @@ export default function BusinessDashboardScreen() {
         onSave={createPromotion}
         products={products}
         establishmentId={profile.id}
+      />
+
+      <CreateBusinessPostModal
+        visible={isCreatePostOpen}
+        onClose={() => setIsCreatePostOpen(false)}
+      />
+
+      <CommentsBottomSheet
+        post={selectedPostForComments}
+        visible={!!selectedPostForComments}
+        onClose={() => setSelectedPostForComments(null)}
       />
 
       {/* Edit Store Profile Modal */}
@@ -1289,5 +1428,132 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     minHeight: 70,
     padding: 0,
+  },
+  bizSocialHeaderCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#EFEFF4',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+      } as any,
+      default: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        elevation: 2,
+      },
+    }),
+  },
+  bizSocialProfileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  bizSocialAvatar: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: '#E5E5EA',
+  },
+  bizSocialMeta: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  bizSocialNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bizSocialName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.2,
+    flexShrink: 1,
+  },
+  bizSocialHandle: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 2,
+  },
+  bizSocialStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#EFEFF4',
+  },
+  bizSocialStatItem: {
+    alignItems: 'center',
+  },
+  bizSocialStatNum: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  bizSocialStatLabel: {
+    fontSize: 11,
+    color: '#8E8E93',
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  bizSocialStatDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#EFEFF4',
+  },
+  emptyPostsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#EFEFF4',
+    marginTop: 6,
+  },
+  emptyPostsIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFF2EE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  emptyPostsTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 6,
+  },
+  emptyPostsSubtitle: {
+    fontSize: 13,
+    color: '#8E8E93',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 18,
+    paddingHorizontal: 14,
+  },
+  createFirstPostBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#D42F13',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 14,
+    gap: 8,
+  },
+  createFirstPostBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  businessPostsList: {
+    width: '100%',
   },
 });

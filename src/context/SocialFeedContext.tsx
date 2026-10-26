@@ -20,6 +20,7 @@ interface SocialFeedContextType {
   toggleLikePost: (postId: string) => void;
   toggleBookmarkPost: (postId: string) => void;
   addComment: (postId: string, text: string) => void;
+  deletePost: (postId: string) => void;
   createPost: (newPostData: {
     authorType: 'user' | 'business';
     caption: string;
@@ -35,6 +36,9 @@ interface SocialFeedContextType {
     rating?: number;
     tags?: string[];
     aspectRatio?: number;
+    postType?: 'trip' | 'food_review' | 'business_announcement' | 'dish_spotlight';
+    authorAvatar?: string;
+    authorHandle?: string;
   }) => void;
   activeStory: NagaMomentStory | null;
   openStory: (story: NagaMomentStory) => void;
@@ -106,6 +110,10 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     );
   };
 
+  const deletePost = (postId: string) => {
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+  };
+
   const createPost = (newPostData: {
     authorType: 'user' | 'business';
     caption: string;
@@ -121,25 +129,28 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     rating?: number;
     tags?: string[];
     aspectRatio?: number;
+    postType?: 'trip' | 'food_review' | 'business_announcement' | 'dish_spotlight';
+    authorAvatar?: string;
+    authorHandle?: string;
   }) => {
     const isBiz = newPostData.authorType === 'business';
 
     const newPost: SocialPost = {
       id: `post_${Date.now()}`,
       author: {
-        id: isBiz ? 'biz_custom' : (user?.id || 'usr_current'),
+        id: isBiz ? (newPostData.establishmentId || 'biz_custom') : (user?.id || 'usr_current'),
         name: isBiz ? (newPostData.establishmentName || 'Local Carinderia') : (user?.name || 'Maria Santos'),
         handle: isBiz
-          ? `@${(newPostData.establishmentName || 'eatery').toLowerCase().replace(/\s+/g, '')}`
+          ? (newPostData.authorHandle || `@${(newPostData.establishmentName || 'eatery').toLowerCase().replace(/[^a-z0-9]/g, '')}`)
           : '@mariasantos',
         avatar: isBiz
-          ? 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=300&q=80'
+          ? (newPostData.authorAvatar || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=300&q=80')
           : (user?.avatar || getDiceBearAvatar(user?.name || 'Maria Santos')),
         isBusiness: isBiz,
         isVerified: isBiz,
         badge: isBiz ? 'Verified Local Eatery' : (user?.badge || 'Foodie Lv. 4'),
       },
-      postType: isBiz ? 'business_announcement' : 'food_review',
+      postType: newPostData.postType || (isBiz ? 'business_announcement' : 'food_review'),
       timestamp: 'Just now',
       establishmentId: newPostData.establishmentId,
       establishmentName: newPostData.establishmentName,
@@ -195,6 +206,7 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         toggleLikePost,
         toggleBookmarkPost,
         addComment,
+        deletePost,
         createPost,
         activeStory,
         openStory,

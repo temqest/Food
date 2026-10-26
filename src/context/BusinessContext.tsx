@@ -61,6 +61,7 @@ export interface BusinessProfile {
   atmosphereTags: string[];
   rating: number;
   reviewCount: number;
+  followersCount?: number;
 }
 
 export interface BusinessAnalytics {
@@ -109,6 +110,7 @@ const DEFAULT_PROFILE: BusinessProfile = {
   atmosphereTags: ['Casual Dining', 'Open Air Kitchen', 'Heritage Recipe', 'Fast Service'],
   rating: 4.8,
   reviewCount: 384,
+  followersCount: 1420,
 };
 
 const INITIAL_PRODUCTS: BusinessProduct[] = [
@@ -391,6 +393,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         atmosphereTags: target.atmosphereTags,
         rating: 4.7,
         reviewCount: 180,
+        followersCount: target.id === 'cha-chas-kinalas' ? 1420 : 960,
       });
 
       // Map offerings into products

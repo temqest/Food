@@ -27,7 +27,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `/saved` | [`frontend/src/app/saved.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/saved.tsx) | `['top', 'left', 'right']` | **Saved Favorites (Preserved)**: Tabbed lists of bookmarked dishes and eateries with quick removal and clear-all actions; accessible via Profile screen Activity section. |
 | `/search` | [`frontend/src/app/search.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/search.tsx) | `['top', 'left', 'right']` | **Search Screen**: Live filter by dish, ingredient, district, or open status; category tags; empty state suggestions. |
 | `/profile` | [`frontend/src/app/profile.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/profile.tsx) | `['top', 'left', 'right']` | **Profile & Settings**: User preferences, spice tolerance setting, favorite district, security settings, business portal switch. |
-| `/business` | [`frontend/src/app/business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx) | `['top', 'left', 'right']` | **Merchant Portal**: Dashboard for restaurant owners to update menu items, toggle open/closed status, manage pre-orders, and create promotions. |
+| `/business` | [`frontend/src/app/business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx) | `['top', 'left', 'right']` | **Merchant Portal**: Dashboard for restaurant owners to update menu items, toggle open/closed status, manage pre-orders, create promotions, and broadcast store updates with the 5-tab bottom navigation (`orders`, `menu`, `posts`, `promote`, `store`). |
 | `/welcome` | [`frontend/src/app/welcome.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/welcome.tsx) | `['top', 'bottom', 'left', 'right']` | **Splash / Onboarding Entry**: High-impact editorial headline, 3-row moving pill marquee, "Get Started" and "Sign In" buttons. |
 | `/login` | [`frontend/src/app/login.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/login.tsx) | `['top', 'bottom', 'left', 'right']` | **Login Screen**: Email/password form, quick demo sign-in shortcuts, password recovery link. |
 | `/signup` | [`frontend/src/app/signup.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/signup.tsx) | `['top', 'bottom', 'left', 'right']` | **Registration**: New user account registration form with instant login transition. |
@@ -93,6 +93,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `components/home/` | `MascotHero`, `NagaQuestCarousel`, `CravingDialWidget`, `FoodShowcaseBox` | Dynamic greetings, streak flame button, banner carousel, and interactive flavor dial. |
 | `components/common/` | `NavBar`, `SearchInput`, `RecommendationModal`, `UserAvatar` | Floating bottom navigation pill: Home (`/`), Map (`/map`), Search elevated center button (`/search`), Feed (`/feed`), Basket (`/basket` with dynamic badge count), search inputs, modal sheets, and universal native Android/iOS `SvgXml` avatar renderer. |
 | `components/map/` | `MapboxMapView`, `MapSpotCarousel`, `NagaMapCanvas` | Mapbox GL mobile/web interactive map with vector SVG category pins, glowing selection pulse, floating controls, and interactive horizontal food spot carousel. |
+| `components/business/` | `BusinessNavBar`, `CreateBusinessPostModal`, `BusinessPostCard`, `AddProductModal`, `CreatePromotionModal`, `PromotionCard`, `BusinessOrderCard` | Merchant management suite with uniform 5-tab navigation bar, photo post composer with dish tagging, dedicated store post card, menu manager, and multi-tier promotion wizard. |
 | `components/gamification/` | `PassportStampModal`, `SilitoMysteryBox` | Tasting journal stamps, celebratory unboxing animations. |
 
 ---
@@ -711,3 +712,52 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
   - Bumped quality to `0.9` to match the exact behavior and snappy 1-tap photo attachment flow of Add Menu and the Post Media Picker.
 - **Verification**:
   - `npx tsc --noEmit` verified with 0 errors.
+
+### [2026-10-26] - Business Bottom Navbar Overhaul, Dedicated Store Posts Tab & Public Feed Pill Removal
+- **User Requests**:
+  1. "in my business bottom navbar, can u make it that there is no red tab, instead just a normal tab, as i want to create a social media tab for busienss where they can post and see their post only like a view page of their post"
+  2. "remove the public feed pill in the store posts box"
+- **Architectural & UI Upgrades Applied**:
+  1. **Uniform 5-Tab Business Navbar (`BusinessNavBar.tsx`)**:
+     - Updated `BusinessTab` definition to `'orders' | 'menu' | 'posts' | 'promote' | 'store'`.
+     - Removed the elevated red circular center button and `onCenterPress` prop.
+     - Styled all 5 tabs identically with balanced 42×42 circular dark pill button styling (`#1C1C1E` when active, transparent when inactive).
+  2. **Social Feed Integration for Establishments (`SocialFeedContext.tsx`, `socialFeedData.ts`)**:
+     - Added `deletePost: (postId: string) => void` to allow store owners to manage their broadcasts.
+     - Extended `createPost` to support `postType?: 'regular' | 'review' | 'tip' | 'moment'`, custom author avatar, and author handle.
+     - Seeded initial store post for `cha-chas-kinalas` (`post-chacha-1`) with customer comments and foodie likes.
+  3. **Merchant Post Composer (`CreateBusinessPostModal.tsx`)**:
+     - Fast image attachment via gallery or camera with `allowsEditing: false` preserving uncropped natural aspect ratio.
+     - Category pills: `Fresh Batch`, `Daily Special`, `Dish Spotlight`, `Announcement`.
+     - Multi-line caption with character counter and quick Naga hashtags (`#NagaStreetFood`, `#BicolFlavors`, `#KinalasKing`, `#SpicyBicol`).
+     - Optional store dish tagging linking menu items with thumbnail and live price badge.
+  4. **Dedicated Store Post Card (`BusinessPostCard.tsx`)**:
+     - Displays merchant avatar, verified checkmark, relative timestamp, category badge, and natural aspect ratio photo.
+     - Floating tagged dish badge (`Ionicons name="restaurant"` + price).
+     - Caption with expandable Read more/Show less toggle.
+     - Interactive like toggle with bounce animation, comments counter with bottom sheet opener, and post deletion action with confirmation.
+  5. **Business Dashboard Integration & Clean Public Feed Pill Removal (`business.tsx`)**:
+     - Scoped `businessPosts` to the active merchant establishment (`post.establishmentId`, `author.id`, or matching name).
+     - Merchant social profile header card with 3-column stats strip: `Posts`, `Foodie Likes`, `Comments`.
+     - Removed the "Public Feed" pill button from the store social profile card per user instruction.
+- **Verification**:
+  - `npx tsc --noEmit` verified with 0 errors.
+
+### [2026-10-26] - Store Posts Follower Counter & Post Modal Button Typography Polish
+- **User Requests**:
+  1. "instead of comments counter, add a follower count"
+  2. "in the new store post modal. the choose from gallery text is a bit too small inside the button"
+- **Enhancements Applied**:
+  1. **Store Follower Counter Metric & Reordering (`BusinessContext.tsx`, `business.tsx`)**:
+     - Added `followersCount?: number` to `BusinessProfile` (defaulting to 1,420 followers for `cha-chas-kinalas` and 960 for other eateries).
+     - In [`business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx), replaced the comments counter column in `bizSocialStatsRow` with a dedicated `Followers` counter (`formattedFollowers`, e.g., `1.4k`).
+     - Reordered the 3-column merchant social metric strip to: **`Followers` -> `Foodie Likes` -> `Posts`**.
+  2. **Post Modal Button Typography & Hit Target Polish (`CreateBusinessPostModal.tsx`)**:
+     - Enlarged "Choose from Gallery" button text from `fontSize: 13` to `fontSize: 15` (`fontWeight: '700'`).
+     - Increased button padding from `paddingVertical: 11` to `paddingVertical: 13`.
+     - Rebalanced button flex (`flex: 1.25` for "Choose from Gallery", `flex: 0.85` for "Take Photo") so the longer gallery label has ample breathing room without clipping or wrapping.
+     - Bumped icon size from 16 to 18 (`Ionicons name="images"`).
+- **Verification**:
+  - `npx tsc --noEmit` verified with 0 errors.
+
+

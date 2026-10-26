@@ -3,19 +3,17 @@ import { View, StyleSheet, Pressable, Platform, Keyboard, Text } from 'react-nat
 import { Ionicons } from '@expo/vector-icons';
 import { IOSTokens } from '@/constants/theme';
 
-export type BusinessTab = 'orders' | 'menu' | 'promote' | 'store';
+export type BusinessTab = 'orders' | 'menu' | 'posts' | 'promote' | 'store';
 
 interface BusinessNavBarProps {
   currentTab: BusinessTab;
   onSelectTab: (tab: BusinessTab) => void;
-  onCenterPress?: () => void;
   ordersBadgeCount?: number;
 }
 
 export const BusinessNavBar: React.FC<BusinessNavBarProps> = ({
   currentTab,
   onSelectTab,
-  onCenterPress,
   ordersBadgeCount = 0,
 }) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
@@ -56,11 +54,10 @@ export const BusinessNavBar: React.FC<BusinessNavBarProps> = ({
       inactiveIcon: 'restaurant-outline' as const,
     },
     {
-      tab: 'center' as const,
-      label: 'Add',
-      isCenter: true,
-      activeIcon: 'add' as const,
-      inactiveIcon: 'add' as const,
+      tab: 'posts' as BusinessTab,
+      label: 'Posts',
+      activeIcon: 'images' as const,
+      inactiveIcon: 'images-outline' as const,
     },
     {
       tab: 'promote' as BusinessTab,
@@ -80,30 +77,12 @@ export const BusinessNavBar: React.FC<BusinessNavBarProps> = ({
     <View style={styles.outerContainer} pointerEvents="box-none">
       <View style={styles.pillContainer}>
         {navItems.map((item) => {
-          if (item.isCenter) {
-            return (
-              <Pressable
-                key="center-add-btn"
-                onPress={onCenterPress}
-                style={({ pressed }) => [
-                  styles.centerButton,
-                  pressed && styles.centerButtonPressed,
-                ]}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel="Add New Dish"
-              >
-                <Ionicons name="add" size={28} color="#FFFFFF" />
-              </Pressable>
-            );
-          }
-
           const isFocused = currentTab === item.tab;
 
           return (
             <Pressable
               key={item.tab}
-              onPress={() => onSelectTab(item.tab as BusinessTab)}
+              onPress={() => onSelectTab(item.tab)}
               style={({ pressed }) => [styles.tabButton, pressed && styles.tabPressed]}
               hitSlop={8}
               accessibilityRole="tab"
@@ -183,33 +162,6 @@ const styles = StyleSheet.create({
   iconContainerFocused: {
     backgroundColor: '#1C1C1E',
     borderRadius: 21,
-  },
-  centerButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: IOSTokens.colors.tint,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: -24,
-    borderWidth: 3.5,
-    borderColor: '#FFFFFF',
-    ...Platform.select({
-      web: {
-        boxShadow: '0 8px 20px rgba(214, 47, 19, 0.35)',
-      } as any,
-      default: {
-        shadowColor: IOSTokens.colors.tint,
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.35,
-        shadowRadius: 10,
-        elevation: 8,
-      },
-    }),
-  },
-  centerButtonPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.95 }],
   },
   tabPressed: {
     opacity: 0.7,
