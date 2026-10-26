@@ -101,6 +101,15 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 
 *Every AI session must append its actions here:*
 
+### [2026-10-26] - Social Media Feed: Photo Upload & Camera Integration (`/feed`)
+- **User Request**: "can u also apply the same picture picker in the social media page too"
+- **Architectural & Design Upgrades Applied**:
+  - In [`CreatePostModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CreatePostModal.tsx), removed all pre-defined stock photos (`INITIAL_GALLERY_PHOTOS`) and web-only `<input type="file" />`.
+  - Integrated `expo-image-picker` with `pickImage` (device gallery) and `takePhoto` (camera capture with permissions verification).
+  - Designed responsive empty state with "Choose from Gallery" (primary) and "Take Photo" (secondary bordered) buttons.
+  - Implemented 1:1 Instagram-style media preview with "Change Photo", "Take Photo", and "Remove Photo" (trash action) controls.
+  - Required photo selection before advancing to Step 2 (caption, tagging foodies, tagging eateries).
+
 ### [2026-10-26] - Store Menu: Full-Tab Click to Edit Dish (`/business`)
 - **User Request**: "can u also make it that the edit modal also work in click on the tab of the food that i dont have to click the title of the food just to make it open"
 - **Architectural & Design Upgrades Applied**:
