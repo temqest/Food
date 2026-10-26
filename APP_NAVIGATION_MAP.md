@@ -101,6 +101,15 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 
 *Every AI session must append its actions here:*
 
+### [2026-10-26] - Store Menu: Full-Tab Click to Edit Dish (`/business`)
+- **User Request**: "can u also make it that the edit modal also work in click on the tab of the food that i dont have to click the title of the food just to make it open"
+- **Architectural & Design Upgrades Applied**:
+  - In [`business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx), expanded the dish edit trigger across the entire food tab/card (`productMainPressable`).
+  - Business owners can now tap anywhere on the food row (dish photo, name, Bikol title, signature badge, category, prep time, price, or empty padding) to immediately launch the Edit Dish modal.
+  - Added subtle tactile press feedback (`productPressed` with `backgroundColor: 'rgba(0, 0, 0, 0.04)'`).
+  - Added an explicit edit pencil icon (`pencil-outline`) in `itemActionsBottomRow` alongside the delete button for clear visual affordance.
+  - Kept the "In Stock" switch completely isolated in `productActionsCol` so toggling availability never triggers the edit modal.
+
 ### [2026-10-26] - Business Menu Photo Upload & Food-Centric Category Overhaul (`/business`)
 - **User Request**:
   1. "in the add menu modal add an option to upload picture of the food"

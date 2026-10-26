@@ -287,37 +287,46 @@ export default function BusinessDashboardScreen() {
                     key={prod.id}
                     style={[styles.productRow, isLast && styles.rowLast]}
                   >
-                    <Image source={{ uri: prod.image }} style={styles.productThumb} />
-
+                    {/* Entire Food Tab/Card is Pressable to open Edit Modal */}
                     <Pressable
-                      style={styles.productDetailsCol}
+                      style={({ pressed }) => [
+                        styles.productMainPressable,
+                        pressed && styles.productPressed,
+                      ]}
                       onPress={() => handleEditProductPress(prod)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Edit dish details for ${prod.name}`}
+                      accessibilityHint="Opens edit dish modal"
                     >
-                      <View style={styles.productTitleLine}>
-                        <Text style={styles.productName} numberOfLines={1}>
-                          {prod.name}
-                        </Text>
-                      </View>
+                      <Image source={{ uri: prod.image }} style={styles.productThumb} />
 
-                      <View style={styles.productSubRow}>
-                        {prod.isSignature && (
-                          <View style={styles.signatureBadge}>
-                            <Ionicons name="sparkles" size={8} color="#FFFFFF" style={styles.signatureIcon} />
-                            <Text style={styles.signatureBadgeText}>SIGNATURE</Text>
-                          </View>
-                        )}
-                        {prod.bikolName ? (
-                          <Text style={styles.productBikol} numberOfLines={1}>
-                            {prod.bikolName}
+                      <View style={styles.productDetailsCol}>
+                        <View style={styles.productTitleLine}>
+                          <Text style={styles.productName} numberOfLines={1}>
+                            {prod.name}
                           </Text>
-                        ) : null}
+                        </View>
+
+                        <View style={styles.productSubRow}>
+                          {prod.isSignature && (
+                            <View style={styles.signatureBadge}>
+                              <Ionicons name="sparkles" size={8} color="#FFFFFF" style={styles.signatureIcon} />
+                              <Text style={styles.signatureBadgeText}>SIGNATURE</Text>
+                            </View>
+                          )}
+                          {prod.bikolName ? (
+                            <Text style={styles.productBikol} numberOfLines={1}>
+                              {prod.bikolName}
+                            </Text>
+                          ) : null}
+                        </View>
+
+                        <Text style={styles.productMeta} numberOfLines={1}>
+                          {prod.categoryLabel} · {prod.prepTime}
+                        </Text>
+
+                        <Text style={styles.productPrice}>₱{prod.price}</Text>
                       </View>
-
-                      <Text style={styles.productMeta} numberOfLines={1}>
-                        {prod.categoryLabel} · {prod.prepTime}
-                      </Text>
-
-                      <Text style={styles.productPrice}>₱{prod.price}</Text>
                     </Pressable>
 
                     <View style={styles.productActionsCol}>
@@ -336,13 +345,27 @@ export default function BusinessDashboardScreen() {
                         {prod.inStock ? 'In Stock' : 'Sold Out'}
                       </Text>
 
-                      <Pressable
-                        onPress={() => handleDeleteProductPress(prod)}
-                        style={({ pressed }) => [styles.trashBtn, pressed && styles.pressed]}
-                        hitSlop={8}
-                      >
-                        <Ionicons name="trash-outline" size={14} color="#8E8E93" />
-                      </Pressable>
+                      <View style={styles.itemActionsBottomRow}>
+                        <Pressable
+                          onPress={() => handleEditProductPress(prod)}
+                          style={({ pressed }) => [styles.actionSmallBtn, pressed && styles.pressed]}
+                          hitSlop={8}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Edit ${prod.name}`}
+                        >
+                          <Ionicons name="pencil-outline" size={14} color="#000000" />
+                        </Pressable>
+
+                        <Pressable
+                          onPress={() => handleDeleteProductPress(prod)}
+                          style={({ pressed }) => [styles.actionSmallBtn, pressed && styles.pressed]}
+                          hitSlop={8}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Delete ${prod.name}`}
+                        >
+                          <Ionicons name="trash-outline" size={14} color="#8E8E93" />
+                        </Pressable>
+                      </View>
                     </View>
                   </View>
                 );
@@ -836,13 +859,22 @@ const styles = StyleSheet.create({
   productRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(60, 60, 67, 0.15)',
   },
   rowLast: {
     borderBottomWidth: 0,
+  },
+  productMainPressable: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingLeft: 14,
+    paddingRight: 6,
+  },
+  productPressed: {
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
   },
   productThumb: {
     width: 58,
@@ -853,7 +885,6 @@ const styles = StyleSheet.create({
   },
   productDetailsCol: {
     flex: 1,
-    paddingRight: 14,
     justifyContent: 'center',
   },
   productTitleLine: {
@@ -910,7 +941,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'center',
     gap: 3,
-    minWidth: 54,
+    minWidth: 64,
+    paddingVertical: 12,
+    paddingRight: 14,
     paddingLeft: 4,
   },
   stockBadgeText: {
@@ -922,6 +955,15 @@ const styles = StyleSheet.create({
   },
   stockRed: {
     color: '#C62828',
+  },
+  itemActionsBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 2,
+  },
+  actionSmallBtn: {
+    padding: 4,
   },
   trashBtn: {
     padding: 4,
