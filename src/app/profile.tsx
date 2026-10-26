@@ -21,12 +21,14 @@ import { NavBar } from '@/components/common/NavBar';
 import { useSaved } from '@/context/SavedContext';
 import { useAuth } from '@/context/AuthContext';
 import { useQuest } from '@/context/QuestContext';
+import { getDiceBearAvatar } from '@/utils/dicebearAvatar';
+import { UserAvatar } from '@/components/common/UserAvatar';
 
 const AVATAR_PRESETS = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+  getDiceBearAvatar('Maria Santos', 'b6e3f4'),
+  getDiceBearAvatar('Paolo Reyes', 'ffd5dc'),
+  getDiceBearAvatar('Bikolano Nomad', 'ffdfbf'),
+  getDiceBearAvatar('Naga Explorer', 'c0aede'),
 ];
 
 export default function ProfileScreen() {
@@ -163,10 +165,8 @@ export default function ProfileScreen() {
             <View style={styles.insetGroup}>
               <View style={styles.profileHeaderRow}>
                 <View style={styles.avatarWrapper}>
-                  <Image
-                    source={{
-                      uri: user.avatar || AVATAR_PRESETS[0],
-                    }}
+                  <UserAvatar
+                    uri={user.avatar || AVATAR_PRESETS[0]}
                     style={styles.avatarImage}
                   />
                   <Pressable
@@ -556,7 +556,7 @@ export default function ProfileScreen() {
                         isSelected && styles.avatarOptionSelected,
                       ]}
                     >
-                      <Image source={{ uri }} style={styles.avatarOptionImage} />
+                      <UserAvatar uri={uri} style={styles.avatarOptionImage} />
                       {isSelected && (
                         <View style={styles.avatarCheckBadge}>
                           <Ionicons name="checkmark" size={12} color="#FFFFFF" />

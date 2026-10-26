@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { getDiceBearAvatar } from '@/utils/dicebearAvatar';
 
 export interface UserProfile {
   id: string;
@@ -43,7 +44,7 @@ const DEFAULT_USER: UserProfile = {
   name: 'Maria Santos',
   email: 'maria.santos@gmail.com',
   phone: '+63 917 555 1928',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+  avatar: getDiceBearAvatar('Maria Santos'),
   location: 'Centro, Naga City',
   spicePreference: 'fiery',
   favoriteDistrict: 'Centro',
@@ -95,7 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: data.name.trim(),
       email: data.email.trim(),
       phone: data.phone.trim() || '+63 900 000 0000',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
+      avatar: getDiceBearAvatar(data.name.trim() || 'New Foodie'),
       location: `${data.favoriteDistrict || 'Centro'}, Naga City`,
       spicePreference: data.spicePreference || 'fiery',
       favoriteDistrict: data.favoriteDistrict || 'Centro',

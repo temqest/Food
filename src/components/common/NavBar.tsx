@@ -5,10 +5,20 @@ import { router, usePathname } from 'expo-router';
 import { IOSTokens } from '@/constants/theme';
 import { useBasket } from '@/context/BasketContext';
 
-export type NavTab = 'home' | 'search' | 'map' | 'saved' | 'explore' | 'basket';
+export type NavTab = 'home' | 'search' | 'map' | 'saved' | 'explore' | 'basket' | 'feed';
 
 interface NavBarProps {
   currentTab?: NavTab;
+}
+
+interface NavItem {
+  tab: NavTab;
+  label: string;
+  route: string;
+  activeIcon: keyof typeof Ionicons.glyphMap;
+  inactiveIcon: keyof typeof Ionicons.glyphMap;
+  isCenter?: boolean;
+  badgeCount?: number;
 }
 
 export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
@@ -60,6 +70,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
     if (pathname.startsWith('/search')) return 'search';
     if (pathname.startsWith('/map')) return 'map';
     if (pathname.startsWith('/saved')) return 'saved';
+    if (pathname.startsWith('/feed')) return 'feed';
     if (pathname.startsWith('/basket')) return 'basket';
     if (pathname.startsWith('/explore')) return 'explore';
     return 'home';
@@ -67,43 +78,42 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
 
   const active = determineTab();
 
-  const navItems = [
+  const navItems: NavItem[] = [
     {
-      tab: 'home' as NavTab,
+      tab: 'home',
       label: 'Home',
       route: '/',
-      activeIcon: 'home' as const,
-      inactiveIcon: 'home-outline' as const,
+      activeIcon: 'home',
+      inactiveIcon: 'home-outline',
     },
     {
-      tab: 'explore' as NavTab,
+      tab: 'explore',
       label: 'Categories',
       route: '/explore',
-      activeIcon: 'grid' as const,
-      inactiveIcon: 'grid-outline' as const,
+      activeIcon: 'grid',
+      inactiveIcon: 'grid-outline',
     },
     {
-      tab: 'map' as NavTab,
+      tab: 'map',
       label: 'Map',
       route: '/map',
-      activeIcon: 'map' as const,
-      inactiveIcon: 'map-outline' as const,
+      activeIcon: 'map',
+      inactiveIcon: 'map-outline',
       isCenter: true,
     },
     {
-      tab: 'basket' as NavTab,
-      label: 'Passport',
-      route: '/basket',
-      activeIcon: 'ribbon' as const,
-      inactiveIcon: 'ribbon-outline' as const,
-      badgeCount: basketCount,
+      tab: 'feed',
+      label: 'Feed',
+      route: '/feed',
+      activeIcon: 'compass',
+      inactiveIcon: 'compass-outline',
     },
     {
-      tab: 'saved' as NavTab,
+      tab: 'saved',
       label: 'Saved',
       route: '/saved',
-      activeIcon: 'heart' as const,
-      inactiveIcon: 'heart-outline' as const,
+      activeIcon: 'heart',
+      inactiveIcon: 'heart-outline',
     },
   ];
 

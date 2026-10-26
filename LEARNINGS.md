@@ -104,3 +104,18 @@ When adding new trails or editing this screen:
 3. [ ] Verify no cards contain nested boxes or competing button rows.
 4. [ ] Verify tapping any dish card smoothly opens the deep Dossier Sheet.
 
+---
+
+## 5. Social Feed Architecture & Entity Separation Rules
+
+### 5.1 Strict Separation: Public Feed vs. Personal Utilities
+- **The Pitfall**: Cramming personal gamification utilities (passport stamps, XP bars, level tiers, pre-order QR passes) into the public social stream.
+- **The Rule**: The Social Feed (`/feed`) is exclusively for public community discovery: traveler stories, food reviews, photo logs, and business announcements. Personal utility screens (such as `/basket` Passport & Journal) must remain dedicated and isolated.
+
+### 5.2 Social Card Hierarchy Standard (Instagram / Beli Model)
+- **Header**: 38px circular avatar + Display Name + Verified/Foodie pill + Timestamp + Tappable Location Pin.
+- **Media**: 4:3 high-resolution food photo with tappable dish chip overlay (`Kinalas · ₱85`) with direct routing.
+- **Action Strip**: Like (with optimistic heart count & bounce), Comment (opens slide-up sheet), Bookmark, Share.
+- **Caption & Insider Tip**: Clean expandable caption + highlighted Bicolano local tip / spice meter.
+- **Creation Entry**: Always provide an unmissable "+ Share Trip" action with establishment and dish tagging.
+
