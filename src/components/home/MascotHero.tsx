@@ -78,11 +78,11 @@ export const MascotHero: React.FC<MascotHeroProps> = ({ children }) => {
           </Pressable>
 
           <Pressable
-            onPress={() => router.push('/map')}
+            onPress={() => router.push('/friends')}
             style={({ pressed }) => [styles.utilIconBtn, pressed && styles.pressed]}
             hitSlop={6}
             accessibilityRole="button"
-            accessibilityLabel="Explore map and spots"
+            accessibilityLabel="Foodie friends and league leaderboard"
           >
             <Ionicons name="people-outline" size={20} color="#1C1C1E" />
           </Pressable>

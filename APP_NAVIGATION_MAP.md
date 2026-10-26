@@ -22,6 +22,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `/basket` | [`frontend/src/app/basket.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/basket.tsx) | `['top', 'left', 'right']` | **Food Basket & Pre-Orders Hub**: Dual-tab hub for Cart & Checkout (steppers, store grouping, dining option selector, special kitchen notes, bill breakdown, and Proceed to Payment CTA) and Active Passes (digital QR voucher pass, payment badges, 4-stage live kitchen status tracker, counter call/map actions, demo status simulation). |
 | `/streak` | [`frontend/src/app/streak.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/streak.tsx) | `['top', 'left', 'right']` | **Duolingo-Inspired Streak & Trophy Hub**: Hero flame counter with countdown timer, 7-day habit consistency calendar, Sili Shield (streak freeze) indicator, Level & XP progress HUD, 5-tier streak trophies showcase (Bronze, Silver, Gold, Diamond, Centennial), mealtime reminder nudges (Lunch, Merienda, Night Crawl), and 1-tap check-in action. |
 | `/notifications` | [`frontend/src/app/notifications.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/notifications.tsx) | `['top', 'left', 'right']` | **Notifications Hub**: Central notification center for pre-order pickup alerts, daily taste pulse streak reminders, trophy unlock celebrations, community likes & comments, and local flavor drops. Interactive category filters (All, Orders, Streaks, Trophies, Social, Specials), unread badges, mark-all-as-read, item dismissal, and deep link navigation. |
+| `/friends` | [`frontend/src/app/friends.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/friends.tsx) | `['top', 'left', 'right']` | **Foodie Friends & Weekly Taste League Hub**: Dual-tab hub for Weekly Taste League (División de Oro, promotion/relegation zones, ranked foodies with XP/dishes, current user elevation) and Squad Streaks (active friend streaks, 1-tap "Tara Kain!" mealtime nudges, friend recent tasting dispatches, and Add Friend / Foodie Invite modal). |
 | `/payment` | [`frontend/src/app/payment.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/payment.tsx) | `['top', 'left', 'right', 'bottom']` | **Payment & Checkout**: Supports Cash on Arrival (pay at store counter), GCash E-Wallet with mobile number validation, and Maya / BSP QR Ph Universal National QR scan with receipt references; customer pass contact details; itemized summary. |
 | `/saved` | [`frontend/src/app/saved.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/saved.tsx) | `['top', 'left', 'right']` | **Saved Favorites (Preserved)**: Tabbed lists of bookmarked dishes and eateries with quick removal and clear-all actions; accessible via Profile screen Activity section. |
 | `/search` | [`frontend/src/app/search.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/search.tsx) | `['top', 'left', 'right']` | **Search Screen**: Live filter by dish, ingredient, district, or open status; category tags; empty state suggestions. |
@@ -72,6 +73,8 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `BasketContext` | [`frontend/src/context/BasketContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/BasketContext.tsx) | Pre-orders, quantity management, scheduled pickup time, active vouchers. |
 | `BusinessContext` | [`frontend/src/context/BusinessContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/BusinessContext.tsx) | Restaurant owner menu management, live order queue, open/closed toggle. |
 | `NotificationContext` | [`frontend/src/context/NotificationContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/NotificationContext.tsx) | In-app notification state, dynamic unread badge count, mark as read, delete, and clear-all actions. |
+| `FriendsContext` | [`frontend/src/context/FriendsContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/FriendsContext.tsx) | Foodie friends list, live weekly leaderboard calculation, "Tara Kain!" mealtime habit nudges, follow/unfollow, and handle search. |
+| `FriendsData` | [`frontend/src/data/friendsData.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/friendsData.ts) | FoodieProfile and LeagueDivision types with seed Naga City foodies and Gold Division config. |
 | `SocialFeedContext` | [`frontend/src/context/SocialFeedContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/SocialFeedContext.tsx) | Community social feed state: posts, stories, likes, bookmarks, comments, filter category, post creation. |
 | `SocialFeedData` | [`frontend/src/data/socialFeedData.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/socialFeedData.ts) | Typed models (`SocialPost`, `PostAuthor`, `SocialComment`, `NagaMomentStory`) and rich initial Naga food crawl posts & moments. |
 | `DiceBear Avatars` | [`frontend/src/utils/dicebearAvatar.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/utils/dicebearAvatar.ts) | Generates `@dicebear/core` + `@dicebear/styles/adventurer-neutral.json` with `with { type: 'json' }` avatars with random/seeded background colors, inlining `<use>` references for native compatibility. |
@@ -97,6 +100,24 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 ## 5. AI Action & Modification Log
 
 *Every AI session must append its actions here:*
+
+### [2026-10-26] - Foodie Friends & Weekly Taste League Hub (`/friends`) & Topbar Integration
+- **User Request**: "in my home page topbar, there is this icon of two people, right now it just direct to the map as a placeholder. what is a good page for me to add there?" -> Chose Option 1 (Foodie Friends & Leaderboard Hub) + executed /plan.
+- **Architectural & Design Upgrades Applied**:
+  1. **Home Topbar Route Overhaul**:
+     - In [`MascotHero.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/MascotHero.tsx), replaced placeholder `/map` navigation on `people-outline` with `/friends` and updated accessibility label to `"Foodie friends and league leaderboard"`.
+  2. **Data & State Management**:
+     - Created [`friendsData.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/friendsData.ts) with typed models (`FoodieProfile`, `LeagueDivision`, `RecentTastingSnippet`) and seeded realistic Naga City foodies (Maria Santos, Paolo Reyes, Tricia Dee, Carlo Mendoza, etc.) with DiceBear avatars.
+     - Created [`FriendsContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/FriendsContext.tsx) merging user's live XP, streak count, and level from [`QuestContext`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/QuestContext.tsx) into a dynamically ranked leaderboard.
+     - Integrated `nudgeFriend(id)` action with optimistic UI update and toast alerts.
+     - Registered `<FriendsProvider>` in [`_layout.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/_layout.tsx) with `<Stack.Screen name="friends" />`.
+  3. **High-Utility & Clean Screen (`/friends.tsx`)**:
+     - Strict safe area compliance (`SafeAreaView` with `edges={['top', 'left', 'right']}`).
+     - Segmented control pills: `🏆 Weekly League` and `👥 Friends & Squad`.
+     - **Tab 1 (Weekly League)**: Gold Division banner (`División de Oro`), countdown reset pill (`Resets in 2d 14h`), and 3 spacious dedicated zone cards (`Top 3 Advance`, `Ranks 4-6 Safe Zone`, `Bottom 2 Relegate`) replacing crammed horizontal inline text with generous padding, tinted status badges, and vertical hierarchy; user standing callout (`#X Your Standing`), and ranked cards with podium badges (#1 Trophy, #2 Medal, #3 Ribbon), DiceBear avatars, rank titles, and elevated `YOU` badge.
+     - **Tab 2 (Friends & Streaks)**: Group summary strip, habit cards displaying active streak flames, recent dish tasting dispatches with establishment/time/XP, and 1-tap `Tara Kain! 🔥` / `Nudged 👍` habit buttons.
+     - **Add Friend Modal**: Search by handle (`@handle`), copy personal foodie link, and 1-tap follow/add.
+     - Compact feedback toasts for nudges and friend additions.
 
 ### [2026-10-26] - Basket Checkout Streamlining (Removed Estimated Pickup Time)
 - **User Request**: "can u in the basket page remove the estimated pickup time part in that page"
