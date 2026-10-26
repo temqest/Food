@@ -61,6 +61,14 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
         setSelectedPhoto(asset.uri);
         if (asset.width && asset.height) {
           setPhotoAspectRatio(asset.width / asset.height);
+        } else if (asset.uri) {
+          Image.getSize(
+            asset.uri,
+            (w, h) => {
+              if (w > 0 && h > 0) setPhotoAspectRatio(w / h);
+            },
+            () => {}
+          );
         }
       }
     } catch (err) {
@@ -93,6 +101,14 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
         setSelectedPhoto(asset.uri);
         if (asset.width && asset.height) {
           setPhotoAspectRatio(asset.width / asset.height);
+        } else if (asset.uri) {
+          Image.getSize(
+            asset.uri,
+            (w, h) => {
+              if (w > 0 && h > 0) setPhotoAspectRatio(w / h);
+            },
+            () => {}
+          );
         }
       }
     } catch (err) {
@@ -231,16 +247,22 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
             <View style={styles.photoSection}>
               {selectedPhoto ? (
                 <View style={styles.previewCard}>
-                  <Image
-                    source={{ uri: selectedPhoto }}
+                  <View
                     style={[
-                      styles.previewImage,
-                      photoAspectRatio
-                        ? { aspectRatio: Math.min(Math.max(photoAspectRatio, 0.8), 1.91) }
-                        : null,
+                      styles.previewImageWrapper,
+                      {
+                        aspectRatio: photoAspectRatio
+                          ? Math.min(Math.max(photoAspectRatio, 0.8), 1.91)
+                          : 4 / 3,
+                      },
                     ]}
-                    resizeMode="cover"
-                  />
+                  >
+                    <Image
+                      source={{ uri: selectedPhoto }}
+                      style={styles.previewImage}
+                      resizeMode="cover"
+                    />
+                  </View>
                   <View style={styles.previewActionsBar}>
                     <Pressable
                       onPress={pickImage}
@@ -544,17 +566,22 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   previewCard: {
+    width: '100%',
     borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#F2F2F7',
     borderWidth: 1,
     borderColor: 'rgba(60, 60, 67, 0.12)',
   },
+  previewImageWrapper: {
+    width: '100%',
+    position: 'relative',
+    backgroundColor: '#F2F2F7',
+    overflow: 'hidden',
+  },
   previewImage: {
     width: '100%',
-    aspectRatio: 16 / 9,
-    maxHeight: 240,
-    backgroundColor: '#1C1C1E',
+    height: '100%',
   },
   previewActionsBar: {
     flexDirection: 'row',

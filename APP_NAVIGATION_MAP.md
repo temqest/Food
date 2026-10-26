@@ -629,3 +629,16 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
      - Horizontal and vertical pictures now seamlessly display in full without cropping or distortion.
 - **Verification**:
   - `npx tsc --noEmit` verified with 0 errors.
+
+### [2026-10-26] - Post Composer Modal: Fixed 75% Width Image Shrinkage
+- **User Issue**:
+  - "now the issue is that when i upload the picture only cover 75% of the post in the modal but is okay when posted, fix this issue"
+- **Root Cause**:
+  - `styles.previewImage` had `maxHeight: 240` combined with `aspectRatio: 16 / 9` (and dynamic `aspectRatio`). In Yoga flexbox, applying `maxHeight` to an element with `aspectRatio` causes Yoga to shrink the element's width to `maxHeight * aspectRatio` whenever the natural height exceeds 240px. On square, portrait, or tall photos, this shrank the image width from 100% down to ~75% or 50%, leaving empty black space in the card.
+- **Fix Applied**:
+  - Removed `maxHeight: 240` from `previewImage`.
+  - Added dedicated `previewImageWrapper` with `width: '100%'`, dynamic `aspectRatio` (clamped `0.8` to `1.91`), and `overflow: 'hidden'`.
+  - Set `previewImage` to `width: '100%'`, `height: '100%'` with `resizeMode="cover"`, guaranteeing it always covers 100% of the modal card width edge-to-edge.
+  - Added fallback `Image.getSize` to `pickImage` and `takePhoto` for reliable aspect ratio calculation across all devices and platforms.
+- **Verification**:
+  - `npx tsc --noEmit` verified with 0 errors.
