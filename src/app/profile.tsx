@@ -313,7 +313,7 @@ export default function ProfileScreen() {
             <Text style={styles.sectionTitle}>Business &amp; Merchant Center</Text>
             <View style={styles.insetGroup}>
               <Pressable
-                onPress={() => router.push('/business')}
+                onPress={() => router.push('/business?tab=store')}
                 style={({ pressed }) => [styles.groupRow, styles.groupRowLast, pressed && styles.rowPressed]}
                 accessibilityRole="button"
                 accessibilityLabel="Open Business & Merchant Portal"

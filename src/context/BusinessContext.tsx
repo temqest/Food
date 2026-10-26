@@ -45,6 +45,33 @@ export interface PromotionCampaign {
   paymentRef?: string;
 }
 
+export interface PayoutRecord {
+  id: string;
+  amount: number;
+  method: 'gcash' | 'maya' | 'bank';
+  account: string;
+  accountName?: string;
+  date: string;
+  status: 'completed' | 'processing';
+  referenceNumber: string;
+}
+
+export interface StoreWallet {
+  balance: number;
+  todayEarnings: number;
+  pendingBalance: number;
+  lifetimePaid: number;
+  payoutHistory: PayoutRecord[];
+}
+
+export interface GalleryPhoto {
+  id: string;
+  url: string;
+  caption?: string;
+  category?: 'Kitchen & Prep' | 'Dining Area' | 'Signature Food' | 'Atmosphere & Team' | string;
+  createdAt: string;
+}
+
 export interface BusinessProfile {
   id: string;
   name: string;
@@ -58,10 +85,24 @@ export interface BusinessProfile {
   openingHours: string;
   isOpenNow: boolean;
   heroImage: string;
+  logoImage: string;
   atmosphereTags: string[];
   rating: number;
   reviewCount: number;
   followersCount?: number;
+  wallet: StoreWallet;
+  gallery: GalleryPhoto[];
+  subscription: StoreSubscription;
+}
+
+export interface StoreSubscription {
+  status: 'active' | 'inactive';
+  plan: 'monthly' | 'annual' | 'none';
+  expiryDate?: string;
+  autoRenew: boolean;
+  paymentMethod?: 'gcash' | 'maya' | 'bank' | 'card';
+  paymentRef?: string;
+  subscribedSince?: string;
 }
 
 export interface BusinessAnalytics {
@@ -80,6 +121,21 @@ interface BusinessContextType {
   activePromotion: PromotionCampaign | null;
   analytics: BusinessAnalytics;
   updateProfile: (updates: Partial<BusinessProfile>) => void;
+  updateProfilePhoto: (type: 'banner' | 'logo', url: string) => void;
+  cashOutWallet: (
+    amount: number,
+    method: 'gcash' | 'maya' | 'bank',
+    account: string,
+    accountName?: string
+  ) => boolean;
+  addGalleryPhoto: (photo: { url: string; caption?: string; category?: string }) => void;
+  deleteGalleryPhoto: (photoId: string) => void;
+  subscribeStore: (
+    plan: 'monthly' | 'annual',
+    paymentMethod: 'gcash' | 'maya' | 'bank' | 'card',
+    paymentRef?: string
+  ) => void;
+  cancelSubscription: () => void;
   toggleOpenStatus: () => void;
   addProduct: (product: Omit<BusinessProduct, 'id' | 'totalOrdersCount'>) => BusinessProduct;
   updateProduct: (id: string, updates: Partial<BusinessProduct>) => void;
@@ -92,6 +148,90 @@ interface BusinessContextType {
   deletePromotion: (id: string) => void;
   switchEstablishment: (id: string) => void;
 }
+
+const DEFAULT_WALLET: StoreWallet = {
+  balance: 24850,
+  todayEarnings: 4850,
+  pendingBalance: 1250,
+  lifetimePaid: 142600,
+  payoutHistory: [
+    {
+      id: 'payout-101',
+      amount: 8500,
+      method: 'gcash',
+      account: '0917 ••• 8291',
+      accountName: 'Cha Cha Kinalas St.',
+      date: 'Yesterday, 6:30 PM',
+      status: 'completed',
+      referenceNumber: 'GCASH-98210452',
+    },
+    {
+      id: 'payout-102',
+      amount: 12000,
+      method: 'bank',
+      account: 'BDO •••• 5821',
+      accountName: 'Cha Cha Eatery Inc.',
+      date: '3 days ago',
+      status: 'completed',
+      referenceNumber: 'BDO-55291048',
+    },
+    {
+      id: 'payout-103',
+      amount: 4500,
+      method: 'maya',
+      account: '0918 ••• 3942',
+      accountName: 'Cha Cha Store',
+      date: 'Oct 20, 2026',
+      status: 'completed',
+      referenceNumber: 'MAYA-11829031',
+    },
+  ],
+};
+
+const DEFAULT_GALLERY: GalleryPhoto[] = [
+  {
+    id: 'gal-1',
+    url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80',
+    caption: 'Bustling Barlin Street open kitchen counter during lunch rush',
+    category: 'Kitchen & Prep',
+    createdAt: 'Oct 24, 2026',
+  },
+  {
+    id: 'gal-2',
+    url: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
+    caption: 'Hot steaming bowl of special beef marrow kinalas with egg',
+    category: 'Signature Food',
+    createdAt: 'Oct 23, 2026',
+  },
+  {
+    id: 'gal-3',
+    url: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
+    caption: 'Freshly wrapped and simmered Sinanglay na Tilapia in coconut milk',
+    category: 'Signature Food',
+    createdAt: 'Oct 21, 2026',
+  },
+  {
+    id: 'gal-4',
+    url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80',
+    caption: 'Cozy heritage wooden seating area for dine-in foodies',
+    category: 'Dining Area',
+    createdAt: 'Oct 19, 2026',
+  },
+  {
+    id: 'gal-5',
+    url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
+    caption: 'Warm steamed puto pairs freshly prepared by our morning bakers',
+    category: 'Kitchen & Prep',
+    createdAt: 'Oct 18, 2026',
+  },
+  {
+    id: 'gal-6',
+    url: 'https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&w=900&q=80',
+    caption: 'Morning prep crew preparing homemade chili paste & garlic broth',
+    category: 'Atmosphere & Team',
+    createdAt: 'Oct 15, 2026',
+  },
+];
 
 const DEFAULT_PROFILE: BusinessProfile = {
   id: 'cha-chas-kinalas',
@@ -107,10 +247,18 @@ const DEFAULT_PROFILE: BusinessProfile = {
   openingHours: '7:00 AM – 8:30 PM',
   isOpenNow: true,
   heroImage: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80',
+  logoImage: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
   atmosphereTags: ['Casual Dining', 'Open Air Kitchen', 'Heritage Recipe', 'Fast Service'],
   rating: 4.8,
   reviewCount: 384,
   followersCount: 1420,
+  wallet: DEFAULT_WALLET,
+  gallery: DEFAULT_GALLERY,
+  subscription: {
+    status: 'inactive',
+    plan: 'none',
+    autoRenew: false,
+  },
 };
 
 const INITIAL_PRODUCTS: BusinessProduct[] = [
@@ -249,6 +397,8 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       est.openingHours = profile.openingHours;
       est.isOpenNow = profile.isOpenNow;
       est.heroImage = profile.heroImage;
+      est.logo = profile.logoImage;
+      est.galleryImages = profile.gallery.map((g) => g.url);
       est.atmosphereTags = profile.atmosphereTags;
 
       // Update food offerings from products
@@ -268,6 +418,74 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const updateProfile = (updates: Partial<BusinessProfile>) => {
     setProfile((prev) => ({ ...prev, ...updates }));
+  };
+
+  const updateProfilePhoto = (type: 'banner' | 'logo', url: string) => {
+    if (!url.trim()) return;
+    setProfile((prev) => {
+      if (type === 'banner') {
+        return { ...prev, heroImage: url.trim() };
+      } else {
+        return { ...prev, logoImage: url.trim() };
+      }
+    });
+  };
+
+  const cashOutWallet = (
+    amount: number,
+    method: 'gcash' | 'maya' | 'bank',
+    account: string,
+    accountName?: string
+  ): boolean => {
+    if (amount <= 0 || amount > profile.wallet.balance) {
+      return false;
+    }
+
+    const newRecord: PayoutRecord = {
+      id: `payout-${Date.now()}`,
+      amount,
+      method,
+      account,
+      accountName: accountName || profile.name,
+      date: 'Just now',
+      status: 'completed',
+      referenceNumber: `${method.toUpperCase()}-${Math.floor(10000000 + Math.random() * 90000000)}`,
+    };
+
+    setProfile((prev) => ({
+      ...prev,
+      wallet: {
+        ...prev.wallet,
+        balance: prev.wallet.balance - amount,
+        lifetimePaid: prev.wallet.lifetimePaid + amount,
+        payoutHistory: [newRecord, ...prev.wallet.payoutHistory],
+      },
+    }));
+
+    return true;
+  };
+
+  const addGalleryPhoto = (photo: { url: string; caption?: string; category?: string }) => {
+    if (!photo.url.trim()) return;
+    const newPhoto: GalleryPhoto = {
+      id: `gal-${Date.now()}`,
+      url: photo.url.trim(),
+      caption: photo.caption?.trim() || `${profile.name} ambiance`,
+      category: photo.category || 'Kitchen & Prep',
+      createdAt: 'Just now',
+    };
+
+    setProfile((prev) => ({
+      ...prev,
+      gallery: [newPhoto, ...prev.gallery],
+    }));
+  };
+
+  const deleteGalleryPhoto = (photoId: string) => {
+    setProfile((prev) => ({
+      ...prev,
+      gallery: prev.gallery.filter((p) => p.id !== photoId),
+    }));
   };
 
   const toggleOpenStatus = () => {
@@ -374,6 +592,57 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setPromotions((prev) => prev.filter((p) => p.id !== id));
   };
 
+  const subscribeStore = (
+    plan: 'monthly' | 'annual',
+    paymentMethod: 'gcash' | 'maya' | 'bank' | 'card',
+    paymentRef?: string
+  ) => {
+    const today = new Date();
+    const expiryDate = new Date();
+    if (plan === 'monthly') {
+      expiryDate.setMonth(today.getMonth() + 1);
+    } else {
+      expiryDate.setFullYear(today.getFullYear() + 1);
+    }
+
+    const formattedExpiry = expiryDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+
+    const formattedSince = today.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+
+    const ref = paymentRef || `SUB-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+
+    setProfile((prev) => ({
+      ...prev,
+      subscription: {
+        status: 'active',
+        plan,
+        expiryDate: formattedExpiry,
+        autoRenew: true,
+        paymentMethod,
+        paymentRef: ref,
+        subscribedSince: formattedSince,
+      },
+    }));
+  };
+
+  const cancelSubscription = () => {
+    setProfile((prev) => ({
+      ...prev,
+      subscription: {
+        ...prev.subscription,
+        autoRenew: false,
+      },
+    }));
+  };
+
   const switchEstablishment = (id: string) => {
     const target = ESTABLISHMENTS.find((e) => e.id === id);
     if (target) {
@@ -390,10 +659,22 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         openingHours: target.openingHours,
         isOpenNow: target.isOpenNow,
         heroImage: target.heroImage,
+        logoImage: target.logo || target.heroImage,
         atmosphereTags: target.atmosphereTags,
         rating: 4.7,
         reviewCount: 180,
         followersCount: target.id === 'cha-chas-kinalas' ? 1420 : 960,
+        wallet: profile.wallet,
+        subscription: profile.subscription,
+        gallery: target.galleryImages && target.galleryImages.length > 0
+          ? target.galleryImages.map((img, i) => ({
+              id: `gal-sw-${i}`,
+              url: img,
+              caption: `${target.name} specialty view`,
+              category: i % 2 === 0 ? 'Signature Food' : 'Dining Area',
+              createdAt: 'Recent',
+            }))
+          : profile.gallery,
       });
 
       // Map offerings into products
@@ -430,6 +711,12 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         activePromotion,
         analytics,
         updateProfile,
+        updateProfilePhoto,
+        cashOutWallet,
+        addGalleryPhoto,
+        deleteGalleryPhoto,
+        subscribeStore,
+        cancelSubscription,
         toggleOpenStatus,
         addProduct,
         updateProduct,

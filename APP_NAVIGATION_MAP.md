@@ -27,7 +27,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `/saved` | [`frontend/src/app/saved.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/saved.tsx) | `['top', 'left', 'right']` | **Saved Favorites (Preserved)**: Tabbed lists of bookmarked dishes and eateries with quick removal and clear-all actions; accessible via Profile screen Activity section. |
 | `/search` | [`frontend/src/app/search.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/search.tsx) | `['top', 'left', 'right']` | **Search Screen**: Live filter by dish, ingredient, district, or open status; category tags; empty state suggestions. |
 | `/profile` | [`frontend/src/app/profile.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/profile.tsx) | `['top', 'left', 'right']` | **Profile & Settings**: User preferences, spice tolerance setting, favorite district, security settings, business portal switch. |
-| `/business` | [`frontend/src/app/business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx) | `['top', 'left', 'right']` | **Merchant Portal**: Dashboard for restaurant owners to update menu items, toggle open/closed status, manage pre-orders, create promotions, and broadcast store updates with the 5-tab bottom navigation (`orders`, `menu`, `posts`, `promote`, `store`). |
+| `/business` | [`frontend/src/app/business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx) | `['top', 'left', 'right']` | **Merchant Portal**: Dashboard for restaurant owners to update menu items, toggle open/closed status, manage pre-orders, create promotions, and broadcast store updates with the 5-tab bottom navigation (`orders`, `menu`, `posts`, `promote`, `store`). Redesigned Store Profile features Facebook-style profile cover & avatar with instant pen editing ([`EditPhotoModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/EditPhotoModal.tsx)), merchant earnings wallet & cashout flow ([`StoreWalletCard.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/StoreWalletCard.tsx), [`CashOutModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/CashOutModal.tsx)), live operating hours & hotline details, and interactive business photo gallery ([`StoreGallerySection.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/StoreGallerySection.tsx)). |
 | `/welcome` | [`frontend/src/app/welcome.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/welcome.tsx) | `['top', 'bottom', 'left', 'right']` | **Splash / Onboarding Entry**: High-impact editorial headline, 3-row moving pill marquee, "Get Started" and "Sign In" buttons. |
 | `/login` | [`frontend/src/app/login.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/login.tsx) | `['top', 'bottom', 'left', 'right']` | **Login Screen**: Email/password form, quick demo sign-in shortcuts, password recovery link. |
 | `/signup` | [`frontend/src/app/signup.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/signup.tsx) | `['top', 'bottom', 'left', 'right']` | **Registration**: New user account registration form with instant login transition. |
@@ -71,7 +71,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `SavedContext` | [`frontend/src/context/SavedContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/SavedContext.tsx) | Bookmarked dishes & eateries, toggle saved status, clear-all helpers. |
 | `QuestContext` | [`frontend/src/context/QuestContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/QuestContext.tsx) | Tasting log, gamification XP, level calculation, passport stamp collection. |
 | `BasketContext` | [`frontend/src/context/BasketContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/BasketContext.tsx) | Pre-orders, quantity management, scheduled pickup time, active vouchers. |
-| `BusinessContext` | [`frontend/src/context/BusinessContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/BusinessContext.tsx) | Restaurant owner menu management, live order queue, open/closed toggle. |
+| `BusinessContext` | [`frontend/src/context/BusinessContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/BusinessContext.tsx) | Restaurant owner profile, cover & logo editing, store subscription management (status, plan, subscribe, cancel), earnings wallet balance & cashout flow, photo gallery, menu management, live order queue, open/closed toggle. |
 | `NotificationContext` | [`frontend/src/context/NotificationContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/NotificationContext.tsx) | In-app notification state, dynamic unread badge count, mark as read, delete, and clear-all actions. |
 | `FriendsContext` | [`frontend/src/context/FriendsContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/FriendsContext.tsx) | Foodie friends list, live weekly leaderboard calculation, "Tara Kain!" mealtime habit nudges, follow/unfollow, and handle search. |
 | `FriendsData` | [`frontend/src/data/friendsData.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/friendsData.ts) | FoodieProfile and LeagueDivision types with seed Naga City foodies and Gold Division config. |
@@ -93,7 +93,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `components/home/` | `MascotHero`, `NagaQuestCarousel`, `CravingDialWidget`, `FoodShowcaseBox` | Dynamic greetings, streak flame button, banner carousel, and interactive flavor dial. |
 | `components/common/` | `NavBar`, `SearchInput`, `RecommendationModal`, `UserAvatar` | Floating bottom navigation pill: Home (`/`), Map (`/map`), Search elevated center button (`/search`), Feed (`/feed`), Basket (`/basket` with dynamic badge count), search inputs, modal sheets, and universal native Android/iOS `SvgXml` avatar renderer. |
 | `components/map/` | `MapboxMapView`, `MapSpotCarousel`, `NagaMapCanvas` | Mapbox GL mobile/web interactive map with vector SVG category pins, glowing selection pulse, floating controls, and interactive horizontal food spot carousel. |
-| `components/business/` | `BusinessNavBar`, `CreateBusinessPostModal`, `BusinessPostCard`, `AddProductModal`, `CreatePromotionModal`, `PromotionCard`, `BusinessOrderCard` | Merchant management suite with uniform 5-tab navigation bar, photo post composer with dish tagging, dedicated store post card, menu manager, and multi-tier promotion wizard. |
+| `components/business/` | `BusinessNavBar`, `CreateBusinessPostModal`, `BusinessPostCard`, `AddProductModal`, `CreatePromotionModal`, `PromotionCard`, `BusinessOrderCard`, `EditPhotoModal`, `StoreWalletCard`, `CashOutModal`, `StoreGallerySection`, `StoreSubscriptionBanner`, `StoreSubscriptionModal`, `MerchantPaywallGate` | Merchant management suite with uniform 5-tab navigation bar, photo post composer with dish tagging, dedicated store post card, menu manager, multi-tier promotion wizard, Facebook-style cover/avatar photo editor, store earnings wallet card, instant cashout modal, business photo gallery, and complete merchant Pro subscription paywall & checkout suite (banner, paywall gates for locked tabs, GCash/Maya/QR Ph checkout modal). |
 | `components/gamification/` | `PassportStampModal`, `SilitoMysteryBox` | Tasting journal stamps, celebratory unboxing animations. |
 
 ---
@@ -101,6 +101,23 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 ## 5. AI Action & Modification Log
 
 *Every AI session must append its actions here:*
+
+### [2026-10-26] - Merchant Portal Modal Visibility & Layout Fixes (`/business`)
+- **User Request**: "and the cash out modal isnt visible on the modal its not fully visible all, same as the edit logo / edit cover modal too, same as the add photo"
+- **Root Cause Identified**:
+  - `modalBackdrop` was defined with `flex: 1` as a sibling in `modalOverlay: { flex: 1, justifyContent: 'flex-end' }`. On mobile and React Native Web, a flex sibling backdrop expands to consume all available height, pushing the bottom sheet downward and collapsing child `<ScrollView style={{ flex: 1 }}>` components.
+  - `modalSheet` containers lacked an explicit `height: '88%'` / `height: '90%'` and only had `maxHeight`, preventing child `<ScrollView>` elements from calculating scrollable bounds.
+  - In [`business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx), `modalBackdrop` also had `flex: 1` and `modalContent` had insufficient bottom padding.
+  - Modals lacked prominent full-width action buttons at the bottom of the scrollable forms (e.g., Save Photo, Add Photo to Gallery, Save Profile Changes).
+- **Architectural & Design Upgrades Applied**:
+  1. **Absolute Backdrop Overlay**: Changed `modalBackdrop` to `{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }` in [`CashOutModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/CashOutModal.tsx), [`EditPhotoModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/EditPhotoModal.tsx), [`StoreGallerySection.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/StoreGallerySection.tsx), [`StoreSubscriptionModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/StoreSubscriptionModal.tsx), and [`business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx). This completely removes the backdrop from flex layout calculations, ensuring the modal sheet anchors at the bottom without vertical distortion or being pushed off-screen.
+  2. **Definite Sheet Height & Scroll Bounds**: Added explicit `height: '88%'` (and `height: '90%'` for subscriptions) alongside `maxHeight: '92%'` so inner `<ScrollView style={{ flex: 1 }}>` properly computes scroll height and renders all form sections.
+  3. **Scroll View Padding & Bottom Spacers**: Increased `modalContent` `paddingBottom` to `60` and appended a `<View style={{ height: 28 }} />` spacer below all bottom action buttons, guaranteeing 100% visibility above device home indicators and rounded corners.
+  4. **Primary Ergonomic Bottom Buttons**:
+     - In [`EditPhotoModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/EditPhotoModal.tsx): Added a full-width primary button (`Save Cover Banner` or `Save Profile Logo`) at the bottom of the scroll view with checkmark icon and iOS shadow.
+     - In [`StoreGallerySection.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/StoreGallerySection.tsx): Added a full-width primary button (`Add Photo to Gallery`) with cloud upload icon at the bottom of the form.
+     - In [`business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx): Added `Save Profile Changes` primary CTA at the bottom of the Business Info editor.
+     - In [`CashOutModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/CashOutModal.tsx): Added bottom spacer below `Confirm Cashout of ₱...` button for comfortable thumb tapping.
 
 ### [2026-10-26] - Business Promote Tab: Fixed Launch Promo Button Overextension (`/business`)
 - **User Request**: "in the prompt page of the business side the lunch promotion button is barely noticable due to it being overextending in the right side of the screen fix this improper spacing" & "you didnt fix it the launch promotion is still way past as the text as in the image this is trhe issue"
@@ -760,4 +777,182 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 - **Verification**:
   - `npx tsc --noEmit` verified with 0 errors.
 
+### [2026-10-26] - Redesign Store Profile Tab: Facebook-Style Profile Cover & Logo, Merchant Wallet & Cash Out, and Store Photo Gallery
+- **User Requests**:
+  1. "include a profile logo in that page, where the user can edit easily w/ a pen icon in that, similar to how it looks like from logo and banner, like in facebook"
+  2. "add additional things like, a store wallet, and a way to cashout it"
+  3. "details about their page"
+  4. "remove the active restaurant part, instead a section to add pictures about their business, like gallery"
+  5. "overall improve the looks of the page"
+- **Architectural & UI Upgrades Applied**:
+  1. **Facebook-Style Profile Header (`business.tsx`, `EditPhotoModal.tsx`)**:
+     - 16:9 full-width cover banner with camera edit pill button (`#FFFFFF` with translucent black background).
+     - Circular avatar logo overlapping cover (-44px margin) with 4px border and blue pencil edit badge.
+     - Brand identity display: Store name, verified badge, culinary tagline, subtype & neighborhood, rating pill with review count, follower metric pill, and 2 quick action buttons ("Edit Details", "View Public Page").
+     - `EditPhotoModal`: modal for updating either banner or logo with 5 curated Naga City photography presets or custom image URL with live preview.
+  2. **Store Earnings Wallet & Cashout Flow (`BusinessContext.tsx`, `StoreWalletCard.tsx`, `CashOutModal.tsx`)**:
+     - Extended `BusinessProfile` with `wallet: StoreWallet` (`availableBalance`, `todayEarnings`, `pendingBalance`, `lifetimePaid`, `payouts`).
+     - `StoreWalletCard`: fintech card displaying balance, daily earnings badge, pending funds, lifetime payouts, and "Cash Out" CTA button with collapsible payout transaction history.
+     - `CashOutModal`: modal with quick amount chips (₱1,000, ₱2,500, ₱5,000, Max), channel selector (GCash, Maya, Bank Transfer), account number input, service fee breakdown, and transaction processing.
+  3. **Rich Store Details & Operations Inset (`business.tsx`)**:
+     - Operating hours with live open/closed toggle switch.
+     - Address & District with direct shortcut to `/map` with `selectedPlaceId`.
+     - Order hotline with one-touch phone information.
+     - About & Culinary Heritage story card.
+     - Store atmosphere and vibe tags strip.
+  4. **Store Photo Gallery Section (`StoreGallerySection.tsx`)**:
+     - Removed the old "Switch Active Restaurant / Stall" switcher.
+     - Added comprehensive photo gallery section with photo counter, category filter chips (`All`, `Food`, `Interior`, `Kitchen`, `Staff`), 2-column image grid, and fullscreen lightbox photo viewer with delete capability.
+     - Integrated `AddPhotoModal` with 6 preset Naga food/store photos, custom URL and caption inputs.
+     - Synchronized gallery and logo updates with global `ESTABLISHMENTS` so customer-facing `/establishment/[id]` updates instantly.
+- **Verification**:
+  - `npx tsc --noEmit` verified with 0 errors.
 
+### [2026-10-26] - Store Wallet iOS Light Theme Polish, Sparkle Emoji Removal & Gallery 2-Column Grid Fix
+- **User Requests**:
+  1. "the store earning wallet feels so out of place, it feels so out of place from its color, and etc, and the exesive use of sparek emoji is a sign of vibe coding practice in the page"
+  2. "the business gallery is not properly organize, as its 1 columns for all picture"
+- **Issues Identified**:
+  - The previous store wallet used a pitch-black `#1C1C1E` dark fintech card with neon green digits and amber lightning badges that clashed with the app's clean white/warm aesthetic.
+  - Sparkle icons (`Ionicons name="sparkles"`) were rendered inside every tag chip under "Store Atmosphere & Vibe", creating an amateur "vibe coding" look.
+  - The business gallery grid used `flexWrap: 'wrap'` with `width: '48.5%'` and `gap: 10`, which suffered from subpixel rounding on mobile/web viewports, forcing photos into a single collapsed column.
+- **Architectural & UI Upgrades Applied**:
+  1. **Cohesive iOS Light Theme Store Wallet (`StoreWalletCard.tsx`)**:
+     - Swapped background from pitch-black `#1C1C1E` to clean Apple iOS card white (`#FFFFFF`) with subtle border (`#EFEFF4`) and soft elevation.
+     - Styled available balance in crisp `#000000` typography with subtle uppercase labels (`#8E8E93`).
+     - Removed neon green and amber lightning "Real-Time Payout" badge; replaced with a calm, professional `Settled Daily` badge.
+     - Styled "Cash Out Funds" CTA in signature Naga brand red (`#D42F13` with white text) and "Payout Records" toggle in light gray (`#F2F2F7`).
+     - Balanced 3-column metric strip (Today's Revenue, Pending Clearing, Lifetime Withdrawn) with clean dividers and high-legibility numbers.
+  2. **Removed Sparkles & Vibe Coding Elements (`business.tsx`)**:
+     - Renamed "Store Atmosphere & Vibe" section to "Store Features & Amenities".
+     - Removed `<Ionicons name="sparkles" />` from every chip.
+     - Re-styled chips into grounded, professional iOS feature tags (`#F2F2F7` background, 1px `#E5E5EA` border, `#3C3C43` font).
+  3. **Guaranteed 2-Column Gallery Grid (`StoreGallerySection.tsx`)**:
+     - Eliminated fragile `flexWrap` single-row percentage math.
+     - Split filtered photos into two dedicated column streams (`col1Photos` for even indices, `col2Photos` for odd indices) inside two parallel `flex: 1` column wrappers (`columnsContainer` with `gap: 10`).
+     - Structured each item as a structured photo card (`photoCard`) with dedicated image container (`photoImageContainer`), high-contrast category tag, and bottom metadata bar (`photoMetaBar`) showing caption and date.
+- **Verification**:
+  - `npx tsc --noEmit` verified with 0 errors.
+
+### [2026-10-26] - Naga Merchant Pro Store Subscription System & Capability Paywall Gating
+- **User Request**:
+  - "and also in the store profile page this is very important, add a banner for the store subscription which the point is to unlock the full apps' cabaility, from verified banner, ability to accept orders, use the promote features, and store wallet, and overall promoted store / post algortihm and have proper payment process to unlock this, and a way that pages are disable / hidden while payment isnt made yet"
+- **Architectural & Feature Implementations**:
+  1. **Global Subscription State (`BusinessContext.tsx`)**:
+     - Added `StoreSubscription` interface (`status: 'active' | 'inactive'`, `plan: 'monthly' | 'annual' | 'none'`, `expiryDate`, `autoRenew`, `paymentMethod`, `paymentRef`, `subscribedSince`).
+     - Initialized `profile.subscription` as `{ status: 'inactive', plan: 'none', autoRenew: false }` to support immediate out-of-the-box paywall testability.
+     - Implemented `subscribeStore(plan, method)` and `cancelSubscription()`, persisting plan and transaction metadata across establishment switches.
+  2. **Store Subscription Banner (`StoreSubscriptionBanner.tsx`)**:
+     - Positioned right above the Store Wallet Card in the Store Profile tab.
+     - Unsubscribed: Displays "MERCHANT PRO UPGRADE" pill, ₱499/mo pricing, 5-point capability checklist (Official Blue Checkmark, Kitchen Order Queue, Store Wallet Settlements, Sponsored Promoted Deals, 3x Algorithm Discovery Boost), and direct upgrade CTA.
+     - Subscribed: Displays "PRO PARTNER ACTIVE" badge, active tier, next renewal date, payment method, partner ID, and subscription management button.
+  3. **Feature & Capability Paywall Gating (`MerchantPaywallGate.tsx` & `business.tsx`)**:
+     - **Verified Checkmark**: Conditionally rendered in store header only when `profile.subscription?.status === 'active'`. When unverified, displays a subtle iOS shield pill prompting one-tap subscription checkout.
+     - **Kitchen Orders Tab (`activeTab === 'orders'`)**: Replaced with `MerchantPaywallGate` explaining pre-order ticket benefits and instant conversion CTA when unpaid.
+     - **Promote & Reach Tab (`activeTab === 'promote'`)**: Replaced with `MerchantPaywallGate` detailing top-of-feed spotlighting, 3x algorithm boost, and reach metrics when unpaid.
+     - **Store Wallet Cash Out (`StoreWalletCard.tsx`)**: Gated behind `isSubscribed` check; displays "Unlock Pro to Cash Out" with lock icon when unpaid, routing merchants to the payment modal.
+  4. **Complete Philippine Payment Gateway Checkout (`StoreSubscriptionModal.tsx`)**:
+     - Step-by-step subscription flow with Plan Switcher (Monthly ₱499/mo vs Annual ₱4,999/yr, Save 20% + 2 Months Free).
+     - Full itemized capability checklist with color-coded icons.
+     - Multi-channel Philippine payment methods: GCash (official SVG), Maya / QR Ph (official SVG + tap-to-enlarge QR Ph modal with real QR generator), and Debit/Credit Card / Bank Transfer.
+     - Simulated gateway processing with spinner and SSL encryption indicator.
+     - Instant activation celebration modal displaying Partner ID, active checkmark, and direct "Return to Store Profile" CTA.
+- **Verification**:
+  - `npx tsc --noEmit` verified with 0 errors.
+
+### [2026-10-26] - Business Modal Sheet Visibility & Default Store Profile Tab from Settings
+- **User Requests**:
+  1. "and the cash out modal isnt visible on the modal its not fully visible all, same as the edit logo / edit cover modal too, same as the add photo"
+  2. "when i open form the user's settings to swtich to business portal make it default open the store profile page not orders"
+- **Issues Identified**:
+  - In `CashOutModal.tsx`, `EditPhotoModal.tsx`, `StoreGallerySection.tsx`, `StoreSubscriptionModal.tsx`, and `business.tsx`, modal sheets were cut off or not completely visible on screen. Placing a `flex: 1` backdrop Pressable next to the sheet in a `justifyContent: 'flex-end'` container pushed the sheet downwards off-screen and caused child `ScrollView` elements to collapse.
+  - When opening `/business` from the user settings/profile page (`profile.tsx`), the screen defaulted to the Kitchen Orders tab (`'orders'`) instead of the merchant's Store Profile page (`'store'`).
+- **Architectural & Design Upgrades Applied**:
+  1. **Full Visibility & Anchoring for Bottom Sheets**:
+     - Swapped sibling flex backdrops for absolute positioned overlays `{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }`, decoupling sheet positioning from the backdrop.
+     - Provided explicit sheet heights (`height: '88%'` / `height: '90%'`) and generous bottom padding (`paddingBottom: 60`), ensuring action buttons and inputs remain 100% visible and accessible.
+     - Added dedicated full-width bottom primary action buttons inside `EditPhotoModal` ("Save Cover Banner" / "Save Profile Logo"), `StoreGallerySection` ("Add Photo to Gallery"), and `business.tsx` ("Save Profile Changes").
+  2. **Default to Store Profile on Switch from Settings (`profile.tsx` & `business.tsx`)**:
+     - Updated settings route in [`profile.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/profile.tsx) from `/business` to `/business?tab=store`.
+     - In [`business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx), imported `useLocalSearchParams<{ tab?: string }>()` and set initial `activeTab` to `'store'` by default.
+     - Added dynamic `useEffect` synchronization so explicit tab deep links (`?tab=orders`, `?tab=menu`, `?tab=posts`, `?tab=promote`, `?tab=store`) switch tabs seamlessly upon arrival.
+- **Verification**:
+  - `npx tsc --noEmit` executed with 0 errors.
+
+### [2026-10-26] - Store Subscription Banner Polish & Wallet Locked State Refinement
+- **User Requests**:
+  1. "in the banner of unlocking the app in the store profile remove the pill of unlock full app as its redundant"
+  2. "remove the sparkle icon used in the subscrine now button"
+  3. "shorten the text inside the unlock pro to cash out as its a bit too long for that, and when its not unlock make the number just be 0"
+- **Architectural & Design Upgrades Applied**:
+  1. **Redundant Pill Removal (`StoreSubscriptionBanner.tsx`)**:
+     - Removed the secondary `"Unlock Full App"` pill badge next to `"PARTNER SUBSCRIPTION"` from the banner's header row.
+  2. **Sparkle Icon Removal (`StoreSubscriptionBanner.tsx` & `StoreSubscriptionModal.tsx`)**:
+     - Removed `sparkles-outline` icon from the `"Subscribe Now to Unlock Full App"` button in the banner.
+     - Replaced `sparkles` with clean `pricetag` icon in the modal's annual plan savings note.
+  3. **Concise Cash Out CTA & Zeroed Numbers When Locked (`StoreWalletCard.tsx`)**:
+     - Shortened the locked cash out action button text from `"Unlock Pro to Cash Out"` to `"Unlock Cash Out"` (15 characters vs 22 characters), preventing mobile button wrapping.
+     - When unverified/unpaid (`!isSubscribed`), dynamically set the displayed available balance to `₱0` and reset today's revenue, pending clearing, and lifetime withdrawn metrics to `0` (so unpaid merchants don't see active earnings before unlocking).
+     - Gated recent payout records to display `"No payouts requested yet."` when not subscribed.
+- **Verification**:
+  - `npx tsc --noEmit` executed with 0 errors.
+
+### [2026-10-26] - Welcome to Merchant Pro Modal Features Layout Adjustment
+- **User Request**: "in the welcome to merchant pro modal, the featues its too much for the limited space in their row, so adjust it accordingly"
+- **Issues Identified**:
+  - In `StoreSubscriptionModal.tsx` on the post-checkout celebration screen (`isSuccess`), unlocked features were previously crammed on a single horizontal row (`UNLOCKED FEATURES` on the left, `Orders · Wallet · Promos · Boost` on the right). On mobile viewports, the text wrapped awkwardly or clipped against the label.
+- **Architectural & Design Upgrades Applied**:
+  - Replaced the cramped single-line row with a dedicated, spacious `unlockedBlock` inside `successCard`.
+  - Structured the features as a multi-tag chip group (`unlockedChipsContainer`) displaying 4 discrete, clear badges with green checkmarks:
+    - `Kitchen Orders`
+    - `Store Wallet`
+    - `Promotions`
+    - `3x Feed Boost`
+  - Wrapped the celebration view in a vertical `ScrollView` (`successScrollContent`) ensuring comfortable scrolling on smaller devices.
+- **Verification**:
+  - `npx tsc --noEmit` executed with 0 errors.
+
+### [2026-10-26] - Compact Subscribed Banner Redesign & Cramped Pills Removal
+- **User Request**: "when subscribe banner, remove the pills of 'annual plan (20%) off, and etc, as its doesnt sit well or fit inside the limited space and the subscribe banner doesnt need to be very long, just a simle small banner showing the subscription label and status is enough"
+- **Issues Identified**:
+  - In `StoreSubscriptionBanner.tsx`, when `isSubscribed` was active, the banner rendered a large multi-section card with cramped pills ("Annual Plan (20% Off)"), a long descriptive paragraph, and a 3-column footer that overwhelmed the store profile's top viewport.
+- **Architectural & Design Upgrades Applied**:
+  - Replaced the large card with a sleek, compact, single-tap banner (`subscribedCompactBanner`):
+    - Left side: Blue shield checkmark icon box + `"Naga Merchant Pro"` label + `"ACTIVE"` status pill + concise subtitle `"All Pro Capabilities Unlocked"`.
+    - Right side: Clean `"Manage"` link with chevron forward opening the subscription modal.
+    - Removed cramped pills ("Annual Plan (20% Off)") and bulky paragraphs, cutting banner height by ~75%.
+- **Verification**:
+  - `npx tsc --noEmit` executed with 0 errors.
+
+### [2026-10-26] - Official Brand SVG Assets for Wallet Cash Out & Payout Records
+- **User Request**: "the cahsout of the wallet isnt the same as the other cashout page, as it doesnt use the same icon for the gcash, and maya"
+- **Issues Identified**:
+  - `CashOutModal.tsx` was using generic Ionicons (`phone-portrait-outline` for GCash, `wallet-outline` for Maya) instead of the official SVG brand assets used across the app (such as in `payment.tsx` and `StoreSubscriptionModal.tsx`).
+  - `StoreWalletCard.tsx`'s collapsible payout history list was also using generic Ionicons for historical payout channels.
+- **Architectural & Design Upgrades Applied**:
+  - **Cash Out Channel Selector (`CashOutModal.tsx`)**:
+    - Replaced the generic Ionicons with `<ExpoImage>` loading official SVG assets from `assets/icons/`:
+      - GCash: `gcash.svg` (26×22, `#EBF4FF` background).
+      - Maya: `maya.svg` (30×16, `#F0FDF4` background).
+    - Preserved Bank Transfer (`business-outline`).
+  - **Payout History Records (`StoreWalletCard.tsx`)**:
+    - Upgraded `historyMethodIcon` to render `gcash.svg` (18×16) and `maya.svg` (20×11) inside their respective brand background badges, matching the rest of the application's checkout and payment flows.
+- **Verification**:
+  - `npx tsc --noEmit` executed with 0 errors.
+
+### [2026-10-26] - Unified Native ImagePicker for Store Logo, Cover Banner & Business Gallery
+- **User Request**: "and also why is the edit profile for both the logo and banner in store profile, doesnt have the same file picker as for the other like in the add menu, and etc, as remove the press and the add picture url there"
+- **Issues Identified**:
+  - `EditPhotoModal.tsx` and `StoreGallerySection.tsx` previously used static preset image lists and custom URL text inputs instead of the native photo library / camera picker used in `AddProductModal.tsx` ("add menu").
+- **Architectural & Design Upgrades Applied**:
+  - **Store Profile Logo & Cover Banner (`EditPhotoModal.tsx`)**:
+    - Removed `PRESET_BANNERS`, `PRESET_LOGOS`, preset cards grid, and custom URL text inputs.
+    - Integrated `* as ImagePicker from 'expo-image-picker'` with `launchImageLibraryAsync` and `launchCameraAsync`.
+    - Implemented a unified upload card pattern:
+      - If image is chosen: displays live preview (16:9 for cover banner, 1:1 circular badge for profile logo) with `"Choose from Gallery"`, `"Take Photo"`, and `"Remove Photo"` action buttons.
+      - If no image: displays a styled dashed upload box with camera icon, title, subtitle, and primary `"Choose from Gallery"` + secondary `"Take Photo"` buttons.
+  - **Business Gallery Add Photo (`StoreGallerySection.tsx`)**:
+    - Removed `GALLERY_PRESETS` and URL input.
+    - Added the same `pickImage` / `takePhoto` upload box & preview flow, maintaining consistency across every photo upload interface in the business portal.
+- **Verification**:
+  - `npx tsc --noEmit` executed with 0 errors.

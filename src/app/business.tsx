@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useBusiness, BusinessProduct } from '@/context/BusinessContext';
 import { useBasket } from '@/context/BasketContext';
 import { useSocialFeed } from '@/context/SocialFeedContext';
@@ -26,6 +26,13 @@ import { CommentsBottomSheet } from '@/components/feed/CommentsBottomSheet';
 import { BusinessOrderCard } from '@/components/business/BusinessOrderCard';
 import { PromotionCard } from '@/components/business/PromotionCard';
 import { BusinessNavBar, BusinessTab } from '@/components/business/BusinessNavBar';
+import { EditPhotoModal } from '@/components/business/EditPhotoModal';
+import { StoreWalletCard } from '@/components/business/StoreWalletCard';
+import { CashOutModal } from '@/components/business/CashOutModal';
+import { StoreGallerySection } from '@/components/business/StoreGallerySection';
+import { StoreSubscriptionBanner } from '@/components/business/StoreSubscriptionBanner';
+import { StoreSubscriptionModal } from '@/components/business/StoreSubscriptionModal';
+import { MerchantPaywallGate } from '@/components/business/MerchantPaywallGate';
 import { ESTABLISHMENTS } from '@/data/mockData';
 import { SocialPost } from '@/data/socialFeedData';
 import { IOSTokens } from '@/constants/theme';
@@ -37,6 +44,12 @@ export default function BusinessDashboardScreen() {
     promotions,
     analytics,
     updateProfile,
+    updateProfilePhoto,
+    cashOutWallet,
+    subscribeStore,
+    cancelSubscription,
+    addGalleryPhoto,
+    deleteGalleryPhoto,
     toggleOpenStatus,
     addProduct,
     updateProduct,
@@ -50,9 +63,25 @@ export default function BusinessDashboardScreen() {
 
   const { activePreOrders, updateOrderStatus, cancelOrder } = useBasket();
   const { posts, deletePost } = useSocialFeed();
+  const params = useLocalSearchParams<{ tab?: string }>();
 
   // Mobile Bottom Navigation Tab: orders | menu | posts | promote | store
-  const [activeTab, setActiveTab] = useState<BusinessTab>('orders');
+  // Defaults to 'store' (Store Profile) when opening the portal from settings/profile
+  const resolveInitialTab = (): BusinessTab => {
+    if (params.tab && ['orders', 'menu', 'posts', 'promote', 'store'].includes(params.tab)) {
+      return params.tab as BusinessTab;
+    }
+    return 'store';
+  };
+
+  const [activeTab, setActiveTab] = useState<BusinessTab>(resolveInitialTab);
+
+  useEffect(() => {
+    if (params.tab && ['orders', 'menu', 'posts', 'promote', 'store'].includes(params.tab)) {
+      setActiveTab(params.tab as BusinessTab);
+    }
+  }, [params.tab]);
+
   const [orderFilter, setOrderFilter] = useState<'received' | 'preparing' | 'ready' | 'completed'>('received');
 
   // Modals state
@@ -62,6 +91,12 @@ export default function BusinessDashboardScreen() {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [selectedPostForComments, setSelectedPostForComments] = useState<SocialPost | null>(null);
+
+  // Store photo editing & cashout modals
+  const [isEditPhotoOpen, setIsEditPhotoOpen] = useState(false);
+  const [editPhotoType, setEditPhotoType] = useState<'banner' | 'logo'>('banner');
+  const [isCashOutOpen, setIsCashOutOpen] = useState(false);
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
 
   // Edit store profile state
   const [editStoreName, setEditStoreName] = useState(profile.name);
@@ -231,60 +266,77 @@ export default function BusinessDashboardScreen() {
         {/* ================= TAB 1: ORDERS ================= */}
         {activeTab === 'orders' && (
           <View style={styles.tabContainer}>
-            {/* Filter Segmented Control */}
-            <View style={styles.filterSegmentContainer}>
-              {[
-                { id: 'received' as const, label: `New (${newOrdersCount})` },
-                { id: 'preparing' as const, label: `Kitchen (${inKitchenCount})` },
-                { id: 'ready' as const, label: `Ready (${readyCount})` },
-                { id: 'completed' as const, label: `Done (${completedCount})` },
-              ].map((f) => {
-                const isActive = orderFilter === f.id;
-                return (
-                  <Pressable
-                    key={f.id}
-                    onPress={() => setOrderFilter(f.id)}
-                    style={[
-                      styles.filterSegmentBtn,
-                      isActive && styles.filterSegmentBtnActive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.filterSegmentText,
-                        isActive && styles.filterSegmentTextActive,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {f.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Orders Queue */}
-            {displayedOrders.length === 0 ? (
-              <View style={styles.emptyCard}>
-                <View style={styles.emptyIconBg}>
-                  <Ionicons name="receipt-outline" size={32} color="#8E8E93" />
-                </View>
-                <Text style={styles.emptyTitle}>No Orders in this View</Text>
-                <Text style={styles.emptySub}>
-                  When customers pre-order from {profile.name}, tickets appear here for kitchen prep.
-                </Text>
-              </View>
+            {profile.subscription?.status !== 'active' ? (
+              <MerchantPaywallGate
+                icon="receipt-outline"
+                title="Accept Real-Time Kitchen Orders"
+                subtitle={`Unlock live customer pre-orders, kitchen queue management, and order preparation tickets for ${profile.name}.`}
+                features={[
+                  'Live incoming customer pre-order tickets',
+                  'One-tap kitchen prep and ready status dispatch',
+                  'Instant sales settlement directly into your store wallet',
+                ]}
+                ctaText="Unlock Kitchen Orders (₱499/mo)"
+                onUpgradePress={() => setIsSubscriptionModalOpen(true)}
+              />
             ) : (
-              <View style={styles.ordersList}>
-                {displayedOrders.map((order) => (
-                  <BusinessOrderCard
-                    key={order.id}
-                    order={order}
-                    onUpdateStatus={updateOrderStatus}
-                    onCancelOrder={cancelOrder}
-                  />
-                ))}
-              </View>
+              <>
+                {/* Filter Segmented Control */}
+                <View style={styles.filterSegmentContainer}>
+                  {[
+                    { id: 'received' as const, label: `New (${newOrdersCount})` },
+                    { id: 'preparing' as const, label: `Kitchen (${inKitchenCount})` },
+                    { id: 'ready' as const, label: `Ready (${readyCount})` },
+                    { id: 'completed' as const, label: `Done (${completedCount})` },
+                  ].map((f) => {
+                    const isActive = orderFilter === f.id;
+                    return (
+                      <Pressable
+                        key={f.id}
+                        onPress={() => setOrderFilter(f.id)}
+                        style={[
+                          styles.filterSegmentBtn,
+                          isActive && styles.filterSegmentBtnActive,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.filterSegmentText,
+                            isActive && styles.filterSegmentTextActive,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {f.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                {/* Orders Queue */}
+                {displayedOrders.length === 0 ? (
+                  <View style={styles.emptyCard}>
+                    <View style={styles.emptyIconBg}>
+                      <Ionicons name="receipt-outline" size={32} color="#8E8E93" />
+                    </View>
+                    <Text style={styles.emptyTitle}>No Orders in this View</Text>
+                    <Text style={styles.emptySub}>
+                      When customers pre-order from {profile.name}, tickets appear here for kitchen prep.
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.ordersList}>
+                    {displayedOrders.map((order) => (
+                      <BusinessOrderCard
+                        key={order.id}
+                        order={order}
+                        onUpdateStatus={updateOrderStatus}
+                        onCancelOrder={cancelOrder}
+                      />
+                    ))}
+                  </View>
+                )}
+              </>
             )}
           </View>
         )}
@@ -496,105 +548,232 @@ export default function BusinessDashboardScreen() {
         {/* ================= TAB 3: PROMOTE & ADVERTISE ================= */}
         {activeTab === 'promote' && (
           <View style={styles.tabContainer}>
-            {/* Header & Launch Button */}
-            <View style={styles.menuHeaderRow}>
-              <View style={styles.headerTitlesCol}>
-                <Text style={styles.sectionHeading}>Promote in Naga</Text>
-                <Text style={styles.sectionSubheading} numberOfLines={2} ellipsizeMode="tail">
-                  Broadcast deals to foodies across Naga City
-                </Text>
-              </View>
-
-              <Pressable
-                onPress={() => setIsCreatePromoOpen(true)}
-                style={({ pressed }) => [styles.primaryActionBtn, pressed && styles.pressed]}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel="Launch promotion"
-              >
-                <Ionicons name="megaphone" size={15} color="#FFFFFF" />
-                <Text style={styles.primaryActionBtnText}>Launch Promo</Text>
-              </Pressable>
-            </View>
-
-            {/* Audience Info Card */}
-            <View style={styles.promoAudienceCard}>
-              <View style={styles.promoAudienceIcon}>
-                <Ionicons name="people" size={20} color="#D42F13" />
-              </View>
-              <View style={styles.promoAudienceTextCol}>
-                <Text style={styles.promoAudienceTitle}>Direct Reach Across Naga City</Text>
-                <Text style={styles.promoAudienceDesc}>
-                  Active promotions appear at the top of the Discover &amp; Categories feeds. Foodies can tap and order immediately for counter pickup.
-                </Text>
-              </View>
-            </View>
-
-            {/* Active Campaigns List */}
-            <Text style={styles.sectionDividerLabel}>YOUR CAMPAIGNS ({promotions.length})</Text>
-            {promotions.length === 0 ? (
-              <View style={styles.emptyCard}>
-                <View style={styles.emptyIconBg}>
-                  <Ionicons name="megaphone-outline" size={30} color="#8E8E93" />
-                </View>
-                <Text style={styles.emptyTitle}>No Active Campaigns</Text>
-                <Text style={styles.emptySub}>
-                  Create your first promotional offer to attract hungry foodies across Naga City.
-                </Text>
-                <Pressable
-                  onPress={() => setIsCreatePromoOpen(true)}
-                  style={({ pressed }) => [
-                    styles.primaryActionBtn,
-                    { marginTop: 16 },
-                    pressed && styles.pressed,
-                  ]}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel="Launch promotion"
-                >
-                  <Ionicons name="megaphone" size={15} color="#FFFFFF" />
-                  <Text style={styles.primaryActionBtnText}>Launch Promo</Text>
-                </Pressable>
-              </View>
+            {profile.subscription?.status !== 'active' ? (
+              <MerchantPaywallGate
+                icon="megaphone-outline"
+                title="Promote Your Deals in Naga City"
+                subtitle={`Broadcast sponsored promotions to the top of Discover feeds, attract nearby foodies, and boost ${profile.name}'s visibility with Pro placement.`}
+                features={[
+                  'Top-of-feed spotlight banners on Discover and Categories',
+                  '3x algorithm boost in local foodie search and recommendations',
+                  'Live promotion performance, counter redemptions, and view reach',
+                ]}
+                ctaText="Unlock Promotions (₱499/mo)"
+                onUpgradePress={() => setIsSubscriptionModalOpen(true)}
+              />
             ) : (
-              promotions.map((campaign) => (
-                <PromotionCard
-                  key={campaign.id}
-                  campaign={campaign}
-                  onToggleActive={togglePromotionActive}
-                  onDelete={deletePromotion}
-                />
-              ))
+              <>
+                {/* Header & Launch Button */}
+                <View style={styles.menuHeaderRow}>
+                  <View style={styles.headerTitlesCol}>
+                    <Text style={styles.sectionHeading}>Promote in Naga</Text>
+                    <Text style={styles.sectionSubheading} numberOfLines={2} ellipsizeMode="tail">
+                      Broadcast deals to foodies across Naga City
+                    </Text>
+                  </View>
+
+                  <Pressable
+                    onPress={() => setIsCreatePromoOpen(true)}
+                    style={({ pressed }) => [styles.primaryActionBtn, pressed && styles.pressed]}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Launch promotion"
+                  >
+                    <Ionicons name="megaphone" size={15} color="#FFFFFF" />
+                    <Text style={styles.primaryActionBtnText}>Launch Promo</Text>
+                  </Pressable>
+                </View>
+
+                {/* Audience Info Card */}
+                <View style={styles.promoAudienceCard}>
+                  <View style={styles.promoAudienceIcon}>
+                    <Ionicons name="people" size={20} color="#D42F13" />
+                  </View>
+                  <View style={styles.promoAudienceTextCol}>
+                    <Text style={styles.promoAudienceTitle}>Direct Reach Across Naga City</Text>
+                    <Text style={styles.promoAudienceDesc}>
+                      Active promotions appear at the top of the Discover &amp; Categories feeds. Foodies can tap and order immediately for counter pickup.
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Active Campaigns List */}
+                <Text style={styles.sectionDividerLabel}>YOUR CAMPAIGNS ({promotions.length})</Text>
+                {promotions.length === 0 ? (
+                  <View style={styles.emptyCard}>
+                    <View style={styles.emptyIconBg}>
+                      <Ionicons name="megaphone-outline" size={30} color="#8E8E93" />
+                    </View>
+                    <Text style={styles.emptyTitle}>No Active Campaigns</Text>
+                    <Text style={styles.emptySub}>
+                      Create your first promotional offer to attract hungry foodies across Naga City.
+                    </Text>
+                    <Pressable
+                      onPress={() => setIsCreatePromoOpen(true)}
+                      style={({ pressed }) => [
+                        styles.primaryActionBtn,
+                        { marginTop: 16 },
+                        pressed && styles.pressed,
+                      ]}
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      accessibilityLabel="Launch promotion"
+                    >
+                      <Ionicons name="megaphone" size={15} color="#FFFFFF" />
+                      <Text style={styles.primaryActionBtnText}>Launch Promo</Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  promotions.map((campaign) => (
+                    <PromotionCard
+                      key={campaign.id}
+                      campaign={campaign}
+                      onToggleActive={togglePromotionActive}
+                      onDelete={deletePromotion}
+                    />
+                  ))
+                )}
+              </>
             )}
           </View>
         )}
 
-        {/* ================= TAB 4: STORE & ANALYTICS ================= */}
+        {/* ================= TAB 5: STORE PROFILE & WALLET ================= */}
         {activeTab === 'store' && (
           <View style={styles.tabContainer}>
-            {/* Store Hero Card */}
-            <View style={styles.storeHeroCard}>
-              <Image source={{ uri: profile.heroImage }} style={styles.storeHeroImage} />
-              <View style={styles.storeHeroContent}>
-                <View style={styles.storeHeroTitleRow}>
-                  <Text style={styles.storeHeroTitle}>{profile.name}</Text>
+            {/* Facebook-Style Profile Banner & Avatar Card */}
+            <View style={styles.fbProfileCard}>
+              {/* Cover Banner (16:9) */}
+              <View style={styles.fbCoverWrapper}>
+                <Image source={{ uri: profile.heroImage }} style={styles.fbCoverImage} />
+                <View style={styles.fbCoverScrim} />
+
+                {/* Edit Cover Photo Button (Camera / Pen) */}
+                <Pressable
+                  onPress={() => {
+                    setEditPhotoType('banner');
+                    setIsEditPhotoOpen(true);
+                  }}
+                  style={({ pressed }) => [styles.fbEditCoverBtn, pressed && styles.pressed]}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Edit cover banner"
+                >
+                  <Ionicons name="camera" size={13} color="#FFFFFF" />
+                  <Text style={styles.fbEditCoverBtnText}>Edit Cover</Text>
+                </Pressable>
+              </View>
+
+              {/* Overlapping Profile Logo (Avatar) */}
+              <View style={styles.fbAvatarRow}>
+                <View style={styles.fbAvatarWrapper}>
+                  <Image source={{ uri: profile.logoImage }} style={styles.fbAvatarImage} />
+                  {/* Edit Logo Pen Button */}
                   <Pressable
-                    onPress={handleOpenEditProfile}
-                    style={({ pressed }) => [styles.editProfilePill, pressed && styles.pressed]}
-                    hitSlop={8}
+                    onPress={() => {
+                      setEditPhotoType('logo');
+                      setIsEditPhotoOpen(true);
+                    }}
+                    style={({ pressed }) => [styles.fbEditLogoBtn, pressed && styles.pressed]}
+                    hitSlop={6}
+                    accessibilityRole="button"
+                    accessibilityLabel="Edit store profile logo"
                   >
-                    <Ionicons name="pencil" size={13} color="#000000" />
-                    <Text style={styles.editProfilePillText}>Edit</Text>
+                    <Ionicons name="pencil" size={13} color="#FFFFFF" />
                   </Pressable>
                 </View>
-                <Text style={styles.storeHeroSub}>
+              </View>
+
+              {/* Brand Meta & Info */}
+              <View style={styles.fbMetaContainer}>
+                <View style={styles.fbNameLine}>
+                  <Text style={styles.fbStoreName} numberOfLines={1}>
+                    {profile.name}
+                  </Text>
+                  {profile.subscription?.status === 'active' ? (
+                    <View style={styles.fbVerifiedBadge}>
+                      <Ionicons name="checkmark-circle" size={18} color="#007DFE" />
+                    </View>
+                  ) : (
+                    <Pressable
+                      onPress={() => setIsSubscriptionModalOpen(true)}
+                      style={({ pressed }) => [styles.fbUnverifiedBadge, pressed && styles.pressed]}
+                      hitSlop={6}
+                      accessibilityRole="button"
+                      accessibilityLabel="Store unverified. Tap to subscribe."
+                    >
+                      <Ionicons name="shield-outline" size={12} color="#8E8E93" />
+                      <Text style={styles.fbUnverifiedText}>Unverified</Text>
+                    </Pressable>
+                  )}
+                </View>
+
+                <Text style={styles.fbTagline} numberOfLines={2}>
+                  {profile.tagline || `${profile.typeLabel} in ${profile.neighborhood}`}
+                </Text>
+
+                <Text style={styles.fbSubtype}>
                   {profile.typeLabel} · {profile.neighborhood}
                 </Text>
-                <Text style={styles.storeHeroDesc}>{profile.description}</Text>
+
+                {/* Rating & Social Metrics Strip */}
+                <View style={styles.fbMetricsRow}>
+                  <View style={styles.fbRatingBadge}>
+                    <Ionicons name="star" size={12} color="#FF9500" />
+                    <Text style={styles.fbRatingNum}>{profile.rating.toFixed(1)}</Text>
+                    <Text style={styles.fbReviewsCount}>({profile.reviewCount} reviews)</Text>
+                  </View>
+
+                  <Text style={styles.fbDotSeparator}>·</Text>
+
+                  <View style={styles.fbFollowersBadge}>
+                    <Ionicons name="people" size={13} color="rgba(60, 60, 67, 0.7)" />
+                    <Text style={styles.fbFollowersText}>
+                      <Text style={{ fontWeight: '700', color: '#000000' }}>{formattedFollowers}</Text> Foodies
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Action Buttons Row */}
+                <View style={styles.fbActionButtonsRow}>
+                  <Pressable
+                    onPress={handleOpenEditProfile}
+                    style={({ pressed }) => [styles.fbEditDetailsBtn, pressed && styles.pressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Edit store profile details"
+                  >
+                    <Ionicons name="pencil" size={14} color="#000000" />
+                    <Text style={styles.fbEditDetailsText}>Edit Details</Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => router.push(`/establishment/${profile.id}` as any)}
+                    style={({ pressed }) => [styles.fbViewPublicBtn, pressed && styles.pressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel="View public store page as customer"
+                  >
+                    <Ionicons name="eye-outline" size={15} color="#000000" />
+                    <Text style={styles.fbViewPublicText}>View Public Page</Text>
+                  </Pressable>
+                </View>
               </View>
             </View>
 
-            {/* Today's Metrics (Clean 2x2 Grid) */}
+            {/* Naga Merchant Pro Subscription Banner */}
+            <StoreSubscriptionBanner
+              subscription={profile.subscription}
+              onUpgradePress={() => setIsSubscriptionModalOpen(true)}
+            />
+
+            {/* Store Earnings Wallet & Cashout Section */}
+            <StoreWalletCard
+              wallet={profile.wallet}
+              isSubscribed={profile.subscription?.status === 'active'}
+              onOpenCashOut={() => setIsCashOutOpen(true)}
+              onRequireSubscription={() => setIsSubscriptionModalOpen(true)}
+            />
+
+            {/* Today's Overview Metrics */}
             <Text style={styles.sectionDividerLabel}>TODAY&apos;S OVERVIEW</Text>
             <View style={styles.storeStatsGrid}>
               <View style={styles.storeStatTile}>
@@ -615,69 +794,112 @@ export default function BusinessDashboardScreen() {
               </View>
             </View>
 
-            {/* Store Information Details Inset */}
-            <Text style={styles.sectionDividerLabel}>STORE DETAILS</Text>
+            {/* Store Information Details & Operations Inset */}
+            <Text style={styles.sectionDividerLabel}>STORE DETAILS &amp; OPERATIONS</Text>
             <View style={styles.insetGroup}>
+              {/* Operating Hours with Live Toggle */}
               <View style={styles.storeDetailRow}>
                 <View style={styles.storeDetailLeft}>
-                  <Ionicons name="time-outline" size={17} color="#2E7D32" />
-                  <Text style={styles.storeDetailLabel}>Operating Hours</Text>
+                  <View style={[styles.detailIconCircle, { backgroundColor: '#E8F5E9' }]}>
+                    <Ionicons name="time" size={15} color="#2E7D32" />
+                  </View>
+                  <View>
+                    <Text style={styles.storeDetailLabel}>Operating Schedule</Text>
+                    <Text style={styles.storeDetailSub}>{profile.openingHours}</Text>
+                  </View>
                 </View>
-                <Text style={styles.storeDetailValue}>{profile.openingHours}</Text>
-              </View>
-
-              <View style={styles.storeDetailRow}>
-                <View style={styles.storeDetailLeft}>
-                  <Ionicons name="location-outline" size={17} color="#D42F13" />
-                  <Text style={styles.storeDetailLabel}>Address</Text>
-                </View>
-                <Text style={styles.storeDetailValue} numberOfLines={2}>
-                  {profile.address}
-                </Text>
-              </View>
-
-              <View style={[styles.storeDetailRow, styles.rowLast]}>
-                <View style={styles.storeDetailLeft}>
-                  <Ionicons name="call-outline" size={17} color="#1976D2" />
-                  <Text style={styles.storeDetailLabel}>Contact Hotline</Text>
-                </View>
-                <Text style={styles.storeDetailValue}>{profile.contactNumber}</Text>
-              </View>
-            </View>
-
-            {/* Switch Managed Establishment */}
-            <Text style={styles.sectionDividerLabel}>SWITCH ACTIVE RESTAURANT / STALL</Text>
-            <View style={styles.insetGroup}>
-              {ESTABLISHMENTS.map((est, idx) => {
-                const isSelected = est.id === profile.id;
-                const isLast = idx === ESTABLISHMENTS.length - 1;
-                return (
-                  <Pressable
-                    key={est.id}
-                    onPress={() => switchEstablishment(est.id)}
-                    style={[styles.switchRow, isLast && styles.rowLast]}
+                <View style={styles.detailRightCol}>
+                  <Switch
+                    value={profile.isOpenNow}
+                    onValueChange={toggleOpenStatus}
+                    trackColor={{ false: 'rgba(118, 118, 128, 0.16)', true: '#34C759' }}
+                    thumbColor="#FFFFFF"
+                  />
+                  <Text
+                    style={[
+                      styles.switchStatusText,
+                      profile.isOpenNow ? styles.openTextGreen : styles.openTextRed,
+                    ]}
                   >
-                    <Image source={{ uri: est.heroImage }} style={styles.switchThumb} />
-                    <View style={styles.switchMeta}>
-                      <Text
-                        style={[
-                          styles.switchName,
-                          isSelected && styles.switchNameActive,
-                        ]}
-                      >
-                        {est.name}
-                      </Text>
-                      <Text style={styles.switchSub}>{est.typeLabel} · {est.neighborhood}</Text>
+                    {profile.isOpenNow ? 'Open Now' : 'Closed'}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Location & District with Map Shortcut */}
+              <View style={styles.storeDetailRow}>
+                <View style={styles.storeDetailLeft}>
+                  <View style={[styles.detailIconCircle, { backgroundColor: '#FFEBEE' }]}>
+                    <Ionicons name="location" size={15} color="#D42F13" />
+                  </View>
+                  <View style={{ flex: 1, paddingRight: 8 }}>
+                    <Text style={styles.storeDetailLabel}>Address &amp; District</Text>
+                    <Text style={styles.storeDetailSub} numberOfLines={2}>
+                      {profile.address}
+                    </Text>
+                  </View>
+                </View>
+                <Pressable
+                  onPress={() =>
+                    router.push({
+                      pathname: '/map',
+                      params: { selectedPlaceId: profile.id },
+                    })
+                  }
+                  style={styles.detailActionBtn}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Locate store on interactive map"
+                >
+                  <Ionicons name="map-outline" size={13} color={IOSTokens.colors.tint} />
+                  <Text style={styles.detailActionBtnText}>Map</Text>
+                </Pressable>
+              </View>
+
+              {/* Contact Hotline */}
+              <View style={styles.storeDetailRow}>
+                <View style={styles.storeDetailLeft}>
+                  <View style={[styles.detailIconCircle, { backgroundColor: '#EBF4FF' }]}>
+                    <Ionicons name="call" size={15} color="#007DFE" />
+                  </View>
+                  <View>
+                    <Text style={styles.storeDetailLabel}>Order Hotline &amp; Phone</Text>
+                    <Text style={styles.storeDetailSub}>{profile.contactNumber}</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* About & Culinary Heritage Story */}
+              <View style={[styles.storeDetailRow, { flexDirection: 'column', alignItems: 'flex-start' }]}>
+                <View style={[styles.storeDetailLeft, { marginBottom: 6 }]}>
+                  <View style={[styles.detailIconCircle, { backgroundColor: '#FFF3E0' }]}>
+                    <Ionicons name="book" size={15} color="#FF9500" />
+                  </View>
+                  <Text style={styles.storeDetailLabel}>About &amp; Culinary Heritage</Text>
+                </View>
+                <Text style={styles.storeStoryText}>{profile.description}</Text>
+              </View>
+
+              {/* Features & Amenities Badges */}
+              <View style={[styles.storeDetailRow, styles.rowLast, { flexDirection: 'column', alignItems: 'flex-start' }]}>
+                <Text style={[styles.storeDetailLabel, { marginBottom: 8 }]}>Store Features &amp; Amenities</Text>
+                <View style={styles.vibeChipsContainer}>
+                  {profile.atmosphereTags.map((tag, idx) => (
+                    <View key={idx} style={styles.vibeTagChip}>
+                      <Text style={styles.vibeTagText}>{tag}</Text>
                     </View>
-                    {isSelected ? (
-                      <Ionicons name="checkmark-circle" size={20} color="#D42F13" />
-                    ) : (
-                      <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
-                    )}
-                  </Pressable>
-                );
-              })}
+                  ))}
+                </View>
+              </View>
             </View>
+
+            {/* Business Photo Gallery Section (Replaces Old Switcher) */}
+            <StoreGallerySection
+              gallery={profile.gallery}
+              storeName={profile.name}
+              onAddPhoto={addGalleryPhoto}
+              onDeletePhoto={deleteGalleryPhoto}
+            />
           </View>
         )}
       </ScrollView>
@@ -810,10 +1032,50 @@ export default function BusinessDashboardScreen() {
                   />
                 </View>
               </View>
+
+              <Pressable
+                onPress={handleSaveStoreProfile}
+                style={({ pressed }) => [styles.modalBottomSaveBtn, pressed && styles.pressed]}
+                accessibilityRole="button"
+                accessibilityLabel="Save Store Profile Details"
+              >
+                <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
+                <Text style={styles.modalBottomSaveBtnText}>Save Profile Changes</Text>
+              </Pressable>
+              <View style={{ height: 28 }} />
             </ScrollView>
           </View>
         </View>
       </Modal>
+
+      {/* Edit Photo Modal (Cover or Logo) */}
+      <EditPhotoModal
+        visible={isEditPhotoOpen}
+        type={editPhotoType}
+        currentUrl={editPhotoType === 'banner' ? profile.heroImage : profile.logoImage}
+        storeName={profile.name}
+        onClose={() => setIsEditPhotoOpen(false)}
+        onSave={(url) => updateProfilePhoto(editPhotoType, url)}
+      />
+
+      {/* Cash Out Modal */}
+      <CashOutModal
+        visible={isCashOutOpen}
+        availableBalance={profile.wallet.balance}
+        onClose={() => setIsCashOutOpen(false)}
+        onConfirmCashOut={(amount, method, account, accountName) =>
+          cashOutWallet(amount, method, account, accountName)
+        }
+      />
+
+      {/* Naga Merchant Pro Subscription Modal */}
+      <StoreSubscriptionModal
+        visible={isSubscriptionModalOpen}
+        onClose={() => setIsSubscriptionModalOpen(false)}
+        onSuccess={(plan, method) => subscribeStore(plan, method)}
+        storeName={profile.name}
+        currentPlan={profile.subscription?.plan}
+      />
     </SafeAreaView>
   );
 }
@@ -1187,62 +1449,240 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     paddingHorizontal: 4,
   },
-  storeHeroCard: {
+  // Facebook-Style Profile Banner & Avatar
+  fbProfileCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
-    borderWidth: 0.5,
-    borderColor: 'rgba(60, 60, 67, 0.15)',
+    borderWidth: 1,
+    borderColor: '#EFEFF4',
+    marginBottom: 16,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.05)',
+      } as any,
+      default: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 2,
+      },
+    }),
   },
-  storeHeroImage: {
+  fbCoverWrapper: {
     width: '100%',
-    height: 130,
-    backgroundColor: '#F2F2F7',
+    height: 148,
+    backgroundColor: '#E5E5EA',
+    position: 'relative',
   },
-  storeHeroContent: {
-    padding: 14,
+  fbCoverImage: {
+    width: '100%',
+    height: '100%',
   },
-  storeHeroTitleRow: {
+  fbCoverScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+  },
+  fbEditCoverBtn: {
+    position: 'absolute',
+    right: 12,
+    bottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  fbEditCoverBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  fbAvatarRow: {
+    paddingHorizontal: 16,
+    marginTop: -44,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
     justifyContent: 'space-between',
-    marginBottom: 2,
   },
-  storeHeroTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+  fbAvatarWrapper: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    borderWidth: 4,
+    borderColor: '#FFFFFF',
+    backgroundColor: '#F2F2F7',
+    position: 'relative',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+      } as any,
+      default: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 8,
+        elevation: 4,
+      },
+    }),
+  },
+  fbAvatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 44,
+  },
+  fbEditLogoBtn: {
+    position: 'absolute',
+    right: -2,
+    bottom: 2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#007DFE',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fbMetaContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  fbNameLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  fbStoreName: {
+    fontSize: 20,
+    fontWeight: '800',
     color: '#000000',
+    letterSpacing: -0.4,
+    flexShrink: 1,
   },
-  editProfilePill: {
+  fbVerifiedBadge: {
+    paddingTop: 1,
+  },
+  fbUnverifiedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: '#F2F2F7',
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#D1D1D6',
   },
-  editProfilePillText: {
+  fbUnverifiedText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#8E8E93',
+  },
+  fbTagline: {
+    fontSize: 13,
+    color: 'rgba(60, 60, 67, 0.85)',
+    lineHeight: 18,
+    marginBottom: 4,
+  },
+  fbSubtype: {
     fontSize: 12,
+    fontWeight: '600',
+    color: IOSTokens.colors.tint,
+    marginBottom: 8,
+  },
+  fbMetricsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14,
+  },
+  fbRatingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FFF9EB',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 0.5,
+    borderColor: '#FFE082',
+  },
+  fbRatingNum: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#B25E00',
+  },
+  fbReviewsCount: {
+    fontSize: 11,
+    color: '#8E8E93',
+  },
+  fbDotSeparator: {
+    fontSize: 14,
+    color: '#C7C7CC',
+  },
+  fbFollowersBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  fbFollowersText: {
+    fontSize: 12,
+    color: 'rgba(60, 60, 67, 0.7)',
+  },
+  fbActionButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingTop: 4,
+  },
+  fbEditDetailsBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#F2F2F7',
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  fbEditDetailsText: {
+    fontSize: 13,
     fontWeight: '600',
     color: '#000000',
   },
-  storeHeroSub: {
+  fbViewPublicBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#F2F2F7',
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  fbViewPublicText: {
     fontSize: 13,
-    color: IOSTokens.colors.tint,
-    fontWeight: '500',
-    marginBottom: 6,
+    fontWeight: '600',
+    color: '#000000',
   },
-  storeHeroDesc: {
-    fontSize: 12,
-    lineHeight: 17,
-    color: 'rgba(60, 60, 67, 0.7)',
-  },
+
+  // Today Overview Metrics Grid
   storeStatsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     gap: 8,
+    marginBottom: 16,
   },
   storeStatTile: {
     width: '48.5%',
@@ -1262,6 +1702,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: 'rgba(60, 60, 67, 0.6)',
   },
+
   storeDetailRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1269,54 +1710,78 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
+    borderBottomColor: 'rgba(60, 60, 67, 0.12)',
   },
   storeDetailLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+    flex: 1,
+  },
+  detailIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   storeDetailLabel: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#000000',
-  },
-  storeDetailValue: {
-    fontSize: 13,
-    color: 'rgba(60, 60, 67, 0.7)',
-    maxWidth: 180,
-    textAlign: 'right',
-  },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
-  },
-  switchThumb: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: '#F2F2F7',
-    marginRight: 10,
-  },
-  switchMeta: {
-    flex: 1,
-  },
-  switchName: {
-    fontSize: 14,
     fontWeight: '600',
     color: '#000000',
-    marginBottom: 2,
   },
-  switchNameActive: {
+  storeDetailSub: {
+    fontSize: 12,
+    color: 'rgba(60, 60, 67, 0.7)',
+    marginTop: 2,
+  },
+  detailRightCol: {
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  switchStatusText: {
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  detailActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FFF2EE',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  detailActionBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
     color: IOSTokens.colors.tint,
   },
-  switchSub: {
-    fontSize: 11,
-    color: 'rgba(60, 60, 67, 0.6)',
+  storeStoryText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: 'rgba(60, 60, 67, 0.8)',
+    marginTop: 4,
+  },
+  vibeChipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    width: '100%',
+  },
+  vibeTagChip: {
+    backgroundColor: '#F2F2F7',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  vibeTagText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#3C3C43',
   },
   pressed: {
     opacity: 0.6,
@@ -1327,7 +1792,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   modalBackdrop: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   modalSheet: {
     width: '100%',
@@ -1383,6 +1852,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     padding: 16,
+    paddingBottom: 60,
   },
   modalSectionLabel: {
     fontSize: 12,
@@ -1428,6 +1898,29 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     minHeight: 70,
     padding: 0,
+  },
+  modalBottomSaveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: IOSTokens.colors.tint,
+    borderRadius: 14,
+    paddingVertical: 14,
+    marginTop: 20,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 12px rgba(212, 47, 19, 0.25)',
+      } as any,
+      default: {
+        elevation: 3,
+      },
+    }),
+  },
+  modalBottomSaveBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   bizSocialHeaderCard: {
     backgroundColor: '#FFFFFF',
