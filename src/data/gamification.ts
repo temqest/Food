@@ -542,3 +542,75 @@ export const DISH_INSIDER_TIPS: Record<string, DishInsiderTip> = {
     siliLevel: 1,
   },
 };
+
+export interface StreakTrophy {
+  id: string;
+  title: string;
+  daysRequired: number;
+  description: string;
+  icon: string;
+  color: string;
+  badgeTag: string;
+  xpReward: number;
+  unlocked: boolean;
+  unlockedDate?: string;
+}
+
+export const STREAK_TROPHIES: StreakTrophy[] = [
+  {
+    id: 'trophy-bronze-3',
+    title: 'Bronze Sili Cup',
+    daysRequired: 3,
+    description: 'Maintained a 3-day Naga culinary streak without letting the flame die.',
+    icon: 'trophy',
+    color: '#CD7F32',
+    badgeTag: '🥉 Bronze Tier',
+    xpReward: 100,
+    unlocked: true,
+    unlockedDate: 'Oct 24',
+  },
+  {
+    id: 'trophy-silver-7',
+    title: 'Silver Merienda Chalice',
+    daysRequired: 7,
+    description: 'Explored local carinderias and bakeries 7 consecutive days.',
+    icon: 'trophy',
+    color: '#A8A8A8',
+    badgeTag: '🥈 Silver Tier',
+    xpReward: 250,
+    unlocked: false,
+  },
+  {
+    id: 'trophy-gold-14',
+    title: 'Golden Kinalas Cauldron',
+    daysRequired: 14,
+    description: 'Two unbroken weeks of savoring Naga’s rich heritage noodle broths and dishes.',
+    icon: 'trophy',
+    color: '#FFB800',
+    badgeTag: '🥇 Gold Tier',
+    xpReward: 500,
+    unlocked: false,
+  },
+  {
+    id: 'trophy-diamond-30',
+    title: 'Diamond Titano Trophy',
+    daysRequired: 30,
+    description: 'A full month of non-stop culinary discovery across all Naga districts.',
+    icon: 'ribbon',
+    color: '#00B4D8',
+    badgeTag: '💎 Diamond Tier',
+    xpReward: 1000,
+    unlocked: false,
+  },
+  {
+    id: 'trophy-centennial-100',
+    title: 'Legend of Mount Isarog',
+    daysRequired: 100,
+    description: 'The highest honor bestowed upon a master explorer of Camarines Sur flavor lore.',
+    icon: 'star',
+    color: '#9D4EDD',
+    badgeTag: '👑 Mythic Tier',
+    xpReward: 3000,
+    unlocked: false,
+  },
+];

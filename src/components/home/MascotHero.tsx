@@ -18,10 +18,9 @@ export interface MascotHeroProps {
 
 export const MascotHero: React.FC<MascotHeroProps> = ({ children }) => {
   const { user } = useAuth();
-  const { tastingLog } = useQuest();
+  const { streakCount } = useQuest();
 
   const displayName = user?.name ? user.name.split(' ')[0] : 'Bryl';
-  const streakCount = Math.max(3, tastingLog.length);
 
   // Time-of-day greeting (Good morning, Good afternoon, Good evening)
   const greetingTimeOfDay = useMemo(() => {
@@ -47,7 +46,7 @@ export const MascotHero: React.FC<MascotHeroProps> = ({ children }) => {
       <View style={styles.topBarRow}>
         {/* Left: Streak Circle Button with Counter Badge */}
         <Pressable
-          onPress={() => router.push('/basket')}
+          onPress={() => router.push('/streak')}
           style={({ pressed }) => [styles.streakCircleBtn, pressed && styles.pressed]}
           hitSlop={8}
           accessibilityRole="button"

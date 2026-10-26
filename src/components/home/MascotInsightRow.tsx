@@ -29,7 +29,7 @@ const WEEK_DAYS = [
 ];
 
 export const MascotInsightRow: React.FC = () => {
-  const { tastingLog } = useQuest();
+  const { tastingLog, streakCount } = useQuest();
   const [tipIndex, setTipIndex] = useState(0);
   const [spinAnim] = useState(() => new Animated.Value(0));
 
@@ -126,7 +126,7 @@ export const MascotInsightRow: React.FC = () => {
     outputRange: ['0deg', '360deg'],
   });
 
-  const loggedDaysCount = Math.min(7, Math.max(3, tastingLog.length));
+  const loggedDaysCount = streakCount;
 
   return (
     <View style={styles.container}>
@@ -171,10 +171,10 @@ export const MascotInsightRow: React.FC = () => {
 
       {/* Right Card: Daily Taste Pulse (Weekly Bar Chart) */}
       <Pressable
-        onPress={() => router.push('/basket')}
+        onPress={() => router.push('/streak')}
         style={({ pressed }) => [styles.pulseCard, pressed && styles.cardPressed]}
         accessibilityRole="button"
-        accessibilityLabel="Tasting pulse streak. View tasting passport"
+        accessibilityLabel="Tasting pulse streak. View tasting streak & trophies"
       >
         <View style={styles.pulseHeaderRow}>
           <Text style={styles.pulseTag}>DAILY PULSE</Text>

@@ -12,6 +12,8 @@ import {
   MysteryDrop,
   MYSTERY_DROPS,
   NAGA_DISTRICTS_DATA,
+  StreakTrophy,
+  STREAK_TROPHIES,
 } from '@/data/gamification';
 
 interface DistrictProgress {
@@ -38,6 +40,16 @@ interface QuestContextType {
   mysteryDrop: MysteryDrop | null;
   openMysteryBox: () => MysteryDrop;
   rerollMysteryBox: () => MysteryDrop;
+
+  // Streak & Habit State
+  streakCount: number;
+  streakFreezeCount: number;
+  todayCheckInDone: boolean;
+  reminderTime: '11:45 AM' | '3:45 PM' | '6:30 PM' | 'off';
+  trophies: StreakTrophy[];
+  checkInToday: () => { xpAwarded: number; newStreak: number };
+  setReminderTime: (time: '11:45 AM' | '3:45 PM' | '6:30 PM' | 'off') => void;
+  useSiliShield: () => boolean;
 
   // Actions
   addXp: (amount: number) => void;
@@ -93,6 +105,38 @@ export const QuestProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Mystery Box State
   const [isMysteryBoxOpenedToday, setIsMysteryBoxOpenedToday] = useState<boolean>(false);
   const [mysteryDrop, setMysteryDrop] = useState<MysteryDrop | null>(null);
+
+  // Streak & Habit State
+  const [streakCount, setStreakCount] = useState<number>(5);
+  const [streakFreezeCount, setStreakFreezeCount] = useState<number>(2);
+  const [todayCheckInDone, setTodayCheckInDone] = useState<boolean>(false);
+  const [reminderTime, setReminderTime] = useState<'11:45 AM' | '3:45 PM' | '6:30 PM' | 'off'>('3:45 PM');
+  const [trophies, setTrophies] = useState<StreakTrophy[]>(STREAK_TROPHIES);
+
+  const checkInToday = () => {
+    if (todayCheckInDone) {
+      return { xpAwarded: 0, newStreak: streakCount };
+    }
+    const xpReward = 30;
+    const newStreak = streakCount + 1;
+    setStreakCount(newStreak);
+    setTodayCheckInDone(true);
+    addXp(xpReward);
+
+    // Check if 7-day trophy unlocks
+    if (newStreak >= 7) {
+      setTrophies((prev) =>
+        prev.map((t) => (t.id === 'trophy-silver-7' ? { ...t, unlocked: true, unlockedDate: 'Today' } : t))
+      );
+    }
+    return { xpAwarded: xpReward, newStreak };
+  };
+
+  const useSiliShield = () => {
+    if (streakFreezeCount <= 0) return false;
+    setStreakFreezeCount((prev) => prev - 1);
+    return true;
+  };
 
   // Compute Rank based on XP
   const { currentRank, nextRank, rankProgressPercent } = useMemo(() => {
@@ -210,6 +254,12 @@ export const QuestProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTastingLog((prev) => [newEntry, ...prev]);
     addXp(60); // base tasting XP
 
+    // If streak not checked in today, logging a tasting counts as today's streak activity!
+    if (!todayCheckInDone) {
+      setTodayCheckInDone(true);
+      setStreakCount((s) => s + 1);
+    }
+
     let newlyAwarded: BadgeItem | undefined;
 
     // Check automatic badge unlock: e.g. sili-survivor
@@ -268,6 +318,14 @@ export const QuestProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         mysteryDrop,
         openMysteryBox,
         rerollMysteryBox,
+        streakCount,
+        streakFreezeCount,
+        todayCheckInDone,
+        reminderTime,
+        trophies,
+        checkInToday,
+        setReminderTime,
+        useSiliShield,
         addXp,
         logTasting,
         completeQuest,

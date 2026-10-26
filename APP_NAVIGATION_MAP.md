@@ -20,6 +20,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `/establishment/[id]` | [`frontend/src/app/establishment/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/establishment/%5Bid%5D.tsx) | Full-bleed with clamped `insets.top` & sticky bottom bar | **Store / Establishment Info Screen**: Full-bleed hero with SVG gradient scrim, floating frosted glass controls (back, live open/closed pill, bookmark), venue stats strip (Budget, Hours, Distance), atmosphere & vibe pills, rich menu cards with food photos, signature badges & one-tap order, photo gallery preview, contact & phone linking, and sticky bottom action bar (Call, Passes, Locate on Map). |
 | `/feed` | [`frontend/src/app/feed.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/feed.tsx) | `['top', 'left', 'right']` | **Naga Community Social Feed**: Street food trips, eatery dispatches, live Naga Moments stories ([`NagaMomentsBar.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/NagaMomentsBar.tsx)), filterable post cards ([`SocialFeedCard.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/SocialFeedCard.tsx)), post composer ([`CreatePostModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CreatePostModal.tsx)), comments sheet ([`CommentsBottomSheet.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CommentsBottomSheet.tsx)). |
 | `/basket` | [`frontend/src/app/basket.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/basket.tsx) | `['top', 'left', 'right']` | **Food Basket & Pre-Orders Hub**: Dual-tab hub for Cart & Checkout (steppers, store grouping, dining option selector, pickup schedule chips, special kitchen notes, bill breakdown, and Proceed to Payment CTA) and Active Passes (digital QR voucher pass, payment badges, 4-stage live kitchen status tracker, counter call/map actions, demo status simulation). |
+| `/streak` | [`frontend/src/app/streak.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/streak.tsx) | `['top', 'left', 'right']` | **Duolingo-Inspired Streak & Trophy Hub**: Hero flame counter with countdown timer, 7-day habit consistency calendar, Sili Shield (streak freeze) indicator, Level & XP progress HUD, 5-tier streak trophies showcase (Bronze, Silver, Gold, Diamond, Centennial), mealtime reminder nudges (Lunch, Merienda, Night Crawl), and 1-tap check-in action. |
 | `/payment` | [`frontend/src/app/payment.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/payment.tsx) | `['top', 'left', 'right', 'bottom']` | **Payment & Checkout**: Supports Cash on Arrival (pay at store counter), GCash E-Wallet with mobile number validation, and Maya / BSP QR Ph Universal National QR scan with receipt references; customer pass contact details; itemized summary. |
 | `/saved` | [`frontend/src/app/saved.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/saved.tsx) | `['top', 'left', 'right']` | **Saved Favorites (Preserved)**: Tabbed lists of bookmarked dishes and eateries with quick removal and clear-all actions; accessible via Profile screen Activity section. |
 | `/search` | [`frontend/src/app/search.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/search.tsx) | `['top', 'left', 'right']` | **Search Screen**: Live filter by dish, ingredient, district, or open status; category tags; empty state suggestions. |
@@ -94,6 +95,21 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 ## 5. AI Action & Modification Log
 
 *Every AI session must append its actions here:*
+
+### [2026-10-26] - Duolingo-Inspired Streak, Level & Trophy Hub (`/streak`) - Compact Redesign & Polish
+- **User Request**:
+  1. Fix the `5d active` banner on this week consistency overextending to the right.
+  2. The page tries to do too much and is way too long; streamline and focus on core habit value ("remember the rule don't add everything").
+- **Architectural & Design Upgrades Applied**:
+  1. **Fixed Active Banner Overextension**:
+     - Removed fixed `maxWidth: 240` from `sectionSubtitle` / title row.
+     - Added `flex: 1` and `marginRight: 8` to `calendarTitleCol` and `flexShrink: 0` to `calendarFlameBadge` so the active badge stays strictly bounded within the card padding on all phone viewports.
+  2. **Streamlined, Single-Viewport Layout**:
+     - **Unified Hero + Habit Calendar + 1-Tap CTA**: Merged the separate hero card, calendar card, and action card into ONE cohesive, compact Duolingo card. The check-in action sits directly under the 7-day bubbles.
+     - **Compact Level HUD**: Replaced bulky paragraphs with a single-row level badge, XP progress bar, and next rank milestone.
+     - **Horizontal Trophies Scroll Strip**: Transformed the tall 2-column grid into a horizontal swipe strip of 115px cards, cutting ~200px of vertical height.
+     - **Single-Row Reminder Chips**: Replaced 4 large vertical cards with a sleek, 1-row segmented chip strip (`☀️ Lunch`, `☕ Merienda`, `🌙 Dinner`, `🔕 Off`).
+     - **Removed Redundant Missions**: Purged duplicate quest cards to keep the screen distraction-free and habit-focused.
 
 ### [2026-10-26] - High-Utility Food Basket & Pre-Orders Hub + Bottom Nav Integration
 - **User Request**: "currently my saved favorites should i keep it or rpelace it w/ something more useful like basket? /plan"

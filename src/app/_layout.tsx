@@ -50,6 +50,7 @@ export default function RootLayout() {
                     <Stack.Screen name="food/[id]" />
                     <Stack.Screen name="establishment/[id]" />
                     <Stack.Screen name="trail/[id]" />
+                    <Stack.Screen name="streak" />
                   </Stack>
                 </SocialFeedProvider>
               </BusinessProvider>
