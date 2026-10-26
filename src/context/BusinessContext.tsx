@@ -8,7 +8,7 @@ export interface BusinessProduct {
   name: string;
   bikolName?: string;
   description: string;
-  category: FoodCategory;
+  category: FoodCategory | string;
   categoryLabel: string;
   price: number;
   isSignature: boolean;
@@ -112,8 +112,8 @@ const INITIAL_PRODUCTS: BusinessProduct[] = [
     bikolName: 'Kinalas na may Itlog',
     description:
       'Our house specialty: freshly made miki noodles in simmering bone broth, scraped tender head meat, thick brain gravy, hard-boiled egg, toasted garlic, and spring onions.',
-    category: 'heritage-soups',
-    categoryLabel: 'Heritage Soups & Noodles',
+    category: 'soups-noodles',
+    categoryLabel: 'Soups & Noodles',
     price: 85,
     isSignature: true,
     inStock: true,
@@ -129,8 +129,8 @@ const INITIAL_PRODUCTS: BusinessProduct[] = [
     name: 'Kinalas Regular',
     bikolName: 'Kinalas Regular',
     description: 'Classic hearty bowl of tender scraped beef meat, rich marrow broth, and savory brown gravy.',
-    category: 'heritage-soups',
-    categoryLabel: 'Heritage Soups & Noodles',
+    category: 'soups-noodles',
+    categoryLabel: 'Soups & Noodles',
     price: 70,
     isSignature: false,
     inStock: true,
@@ -147,8 +147,8 @@ const INITIAL_PRODUCTS: BusinessProduct[] = [
     bikolName: 'Sinanglay',
     description:
       'Whole fresh tilapia stuffed with aromatics, wrapped in taro leaves, and braised in kakang gata with labuyo chilies.',
-    category: 'gata-sili',
-    categoryLabel: 'Gata & Sili Classics',
+    category: 'main-dishes',
+    categoryLabel: 'Main Dishes (Ulam)',
     price: 150,
     isSignature: true,
     inStock: true,
@@ -164,8 +164,8 @@ const INITIAL_PRODUCTS: BusinessProduct[] = [
     name: 'Fresh Steamed Puto (Pair of 2)',
     bikolName: 'Puto Biko',
     description: 'Fluffy white rice cakes gently steamed to pair perfectly with your hot bowl of Kinalas broth.',
-    category: 'bakery-merienda',
-    categoryLabel: 'Local Bakeries & Merienda',
+    category: 'snacks-merienda',
+    categoryLabel: 'Snacks & Merienda',
     price: 25,
     isSignature: false,
     inStock: true,

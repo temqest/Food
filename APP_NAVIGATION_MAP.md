@@ -101,6 +101,33 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 
 *Every AI session must append its actions here:*
 
+### [2026-10-26] - Business Menu Photo Upload & Food-Centric Category Overhaul (`/business`)
+- **User Request**:
+  1. "in the add menu modal add an option to upload picture of the food"
+  2. "and remove the pre defined pictures for the food"
+  3. "and make the category about the food not about the type like heritage or something"
+  4. "apply the same fix to the edit modal"
+- **Architectural & Design Upgrades Applied**:
+  1. **Direct Photo Uploading & Camera Support**:
+     - Installed and integrated `expo-image-picker: ~58.0.10`.
+     - In [`AddProductModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/AddProductModal.tsx), completely purged the hardcoded `PHOTO_PRESETS` grid.
+     - Added native photo picking with `launchImageLibraryAsync` and camera capture with `launchCameraAsync` (including permission checks with clear user alerts).
+     - Built empty upload state with "Choose from Gallery" and "Take Photo" primary/secondary buttons.
+     - Built preview state showing the uploaded photo with "Change Photo", "Take Photo", and "Remove Photo" (trash action) controls.
+  2. **Food-Centric Category Model**:
+     - Replaced heritage/culture taxonomy in [`mockData.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/mockData.ts) (`MENU_FOOD_CATEGORIES`) with real food-based groupings:
+       - `soups-noodles`: "Soups & Noodles" (Kinalas, mami, sinabawan)
+       - `main-dishes`: "Main Dishes (Ulam)" (Bicol Express, laing, adobo)
+       - `rice-meals`: "Rice Meals & Silog" (Tapsilog, carinderia rice plates)
+       - `snacks-merienda`: "Snacks & Merienda" (Toasted siopao, kakanin, pancit)
+       - `sides-extras`: "Sides & Add-ons" (Chicharon, egg, extra broth)
+       - `desserts`: "Desserts & Sweets" (Pili delicacies, halo-halo)
+       - `beverages`: "Beverages & Drinks" (Sago't gulaman, calamansi juice)
+     - Updated category selection cards in [`AddProductModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/AddProductModal.tsx) with icons, clear labels, descriptions, and checkmark indicators.
+  3. **Unified Add & Edit Modal Workflow**:
+     - Both the Add Dish modal (`isAddProductOpen = true, editingProduct = null`) and the Edit Dish modal (`isAddProductOpen = true, editingProduct = product`) share `ProductForm` with `key={editingProduct?.id ?? 'new-product'}`.
+     - When editing, existing dish images and food categories populate smoothly with instant preview, change photo, or retake options.
+
 ### [2026-10-26] - Business Portal Fixes: Mobile Blank Modal Resolution & Signature Badge Alignment (`/business`)
 - **User Requests**:
   1. "in my kitchen order page can u make sample order where i can interact, update, and etc; remove simulated and rest demo order tabs; remove all tab"

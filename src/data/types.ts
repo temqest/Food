@@ -23,7 +23,7 @@ export interface FoodItem {
   tagline: string;
   description: string;
   culturalContext: string;
-  category: FoodCategory;
+  category: FoodCategory | string;
   categoryLabel: string;
   image: string;
   priceRange: string;

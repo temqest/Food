@@ -39,6 +39,58 @@ export const CATEGORIES: { id: FoodCategory; label: string; icon: string; descri
   },
 ];
 
+export interface MenuFoodCategory {
+  id: string;
+  label: string;
+  icon: string;
+  description: string;
+}
+
+export const MENU_FOOD_CATEGORIES: MenuFoodCategory[] = [
+  {
+    id: 'soups-noodles',
+    label: 'Soups & Noodles',
+    icon: 'restaurant-outline',
+    description: 'Kinalas, miki noodles, lomi, sinigang, and hot broths',
+  },
+  {
+    id: 'main-dishes',
+    label: 'Main Dishes (Ulam)',
+    icon: 'flame-outline',
+    description: 'Bicol express, sinanglay, laing, chicken, and viands',
+  },
+  {
+    id: 'rice-meals',
+    label: 'Rice Meals & Silog',
+    icon: 'nutrition-outline',
+    description: 'Silog combinations, garlic rice plates, and value sets',
+  },
+  {
+    id: 'snacks-merienda',
+    label: 'Snacks & Merienda',
+    icon: 'cafe-outline',
+    description: 'Toasted siopao, puto, pan de sal, and afternoon snacks',
+  },
+  {
+    id: 'sides-extras',
+    label: 'Sides & Add-ons',
+    icon: 'fast-food-outline',
+    description: 'Hard-boiled egg, extra gravy, chicharon, atchara, and extra rice',
+  },
+  {
+    id: 'desserts',
+    label: 'Desserts & Sweets',
+    icon: 'sparkles-outline',
+    description: 'Pili delicacies, halo-halo, and local sweets',
+  },
+  {
+    id: 'beverages',
+    label: 'Beverages & Drinks',
+    icon: 'wine-outline',
+    description: 'Pili shakes, native tablea, iced tea, and cold coolers',
+  },
+];
+
 export const FOOD_ITEMS: FoodItem[] = [
   {
     id: 'kinalas',
