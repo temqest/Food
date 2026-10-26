@@ -288,7 +288,7 @@ export const TrailProgressBar: React.FC<TrailProgressBarProps> = ({
                   {activeEstablishment.name}
                 </Text>
                 <Text style={styles.spotlightDishName} numberOfLines={1}>
-                  🍜 Order: <Text style={styles.dishBold}>{activeFoodName}</Text>
+                  Order: <Text style={styles.dishBold}>{activeFoodName}</Text>
                 </Text>
               </View>
 

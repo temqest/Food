@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Establishment, FoodItem } from '@/data/types';
-import { DISH_INSIDER_TIPS } from '@/data/gamification';
 import { TrailSide, getTrailAnchorX } from './TrailSteppingBridge';
 
 export type TrailStopStatus = 'completed' | 'active' | 'locked';
@@ -66,9 +65,6 @@ export const TrailStopStation: React.FC<TrailStopStationProps> = ({
   const displayDishName = foodItem?.name || signatureFood?.foodName || 'Heritage Specialty';
   const displayImage = foodItem?.image || establishment.heroImage;
   const dishPrice = signatureFood?.price || 85;
-
-  // Resolve authentic insider tip from Nagueño culinary lore
-  const insiderTip = foodItem ? DISH_INSIDER_TIPS[foodItem.id] : undefined;
 
   // Road docking coordinates relative to the card's inner frame
   // Card has 16px horizontal margins on each side
@@ -190,7 +186,7 @@ export const TrailStopStation: React.FC<TrailStopStationProps> = ({
           </View>
 
           {/* ========================================================== */}
-          {/* B. POSTCARD BODY: VENUE DETAILS & INSIDER HACK              */}
+          {/* B. POSTCARD BODY: VENUE DETAILS                            */}
           {/* ========================================================== */}
           <View style={styles.cardDetailsArea}>
             {/* Title & Neighborhood */}
@@ -233,16 +229,6 @@ export const TrailStopStation: React.FC<TrailStopStationProps> = ({
                 </Text>
               </View>
             </View>
-
-            {/* Insider Tip Snippet */}
-            {insiderTip && (
-              <View style={styles.insiderHackBox}>
-                <Text style={styles.insiderHackText} numberOfLines={2}>
-                  💡 <Text style={styles.hackHighlight}>Nagueño Secret:</Text>{' '}
-                  <Text style={styles.hackItalic}>&ldquo;{insiderTip.secretHack}&rdquo;</Text>
-                </Text>
-              </View>
-            )}
           </View>
         </Pressable>
 
@@ -274,18 +260,6 @@ export const TrailStopStation: React.FC<TrailStopStationProps> = ({
                 <Text style={styles.stampBtnText}>Log & Stamp</Text>
               </Pressable>
             )}
-          </View>
-        )}
-
-        {/* ========================================================== */}
-        {/* D. COMPLETED VERIFICATION BADGE                            */}
-        {/* ========================================================== */}
-        {isCompleted && (
-          <View style={styles.completedVerifyRow}>
-            <Ionicons name="checkmark-circle" size={13} color="#2E7D32" />
-            <Text style={styles.completedVerifyText}>
-              Taste verified in your Naga Tasting Log
-            </Text>
           </View>
         )}
       </View>
@@ -644,7 +618,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 0,
   },
   dishPill: {
     flexDirection: 'row',
@@ -690,29 +664,6 @@ const styles = StyleSheet.create({
   hoursDetails: {
     fontSize: 10.5,
     color: THEME.mutedText,
-  },
-
-  /* Insider Hack Box */
-  insiderHackBox: {
-    backgroundColor: 'rgba(255, 200, 87, 0.16)',
-    borderLeftWidth: 2.5,
-    borderLeftColor: THEME.yellowWarm,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 5,
-  },
-  insiderHackText: {
-    fontSize: 10.5,
-    lineHeight: 14.5,
-    color: '#4A4641',
-  },
-  hackHighlight: {
-    fontWeight: '700',
-    color: '#2D2B2A',
-  },
-  hackItalic: {
-    fontStyle: 'italic',
-    color: '#3A3631',
   },
 
   /* Action Buttons */
@@ -769,23 +720,5 @@ const styles = StyleSheet.create({
   btnPressed: {
     opacity: 0.88,
     transform: [{ scale: 0.985 }],
-  },
-
-  /* Verification Row */
-  completedVerifyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: '#E8F5E9',
-    borderTopWidth: 1,
-    borderColor: 'rgba(46, 125, 50, 0.15)',
-    paddingVertical: 6,
-  },
-  completedVerifyText: {
-    fontSize: 10.5,
-    fontWeight: '700',
-    color: '#2E7D32',
-    letterSpacing: 0.1,
   },
 });

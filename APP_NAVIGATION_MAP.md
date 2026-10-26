@@ -419,3 +419,26 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 - **Verification**:
   - `npx tsc --noEmit` verified with 0 errors.
 
+### [2026-10-26] - Trail Pages & Home Carousel Polish & Spot Count Sync
+- **User Requests**:
+  1. Fix home page food spots count mismatch (home showed 3/5 while inside trail showed 1/3; ensure inside and outside stay 100% in sync).
+  2. In trail page, remove the emoji beside the text `Order: ...` inside the next objective box.
+  3. Remove the Nagueño secret box inside the food boxes in that page.
+  4. Remove the "Taste verified in your Naga Tasting Log" box in the food boxes in that page.
+- **Architectural & UI Upgrades Applied**:
+  1. **Dynamic Spot Count Synchronization**:
+     - In [`NagaQuestCarousel.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/NagaQuestCarousel.tsx), integrated `useQuest().tastingLog`, `getTrailById()`, and `ESTABLISHMENTS` to compute `dynamicQuests` live.
+     - Resolved `completed` stops matching user's active tasting log against each trail's establishments, and `total` matching the real number of stops in the trail.
+     - Updated fallback `QUEST_DATA` defaults to `{ current: 1, total: 3 }` matching active Naga trail data.
+     - Inside and outside now always reflect the exact same live counts (e.g., 1/3).
+  2. **Removed Emoji beside `Order:`**:
+     - In [`TrailProgressBar.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailProgressBar.tsx), removed `🍜 ` prefix before `Order: <Text style={styles.dishBold}>{activeFoodName}</Text>`.
+  3. **Removed Nagueño Secret Box from Trail Food Cards**:
+     - In [`TrailStopStation.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailStopStation.tsx), removed `insiderHackBox` rendering, purged unused `DISH_INSIDER_TIPS` lore lookup, and cleaned up unused styles.
+  4. **Removed Taste Verified Box from Trail Food Cards**:
+     - In [`TrailStopStation.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailStopStation.tsx), removed `completedVerifyRow` ("Taste verified in your Naga Tasting Log") and its styles.
+     - Adjusted `dishAndHoursRow` `marginBottom: 0` for clean, balanced spacing inside card details.
+- **Verification**:
+  - Verified with `npx tsc --noEmit` (0 errors).
+
+

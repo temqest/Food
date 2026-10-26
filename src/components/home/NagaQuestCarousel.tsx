@@ -15,6 +15,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useQuest } from '@/context/QuestContext';
+import { getTrailById } from '@/data/gamification';
+import { ESTABLISHMENTS } from '@/data/mockData';
+import { Establishment } from '@/data/types';
 
 // ============================================================================
 // DYNAMIC BANNER IMAGE ASSETS
@@ -101,7 +105,7 @@ export const QUEST_DATA: QuestItemData[] = [
     title: 'The Kinalas Crawler Trail',
     category: 'Food Quest',
     badgeLabel: 'HOT NOODLES',
-    progress: { current: 3, total: 5 },
+    progress: { current: 1, total: 3 },
     image: banner1,
     status: 'in-progress',
     tagline: 'Savor rich bone broth & brain gravy along Barlin St.',
@@ -112,7 +116,7 @@ export const QUEST_DATA: QuestItemData[] = [
     title: 'Old Centro Heritage Trail',
     category: 'Heritage Quest',
     badgeLabel: '4 PM MERIENDA',
-    progress: { current: 2, total: 4 },
+    progress: { current: 1, total: 3 },
     image: banner2,
     status: 'in-progress',
     tagline: 'Golden toasted siopao & hot native tablea chocolate.',
@@ -123,7 +127,7 @@ export const QUEST_DATA: QuestItemData[] = [
     title: 'Spice & Gata Trail',
     category: 'Fiery Quest',
     badgeLabel: 'SILI LEVEL 4',
-    progress: { current: 1, total: 4 },
+    progress: { current: 1, total: 3 },
     image: banner3,
     status: 'not-started',
     tagline: 'River tilapia & tender pork in spiced kakang gata.',
@@ -474,15 +478,48 @@ export const NagaQuestCarousel: React.FC<NagaQuestCarouselProps> = ({
   quests = QUEST_DATA,
   onJoinQuest,
 }) => {
+  const { tastingLog } = useQuest();
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef<FlatList<VirtualQuestItem>>(null);
 
+  // Dynamically synchronize quest progress with user's live tasting log and actual trail establishment count
+  const dynamicQuests = useMemo(() => {
+    return quests.map((q) => {
+      const trail = getTrailById(q.id);
+      if (!trail) return q;
+
+      const trailEsts = trail.establishmentIds
+        .map((estId) => ESTABLISHMENTS.find((e) => e.id === estId))
+        .filter((e): e is Establishment => Boolean(e));
+
+      const total = trailEsts.length || trail.establishmentIds.length || 3;
+
+      const completed = trailEsts.filter((est) =>
+        tastingLog.some(
+          (entry) =>
+            entry.establishmentId === est.id ||
+            (entry.establishmentName &&
+              entry.establishmentName.toLowerCase().includes(est.name.toLowerCase().slice(0, 8)))
+        )
+      ).length;
+
+      const status: 'not-started' | 'in-progress' | 'completed' =
+        completed === 0 ? 'not-started' : completed >= total ? 'completed' : 'in-progress';
+
+      return {
+        ...q,
+        progress: { current: completed, total },
+        status,
+      };
+    });
+  }, [quests, tastingLog]);
+
   // Generate virtual repeating dataset for seamless infinite looping
   const virtualData = useMemo<VirtualQuestItem[]>(() => {
-    if (!quests || quests.length === 0) return [];
+    if (!dynamicQuests || dynamicQuests.length === 0) return [];
     const list: VirtualQuestItem[] = [];
     for (let r = 0; r < REPEAT_COUNT; r++) {
-      quests.forEach((q, idx) => {
+      dynamicQuests.forEach((q, idx) => {
         list.push({
           ...q,
           virtualKey: `${q.id}-rep-${r}-${idx}`,
@@ -491,13 +528,13 @@ export const NagaQuestCarousel: React.FC<NagaQuestCarouselProps> = ({
       });
     }
     return list;
-  }, [quests]);
+  }, [dynamicQuests]);
 
   // Center starting index
   const startIndex = useMemo(() => {
-    if (!quests || quests.length === 0) return 0;
-    return Math.floor(REPEAT_COUNT / 2) * quests.length;
-  }, [quests]);
+    if (!dynamicQuests || dynamicQuests.length === 0) return 0;
+    return Math.floor(REPEAT_COUNT / 2) * dynamicQuests.length;
+  }, [dynamicQuests]);
 
   // Animated scroll value initialized to middle repetition offset
   const [scrollX] = useState(() => new Animated.Value(startIndex * SNAP_INTERVAL));
@@ -525,30 +562,30 @@ export const NagaQuestCarousel: React.FC<NagaQuestCarouselProps> = ({
           useNativeDriver: true,
           listener: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const offsetX = event.nativeEvent.contentOffset.x;
-            if (quests.length > 0) {
+            if (dynamicQuests.length > 0) {
               const rawIndex = Math.round(offsetX / SNAP_INTERVAL);
-              const realIdx = ((rawIndex % quests.length) + quests.length) % quests.length;
+              const realIdx = ((rawIndex % dynamicQuests.length) + dynamicQuests.length) % dynamicQuests.length;
               setActiveIndex((prev) => (prev !== realIdx ? realIdx : prev));
               setVirtualIndex((prev) => (prev !== rawIndex ? rawIndex : prev));
             }
           },
         }
       ),
-    [scrollX, quests.length]
+    [scrollX, dynamicQuests.length]
   );
 
   // Silent infinite teleport on momentum scroll end when approaching far edges
   const handleMomentumScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
-      if (quests.length === 0) return;
+      if (dynamicQuests.length === 0) return;
 
       const rawIndex = Math.round(offsetX / SNAP_INTERVAL);
-      const realIdx = ((rawIndex % quests.length) + quests.length) % quests.length;
+      const realIdx = ((rawIndex % dynamicQuests.length) + dynamicQuests.length) % dynamicQuests.length;
       setVirtualIndex(rawIndex);
 
       // When within 3 cycles of boundary, silently jump back to center cycle
-      if (rawIndex < quests.length * 3 || rawIndex > virtualData.length - quests.length * 3) {
+      if (rawIndex < dynamicQuests.length * 3 || rawIndex > virtualData.length - dynamicQuests.length * 3) {
         const centerTarget = startIndex + realIdx;
         flatListRef.current?.scrollToOffset({
           offset: centerTarget * SNAP_INTERVAL,
@@ -558,18 +595,18 @@ export const NagaQuestCarousel: React.FC<NagaQuestCarouselProps> = ({
         setVirtualIndex(centerTarget);
       }
     },
-    [quests.length, virtualData.length, startIndex, scrollX]
+    [dynamicQuests.length, virtualData.length, startIndex, scrollX]
   );
 
   // Tapping pagination dots navigates forward/backward infinitely
   const scrollToIndex = useCallback(
     (targetRealIndex: number) => {
-      if (quests.length === 0) return;
-      const currentReal = ((virtualIndex % quests.length) + quests.length) % quests.length;
+      if (dynamicQuests.length === 0) return;
+      const currentReal = ((virtualIndex % dynamicQuests.length) + dynamicQuests.length) % dynamicQuests.length;
 
       let stepDiff = targetRealIndex - currentReal;
-      if (stepDiff > quests.length / 2) stepDiff -= quests.length;
-      if (stepDiff < -quests.length / 2) stepDiff += quests.length;
+      if (stepDiff > dynamicQuests.length / 2) stepDiff -= dynamicQuests.length;
+      if (stepDiff < -dynamicQuests.length / 2) stepDiff += dynamicQuests.length;
 
       const targetRaw = virtualIndex + stepDiff;
       flatListRef.current?.scrollToOffset({
@@ -579,7 +616,7 @@ export const NagaQuestCarousel: React.FC<NagaQuestCarouselProps> = ({
       setVirtualIndex(targetRaw);
       setActiveIndex(targetRealIndex);
     },
-    [quests.length, virtualIndex]
+    [dynamicQuests.length, virtualIndex]
   );
 
   const getItemLayout = useCallback(
@@ -639,7 +676,7 @@ export const NagaQuestCarousel: React.FC<NagaQuestCarouselProps> = ({
 
       {/* 3. Active Pagination Dot Indicators */}
       <View style={styles.paginationRow}>
-        {quests.map((_, index) => {
+        {dynamicQuests.map((_, index) => {
           const isActive = activeIndex === index;
           return (
             <Pressable
