@@ -433,7 +433,7 @@ export default function FoodDetailScreen() {
               style={{ marginRight: 8 }}
             />
             <Text style={styles.primaryStampButtonText}>
-              {isLogged ? 'Tasted (+60 XP Logged)' : 'Stamp Passport (+60 XP)'}
+              {isLogged ? 'Tasted' : 'Stamp Passport (+60 XP)'}
             </Text>
           </Pressable>
         </View>
@@ -876,9 +876,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     flexDirection: 'row',
+    alignItems: 'center',
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#EAEAEA',
+    padding: 10,
+    gap: 12,
     ...Platform.select({
       ios: {
         shadowColor: '#000000',
@@ -895,14 +898,13 @@ const styles = StyleSheet.create({
     }),
   },
   eateryImage: {
-    width: 100,
-    height: '100%',
-    minHeight: 96,
+    width: 86,
+    height: 86,
+    borderRadius: 12,
     backgroundColor: '#E5E5EA',
   },
   eateryContent: {
     flex: 1,
-    padding: 12,
     justifyContent: 'center',
   },
   eateryHeaderRow: {

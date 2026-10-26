@@ -152,13 +152,19 @@ export default function EstablishmentDetailScreen() {
             </View>
 
             {/* Store Title */}
-            <Text style={styles.storeTitle}>{establishment.name}</Text>
+            <Text
+              style={styles.storeTitle}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {establishment.name}
+            </Text>
 
             {/* Neighborhood, Distance & Open Status Row */}
             <View style={styles.storeMetaRow}>
               <View style={styles.locationMeta}>
                 <Ionicons name="location-sharp" size={14} color="#D42F13" style={{ marginRight: 4 }} />
-                <Text style={styles.storeNeighborhoodText}>
+                <Text style={styles.storeNeighborhoodText} numberOfLines={1} ellipsizeMode="tail">
                   {establishment.neighborhood} · {distanceStr}
                 </Text>
               </View>
@@ -216,13 +222,27 @@ export default function EstablishmentDetailScreen() {
             </View>
           </View>
 
+          {/* Section Divider 1 */}
+          <View style={styles.colorDividerRow}>
+            <View style={styles.colorDividerLine} />
+            <View style={styles.colorDividerAccent} />
+            <View style={styles.colorDividerLine} />
+          </View>
+
           {/* Section: Dishes Offered Here (Properly Sized Cards) */}
           <View style={styles.sectionContainer}>
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>Dishes Offered Here</Text>
-              <Text style={styles.sectionSubtitle}>
-                {establishment.foodsOffered.length} items
-              </Text>
+              <View style={styles.sectionTitleRow}>
+                <View style={styles.sectionIconBadge}>
+                  <Ionicons name="restaurant" size={13} color="#D42F13" />
+                </View>
+                <Text style={styles.sectionTitle}>Dishes Offered Here</Text>
+              </View>
+              <View style={styles.sectionCountBadge}>
+                <Text style={styles.sectionCountText}>
+                  {establishment.foodsOffered.length} items
+                </Text>
+              </View>
             </View>
 
             <View style={styles.menuList}>
@@ -272,7 +292,9 @@ export default function EstablishmentDetailScreen() {
 
                       {/* Price & Action Row */}
                       <View style={styles.dishFooterRow}>
-                        <Text style={styles.dishPrice}>₱{food.price}</Text>
+                        <View style={styles.dishPriceBadge}>
+                          <Text style={styles.dishPrice}>₱{food.price}</Text>
+                        </View>
 
                         <Pressable
                           onPress={(e) => {
@@ -307,41 +329,67 @@ export default function EstablishmentDetailScreen() {
 
           {/* Section: Photo Gallery (Store Atmosphere) */}
           {establishment.galleryImages && establishment.galleryImages.length > 1 && (
-            <View style={styles.sectionContainer}>
-              <View style={styles.sectionHeaderRow}>
-                <Text style={styles.sectionTitle}>Store Atmosphere</Text>
-                <Text style={styles.sectionSubtitle}>Photos from visitors</Text>
+            <>
+              {/* Section Divider 2 */}
+              <View style={styles.colorDividerRow}>
+                <View style={styles.colorDividerLine} />
+                <View style={styles.colorDividerAccent} />
+                <View style={styles.colorDividerLine} />
               </View>
 
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.galleryScroll}
-              >
-                {establishment.galleryImages.map((imgUri, idx) => (
-                  <View key={idx} style={styles.galleryCard}>
-                    <Image
-                      source={{ uri: imgUri }}
-                      style={styles.galleryPhoto}
-                      resizeMode="cover"
-                    />
+              <View style={styles.sectionContainer}>
+                <View style={styles.sectionHeaderRow}>
+                  <View style={styles.sectionTitleRow}>
+                    <View style={[styles.sectionIconBadge, { backgroundColor: '#F0EBF8' }]}>
+                      <Ionicons name="images" size={13} color="#7C3AED" />
+                    </View>
+                    <Text style={styles.sectionTitle}>Store Atmosphere</Text>
                   </View>
-                ))}
-              </ScrollView>
-            </View>
+                  <Text style={styles.sectionSubtitle}>Photos from visitors</Text>
+                </View>
+
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.galleryScroll}
+                >
+                  {establishment.galleryImages.map((imgUri, idx) => (
+                    <View key={idx} style={styles.galleryCard}>
+                      <Image
+                        source={{ uri: imgUri }}
+                        style={styles.galleryPhoto}
+                        resizeMode="cover"
+                      />
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            </>
           )}
+
+          {/* Section Divider 3 */}
+          <View style={styles.colorDividerRow}>
+            <View style={styles.colorDividerLine} />
+            <View style={styles.colorDividerAccent} />
+            <View style={styles.colorDividerLine} />
+          </View>
 
           {/* Section: Details & Contact Card */}
           <View style={styles.sectionContainer}>
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>Store Details</Text>
+              <View style={styles.sectionTitleRow}>
+                <View style={[styles.sectionIconBadge, { backgroundColor: '#FEF3E2' }]}>
+                  <Ionicons name="information-circle" size={14} color="#D97706" />
+                </View>
+                <Text style={styles.sectionTitle}>Store Details</Text>
+              </View>
               <Text style={styles.sectionSubtitle}>Location & Hours</Text>
             </View>
 
             <View style={styles.detailsCard}>
               {/* Address */}
               <View style={styles.detailRow}>
-                <View style={styles.detailIconBox}>
+                <View style={[styles.detailIconBox, { backgroundColor: '#FEECE8' }]}>
                   <Ionicons name="location" size={16} color="#D42F13" />
                 </View>
                 <View style={styles.detailInfo}>
@@ -352,8 +400,8 @@ export default function EstablishmentDetailScreen() {
 
               {/* Hours */}
               <View style={styles.detailRow}>
-                <View style={styles.detailIconBox}>
-                  <Ionicons name="time" size={16} color="#D42F13" />
+                <View style={[styles.detailIconBox, { backgroundColor: '#FEF3E2' }]}>
+                  <Ionicons name="time" size={16} color="#D97706" />
                 </View>
                 <View style={styles.detailInfo}>
                   <Text style={styles.detailLabel}>Operating Hours</Text>
@@ -374,8 +422,8 @@ export default function EstablishmentDetailScreen() {
                     pressed && styles.pressed,
                   ]}
                 >
-                  <View style={styles.detailIconBox}>
-                    <Ionicons name="call" size={16} color="#34C759" />
+                  <View style={[styles.detailIconBox, { backgroundColor: '#EBF8EE' }]}>
+                    <Ionicons name="call" size={16} color="#2E7D32" />
                   </View>
                   <View style={styles.detailInfo}>
                     <Text style={styles.detailLabel}>Contact Phone (Tap to Call)</Text>
@@ -387,11 +435,24 @@ export default function EstablishmentDetailScreen() {
             </View>
           </View>
 
-          {/* Section: About & Provenance */}
+          {/* Section Divider 4 */}
+          <View style={styles.colorDividerRow}>
+            <View style={styles.colorDividerLine} />
+            <View style={styles.colorDividerAccent} />
+            <View style={styles.colorDividerLine} />
+          </View>
+
+          {/* Section: About Store */}
           <View style={styles.sectionContainer}>
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>About {establishment.name}</Text>
-              <Text style={styles.sectionSubtitle}>Local Provenance</Text>
+              <View style={styles.sectionTitleRow}>
+                <View style={[styles.sectionIconBadge, { backgroundColor: '#FFF0ED' }]}>
+                  <Ionicons name="book" size={13} color="#D42F13" />
+                </View>
+                <Text style={styles.sectionTitle} numberOfLines={1} ellipsizeMode="tail">
+                  About {establishment.name}
+                </Text>
+              </View>
             </View>
 
             <View style={styles.aboutCard}>
@@ -463,7 +524,7 @@ const sansFamily = Platform.select({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F7F7FA',
+    backgroundColor: '#F8F6F3',
   },
   scrollView: {
     flex: 1,
@@ -530,7 +591,7 @@ const styles = StyleSheet.create({
 
   // Store Header Block & Logo
   storeHeaderBlock: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   logoWrapper: {
     position: 'relative',
@@ -570,30 +631,32 @@ const styles = StyleSheet.create({
   },
   storeTitle: {
     fontFamily: serifFamily,
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '800',
     color: '#1C1C1E',
-    letterSpacing: -0.5,
+    letterSpacing: -0.4,
     lineHeight: 28,
-    marginBottom: 8,
+    marginBottom: 6,
+    flexShrink: 1,
   },
   storeMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    flexWrap: 'wrap',
     gap: 8,
   },
   locationMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexShrink: 1,
+    flex: 1,
+    marginRight: 8,
   },
   storeNeighborhoodText: {
     fontFamily: sansFamily,
     fontSize: 13,
     color: '#636366',
     fontWeight: '600',
+    flexShrink: 1,
   },
   inlineStatusBadge: {
     flexDirection: 'row',
@@ -603,6 +666,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     gap: 5,
+    flexShrink: 0,
   },
   statusBadgeOpen: {
     backgroundColor: '#E8F5E9',
@@ -638,7 +702,7 @@ const styles = StyleSheet.create({
   venueStatsRow: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: 20,
+    marginBottom: 2,
   },
   venueStatCard: {
     flex: 1,
@@ -649,58 +713,110 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#EAEAEA',
+    borderColor: '#EAE4DE',
     ...Platform.select({
       ios: {
-        shadowColor: '#000000',
+        shadowColor: '#1C1C1E',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
+        shadowOpacity: 0.04,
         shadowRadius: 5,
       },
       android: {
-        elevation: 2,
+        elevation: 1,
       },
       web: {
-        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
       },
     }),
   },
   venueStatValue: {
     fontFamily: sansFamily,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#1C1C1E',
     marginBottom: 2,
   },
   venueStatLabel: {
     fontFamily: sansFamily,
     fontSize: 11,
-    fontWeight: '500',
-    color: '#8E8E93',
+    fontWeight: '600',
+    color: '#8A827B',
+  },
+
+  // Color Divider System
+  colorDividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 18,
+    paddingHorizontal: 2,
+  },
+  colorDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E6E0DA',
+  },
+  colorDividerAccent: {
+    width: 22,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: '#D42F13',
+    opacity: 0.3,
+    marginHorizontal: 10,
   },
 
   // Sections
   sectionContainer: {
-    marginBottom: 20,
+    marginBottom: 4,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 12,
     paddingHorizontal: 2,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 8,
+    gap: 8,
+  },
+  sectionIconBadge: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    backgroundColor: '#FFF0ED',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   sectionTitle: {
     fontFamily: sansFamily,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
     color: '#1C1C1E',
-    letterSpacing: -0.4,
+    letterSpacing: -0.3,
+    flex: 1,
+    flexShrink: 1,
   },
   sectionSubtitle: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#8E8E93',
+    color: '#8A827B',
+    flexShrink: 0,
+  },
+  sectionCountBadge: {
+    backgroundColor: '#F2ECE6',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    flexShrink: 0,
+  },
+  sectionCountText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#635D57',
   },
 
   // Dishes Offered List (Properly Sized & Bounded)
@@ -714,25 +830,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     borderWidth: 1,
-    borderColor: '#EAEAEA',
+    borderColor: '#EAE4DE',
     gap: 12,
     ...Platform.select({
       ios: {
-        shadowColor: '#000000',
+        shadowColor: '#1C1C1E',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
+        shadowOpacity: 0.04,
         shadowRadius: 5,
       },
       android: {
-        elevation: 2,
+        elevation: 1,
       },
       web: {
-        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
       },
     }),
   },
   cardPressed: {
-    backgroundColor: '#F9F9FB',
+    backgroundColor: '#F9F8F6',
     transform: [{ scale: 0.99 }],
   },
   dishThumbnailContainer: {
@@ -741,7 +857,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#F2ECE6',
   },
   dishThumbnail: {
     width: 84,
@@ -788,9 +904,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 6,
   },
+  dishPriceBadge: {
+    backgroundColor: '#FFF2EE',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 47, 19, 0.14)',
+  },
   dishPrice: {
     fontFamily: sansFamily,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
     color: '#D42F13',
   },
@@ -821,7 +945,9 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#E5E5EA',
+    backgroundColor: '#E5DFDA',
+    borderWidth: 1,
+    borderColor: '#EAE4DE',
   },
   galleryPhoto: {
     width: '100%',
@@ -833,7 +959,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#EAEAEA',
+    borderColor: '#EAE4DE',
     overflow: 'hidden',
   },
   detailRow: {
@@ -842,7 +968,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: '#F0EBE5',
   },
   detailRowLast: {
     borderBottomWidth: 0,
@@ -851,7 +977,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -862,7 +987,7 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#8E8E93',
+    color: '#8A827B',
   },
   detailValue: {
     fontSize: 13,
@@ -873,7 +998,7 @@ const styles = StyleSheet.create({
   detailValuePhone: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#34C759',
+    color: '#2E7D32',
     marginTop: 1,
   },
 
@@ -883,7 +1008,21 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#EAEAEA',
+    borderColor: '#EAE4DE',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#1C1C1E',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 1,
+      },
+      web: {
+        boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+      },
+    }),
   },
   aboutText: {
     fontFamily: sansFamily,

@@ -218,6 +218,30 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
   4. **Removed Spice Overlay Pill**: Removed the `🌱 Mild` / `🌶️ Moderate` / `🔥 Fiery` pill overlay on the food media.
   5. **Anti-Shift Layout Stabilization**: Configured strict `flexShrink: 1`, `minWidth: 0`, and `numberOfLines={1}` with `ellipsizeMode="tail"` on author names, establishment locations, and dish tags. Added web `wordBreak: 'break-word'` to captions and `alignSelf: 'flex-start'` on overlays to prevent text jumps across card boxes.
 
+### [2026-10-26] - Store Info Page Architecture & Color Divider Hierarchy
+- **User Requests**:
+  1. Fix food picture and dishes offered parts over-extending all the way down (improper sizing).
+  2. Provide dedicated place for store banner and store logo.
+  3. Remove restaurant tags (casual dining, etc.).
+  4. Fix app rendering and spacing if store name is long (adjust or limit so it doesn't trigger improper spacing).
+  5. Add proper color divider not just 1 color white to introduce hierarchy and spacing.
+- **Fixes Applied**:
+  1. **Dual-Image Store Identity**: Added 250px cover banner (`bannerWrapper`) and overlapping squircle store logo (`storeLogo`: 80×80px, `marginTop: -42`) with verified checkmark badge.
+  2. **Bounded Dish Thumbnail Sizing**: Removed unbounded percentage heights. Set fixed `84x84px` thumbnail bounds (`dishThumbnailContainer`) with `alignItems: 'center'` on card rows. Also bounded `eateryImage` in [`food/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/food/%5Bid%5D.tsx) (86×86px).
+  3. **Atmosphere Tags Cleanup**: Stripped out administrative category tags, keeping store header clean with neighborhood, distance, and live open status badge.
+  4. **Long Store Name Layout Safeguards**:
+     - Configured `numberOfLines={2}`, `ellipsizeMode="tail"`, `flexShrink: 1`, and balanced line height (28px on 22px serif font) on `storeTitle` in [`establishment/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/establishment/%5Bid%5D.tsx).
+     - In section header rows (e.g. `About {establishment.name}`), wrapped the title in `flex: 1` with `numberOfLines={1}` and `flexShrink: 0` on `sectionSubtitle` to prevent pushing subtitles off-screen.
+     - Added `numberOfLines={1}` and `ellipsizeMode="tail"` to `cardName` in [`EstablishmentCard.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/establishment/EstablishmentCard.tsx).
+  5. **Warm Color Divider & Hierarchy System**:
+     - Replaced stark white background with warm linen `#F8F6F3`.
+     - Inserted `colorDividerRow` between major sections (`#E6E0DA` warm stone lines with 22×3px `#D42F13` terracotta accent).
+     - Styled dish price tags with `#FFF2EE` terracotta pill badges (`#D42F13`).
+     - Added color-coded functional icon boxes in Store Details (Location: `#FEECE8`, Hours: `#FEF3E2`, Phone: `#EBF8EE`).
+     - Formatted About section: removed `Provenance` subtitle, removed sparkles and `AUTHENTIC LOCAL INSTITUTION` pill, and formatted About box in clean white (`#FFFFFF`) with subtle warm border (`#EAE4DE`).
+  6. **Food Info Page Action Button Polish**:
+     - In [`food/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/food/%5Bid%5D.tsx), simplified logged CTA state from `Tasted (+60 XP Logged)` to `Tasted`.
+
 ### [2026-10-26] - Safe Area Inset & Battery Overlap Fix
 - **Issue**: User reported content overlapping the top of their phone (battery percentage, clock, and camera notch).
 - **Root Cause**:

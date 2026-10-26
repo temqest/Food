@@ -168,4 +168,23 @@ When adding new trails or editing this screen:
 ### 10.3 Avoid Atmospheric Tag Clutter
 - Avoid cluttering store profiles with generic administrative category pills (such as "Casual Dining", "Heritage Institution", "Air-Conditioned", etc.). Keep the header focused on brand, live open status, neighborhood, distance, and authentic dishes.
 
+---
+
+## 11. Color Divider System & Long Store Title Layout Safeguards
+
+### 11.1 Color Dividers & Visual Hierarchy (Breaking Monotonous All-White Cards)
+- Avoid rendering an entire screen as identical white boxes (`#FFFFFF` on `#F7F7FA`). Introduce clear visual pacing and hierarchy:
+  - **Warm Color Dividers**: Insert dedicated divider bars (`colorDividerRow`: `#E6E0DA` warm stone lines with a 22×3px `#D42F13` terracotta accent badge) between major chapters of the page (Hero/Stats, Menu, Atmosphere, Store Details, Provenance).
+  - **Distinct Card Color Tiers**:
+    - **Menu Items**: Clean white cards with bordered `#FFF2EE` terracotta price pills (`#D42F13`), creating immediate price hierarchy.
+    - **Store Details**: Color-coded functional icon boxes (Location: `#FEECE8` terracotta, Hours: `#FEF3E2` amber, Phone: `#EBF8EE` green).
+    - **About / Provenance**: Warm ivory parchment background (`#FDFBF7` with `#EFE3D8` border) and an `AUTHENTIC LOCAL INSTITUTION` badge to separate history/culture from operational details.
+
+### 11.2 Long Store Title & Subtitle Alignment Safeguards
+- Merchant and restaurant names can be verbose (e.g., *"Aling Cely's Authentic Kinalas & Sinigang House"*).
+- **Hero Title**: Always declare `numberOfLines={2}`, `ellipsizeMode="tail"`, and `flexShrink: 1` with a proportional line-height (e.g., `fontSize: 22`, `lineHeight: 28`) to prevent awkward font squashing or uncontrolled vertical layout shifts.
+- **Header Rows with Subtitles**: When pairing a dynamic store name with a section subtitle (e.g., `About {establishment.name}` alongside `Provenance`), enclose the title in a container with `flex: 1`, declare `numberOfLines={1}`, and add `flexShrink: 0` to the subtitle so the title never pushes the subtitle off screen or causes irregular row wrapping.
+- **Card Previews**: Set `numberOfLines={1}` and `ellipsizeMode="tail"` on all establishment names inside preview cards (`EstablishmentCard.tsx`) to guarantee consistent card heights.
+
+
 

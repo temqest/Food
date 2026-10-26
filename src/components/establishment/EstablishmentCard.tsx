@@ -135,8 +135,10 @@ export const EstablishmentCard: React.FC<EstablishmentCardProps> = ({
       </View>
 
       <View style={styles.cardContent}>
-        <Text style={styles.cardName}>{establishment.name}</Text>
-        <Text style={styles.cardMeta}>
+        <Text style={styles.cardName} numberOfLines={1} ellipsizeMode="tail">
+          {establishment.name}
+        </Text>
+        <Text style={styles.cardMeta} numberOfLines={1} ellipsizeMode="tail">
           {establishment.neighborhood} · {distanceFormatted}
           {dishName ? ` · ${dishName}` : ''}
         </Text>
