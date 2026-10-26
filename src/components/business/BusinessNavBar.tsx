@@ -115,9 +115,10 @@ export const BusinessNavBar: React.FC<BusinessNavBarProps> = ({
                   name={isFocused ? item.activeIcon : item.inactiveIcon}
                   size={22}
                   color={isFocused ? '#FFFFFF' : '#8E8E93'}
+                  style={item.tab === 'orders' ? styles.ordersIcon : undefined}
                 />
                 {item.badgeCount && item.badgeCount > 0 ? (
-                  <View style={styles.badge}>
+                  <View style={[styles.badge, isFocused && styles.badgeFocused]}>
                     <Text style={styles.badgeText}>{item.badgeCount}</Text>
                   </View>
                 ) : null}
@@ -181,6 +182,7 @@ const styles = StyleSheet.create({
   },
   iconContainerFocused: {
     backgroundColor: '#1C1C1E',
+    borderRadius: 21,
   },
   centerButton: {
     width: 56,
@@ -212,10 +214,13 @@ const styles = StyleSheet.create({
   tabPressed: {
     opacity: 0.7,
   },
+  ordersIcon: {
+    transform: [{ translateY: -1.5 }, { translateX: -0.5 }],
+  },
   badge: {
     position: 'absolute',
-    top: 2,
-    right: 2,
+    top: -2,
+    right: -2,
     backgroundColor: IOSTokens.colors.tint,
     minWidth: 16,
     height: 16,
@@ -225,6 +230,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     borderWidth: 1.5,
     borderColor: '#FFFFFF',
+  },
+  badgeFocused: {
+    borderColor: '#1C1C1E',
   },
   badgeText: {
     fontSize: 10,

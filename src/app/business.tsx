@@ -47,7 +47,7 @@ export default function BusinessDashboardScreen() {
 
   // Mobile Bottom Navigation Tab: orders | menu | promote | store
   const [activeTab, setActiveTab] = useState<BusinessTab>('orders');
-  const [orderFilter, setOrderFilter] = useState<'all' | 'received' | 'preparing' | 'ready'>('all');
+  const [orderFilter, setOrderFilter] = useState<'received' | 'preparing' | 'ready' | 'completed'>('received');
 
   // Modals state
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -67,14 +67,12 @@ export default function BusinessDashboardScreen() {
     (o) => o.establishmentId === profile.id || o.establishmentName.includes(profile.name.split(' ')[0])
   );
 
-  const displayedOrders = storeOrders.filter((order) => {
-    if (orderFilter === 'all') return true;
-    return order.status === orderFilter;
-  });
+  const displayedOrders = storeOrders.filter((order) => order.status === orderFilter);
 
   const newOrdersCount = storeOrders.filter((o) => o.status === 'received').length;
   const inKitchenCount = storeOrders.filter((o) => o.status === 'preparing').length;
   const readyCount = storeOrders.filter((o) => o.status === 'ready').length;
+  const completedCount = storeOrders.filter((o) => o.status === 'completed').length;
 
   const handleEditProductPress = (prod: BusinessProduct) => {
     setEditingProduct(prod);
@@ -200,10 +198,10 @@ export default function BusinessDashboardScreen() {
             {/* Filter Segmented Control */}
             <View style={styles.filterSegmentContainer}>
               {[
-                { id: 'all' as const, label: `All (${storeOrders.length})` },
                 { id: 'received' as const, label: `New (${newOrdersCount})` },
                 { id: 'preparing' as const, label: `Kitchen (${inKitchenCount})` },
                 { id: 'ready' as const, label: `Ready (${readyCount})` },
+                { id: 'completed' as const, label: `Done (${completedCount})` },
               ].map((f) => {
                 const isActive = orderFilter === f.id;
                 return (
@@ -515,6 +513,7 @@ export default function BusinessDashboardScreen() {
       <BusinessNavBar
         currentTab={activeTab}
         onSelectTab={setActiveTab}
+        onCenterPress={() => setIsAddProductOpen(true)}
         ordersBadgeCount={newOrdersCount}
       />
 

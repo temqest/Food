@@ -480,4 +480,25 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 - **Verification**:
   - Verified with `npx tsc --noEmit` (0 errors).
 
+### [2026-10-26] - Kitchen Orders Sample Order Flow & Business NavBar Icon Alignment
+- **User Requests**:
+  1. In kitchen order page, create interactive sample orders with full merchant controls (update status, interact, etc.).
+  2. Remove simulated and reset demo order buttons, keeping sample orders present by default.
+  3. Remove the `All` tab filter from kitchen orders, keeping 4 clean stages (`New`, `Kitchen`, `Ready`, `Done`).
+  4. Fix alignment of the black circular indicator with the receipt icon in the business bottom navbar.
+- **Architectural & UI Upgrades Applied**:
+  1. **Interactive Sample Kitchen Orders**:
+     - Populated [`BasketContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/BasketContext.tsx) `INITIAL_PRE_ORDERS` with 4 realistic Cha Cha's Kinalas merchant tickets (`#NG-9104` in `received`, `#NG-9088` in `preparing`, `#NG-9071` in `ready`, `#NG-9055` in `completed`) with customer contacts, dining modes (`dine_in`, `takeout`), and payment statuses.
+     - Upgraded [`BusinessOrderCard.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/BusinessOrderCard.tsx) with interactive status flow buttons (`Start Preparing`, `Mark Ready for Pickup`, `Complete & Hand Over`, `Decline`, `Reopen`).
+  2. **Removed Simulation Controls & All Filter Tab**:
+     - Cleaned up [`business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx): removed simulation/reset bar, removed `All` filter tab, and defaulted active view to `received` (`New`).
+  3. **Business NavBar Orders Icon Alignment**:
+     - In [`BusinessNavBar.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/BusinessNavBar.tsx), optically centered the `receipt` font glyph within the 42x42 container via `transform: [{ translateY: -1.5 }, { translateX: -0.5 }]`.
+     - Shifted the order count badge to `top: -2, right: -2` with dynamic border coloring (`borderColor: isFocused ? '#1C1C1E' : '#FFFFFF'`), preventing the badge border from cutting into the black circular background and ensuring the black circle stays an unbroken, perfectly aligned circle.
+- **Verification**:
+  - `npx tsc --noEmit` verified with 0 errors.
+  - Visual rendering verified in Chrome DevTools viewport.
+
+
+
 

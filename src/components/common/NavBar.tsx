@@ -237,6 +237,7 @@ const styles = StyleSheet.create({
   },
   iconContainerFocused: {
     backgroundColor: '#1C1C1E',
+    borderRadius: 21,
   },
   centerButton: {
     width: 56,

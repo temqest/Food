@@ -56,6 +56,32 @@ export const BusinessOrderCard: React.FC<BusinessOrderCardProps> = ({
 
   const badge = getStatusBadge();
 
+  // Payment badge details
+  const getPaymentBadge = () => {
+    if (order.paymentStatus === 'paid') {
+      const label =
+        order.paymentMethod === 'gcash'
+          ? `GCash Paid ${order.paymentRefNumber ? `(${order.paymentRefNumber})` : ''}`
+          : order.paymentMethod === 'maya'
+          ? `Maya Paid ${order.paymentRefNumber ? `(${order.paymentRefNumber})` : ''}`
+          : 'Paid';
+      return {
+        label,
+        bg: '#E8F5E9',
+        color: '#2E7D32',
+        icon: 'checkmark-done-circle',
+      };
+    }
+    return {
+      label: `Pay at Counter (₱${order.total})`,
+      bg: '#FFF8E1',
+      color: '#B78103',
+      icon: 'cash-outline',
+    };
+  };
+
+  const payment = getPaymentBadge();
+
   return (
     <View style={styles.cardContainer}>
       {/* Top Header */}
@@ -73,13 +99,43 @@ export const BusinessOrderCard: React.FC<BusinessOrderCardProps> = ({
         </View>
       </View>
 
-      {/* Pickup Slot & Customer Info */}
+      {/* Customer Info & Dining Option Row */}
+      <View style={styles.metaRow}>
+        {order.customerName ? (
+          <View style={styles.customerPill}>
+            <Ionicons name="person-circle-outline" size={15} color="#111111" />
+            <Text style={styles.customerNameText}>{order.customerName}</Text>
+            {order.customerPhone ? (
+              <Text style={styles.customerPhoneText}>· {order.customerPhone}</Text>
+            ) : null}
+          </View>
+        ) : null}
+
+        <View style={styles.diningPill}>
+          <Ionicons
+            name={order.diningOption === 'dine_in' ? 'restaurant-outline' : 'bag-handle-outline'}
+            size={13}
+            color="#007AFF"
+          />
+          <Text style={styles.diningPillText}>
+            {order.diningOption === 'dine_in' ? 'Dine-In' : 'Takeout'}
+          </Text>
+        </View>
+      </View>
+
+      {/* Pickup Slot & Payment Status Row */}
       <View style={styles.pickupInfoRow}>
         <View style={styles.pickupPill}>
           <Ionicons name="time-outline" size={14} color="#111111" />
-          <Text style={styles.pickupPillText}>Pickup: {order.pickupTimeSlot}</Text>
+          <Text style={styles.pickupPillText}>{order.pickupTimeSlot}</Text>
         </View>
-        <Text style={styles.paymentMethodText}>Cash on Counter / GCash</Text>
+
+        <View style={[styles.paymentBadge, { backgroundColor: payment.bg }]}>
+          <Ionicons name={payment.icon as any} size={13} color={payment.color} />
+          <Text style={[styles.paymentBadgeText, { color: payment.color }]} numberOfLines={1}>
+            {payment.label}
+          </Text>
+        </View>
       </View>
 
       {/* Special Customer Instructions Note */}
@@ -140,39 +196,72 @@ export const BusinessOrderCard: React.FC<BusinessOrderCardProps> = ({
         )}
 
         {order.status === 'preparing' && (
-          <Pressable
-            onPress={() => onUpdateStatus(order.id, 'ready')}
-            style={({ pressed }) => [
-              styles.primaryActionBtn,
-              { backgroundColor: '#2E7D32' },
-              pressed && styles.primaryPressed,
-            ]}
-            hitSlop={6}
-          >
-            <Ionicons name="notifications" size={15} color="#FFFFFF" />
-            <Text style={styles.primaryActionText}>Mark Ready for Pickup</Text>
-          </Pressable>
+          <>
+            <Pressable
+              onPress={() => onUpdateStatus(order.id, 'received')}
+              style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
+              hitSlop={6}
+            >
+              <Ionicons name="arrow-undo-outline" size={14} color="#8E8E93" />
+              <Text style={styles.secondaryBtnText}>Back</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => onUpdateStatus(order.id, 'ready')}
+              style={({ pressed }) => [
+                styles.primaryActionBtn,
+                { backgroundColor: '#2E7D32' },
+                pressed && styles.primaryPressed,
+              ]}
+              hitSlop={6}
+            >
+              <Ionicons name="notifications" size={15} color="#FFFFFF" />
+              <Text style={styles.primaryActionText}>Mark Ready for Pickup</Text>
+            </Pressable>
+          </>
         )}
 
         {order.status === 'ready' && (
-          <Pressable
-            onPress={() => onUpdateStatus(order.id, 'completed')}
-            style={({ pressed }) => [
-              styles.primaryActionBtn,
-              { backgroundColor: '#1C1C1E' },
-              pressed && styles.primaryPressed,
-            ]}
-            hitSlop={6}
-          >
-            <Ionicons name="checkmark-done" size={16} color="#FFFFFF" />
-            <Text style={styles.primaryActionText}>Complete & Handed Over</Text>
-          </Pressable>
+          <>
+            <Pressable
+              onPress={() => onUpdateStatus(order.id, 'preparing')}
+              style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
+              hitSlop={6}
+            >
+              <Ionicons name="arrow-undo-outline" size={14} color="#8E8E93" />
+              <Text style={styles.secondaryBtnText}>Back</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => onUpdateStatus(order.id, 'completed')}
+              style={({ pressed }) => [
+                styles.primaryActionBtn,
+                { backgroundColor: '#1C1C1E' },
+                pressed && styles.primaryPressed,
+              ]}
+              hitSlop={6}
+            >
+              <Ionicons name="checkmark-done" size={16} color="#FFFFFF" />
+              <Text style={styles.primaryActionText}>Complete & Handed Over</Text>
+            </Pressable>
+          </>
         )}
 
         {order.status === 'completed' && (
-          <View style={styles.completedInfoRow}>
-            <Ionicons name="checkmark-circle" size={16} color="#34C759" />
-            <Text style={styles.completedInfoText}>Order settled & picked up</Text>
+          <View style={styles.completedWrapper}>
+            <View style={styles.completedInfoRow}>
+              <Ionicons name="checkmark-circle" size={16} color="#34C759" />
+              <Text style={styles.completedInfoText}>Order settled & handed over</Text>
+            </View>
+
+            <Pressable
+              onPress={() => onUpdateStatus(order.id, 'ready')}
+              style={({ pressed }) => [styles.reopenBtn, pressed && styles.pressed]}
+              hitSlop={6}
+            >
+              <Ionicons name="reload-outline" size={12} color="#8E8E93" />
+              <Text style={styles.reopenBtnText}>Reopen</Text>
+            </Pressable>
           </View>
         )}
       </View>
@@ -188,6 +277,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 0.5,
     borderColor: 'rgba(60, 60, 67, 0.15)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   headerRow: {
     flexDirection: 'row',
@@ -218,6 +312,42 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
+  },
+  customerPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  customerNameText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  customerPhoneText: {
+    fontSize: 12,
+    color: 'rgba(60, 60, 67, 0.6)',
+  },
+  diningPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0, 122, 255, 0.08)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  diningPillText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
   pickupInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -229,20 +359,28 @@ const styles = StyleSheet.create({
   pickupPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
     backgroundColor: '#F2F2F7',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 7,
   },
   pickupPillText: {
     fontSize: 12,
     fontWeight: '600',
     color: '#000000',
   },
-  paymentMethodText: {
-    fontSize: 12,
-    color: 'rgba(60, 60, 67, 0.6)',
+  paymentBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  paymentBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   noteCallout: {
     flexDirection: 'row',
@@ -340,6 +478,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#8E8E93',
   },
+  secondaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#F2F2F7',
+  },
+  secondaryBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#8E8E93',
+  },
   primaryActionBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -355,11 +507,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  completedInfoRow: {
+  completedWrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+  },
+  completedInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
     paddingVertical: 6,
   },
@@ -367,6 +523,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: '#34C759',
+  },
+  reopenBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#F2F2F7',
+  },
+  reopenBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8E8E93',
   },
   pressed: {
     opacity: 0.6,
