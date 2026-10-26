@@ -17,6 +17,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `/trail/[id]` | [`frontend/src/app/trail/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/trail/%5Bid%5D.tsx) | Full-bleed with clamped `insets.top` | **Expedition Food Trail**: Full-bleed hero ([`TrailHeroBanner.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailHeroBanner.tsx)), progress HUD ([`TrailProgressBar.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailProgressBar.tsx)), winding Bezier S-curve road ([`TrailSteppingBridge.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailSteppingBridge.tsx)), food stops ([`TrailStopStation.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailStopStation.tsx)), finish crest ([`TrailFinishCrest.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailFinishCrest.tsx)). |
 | `/map` | [`frontend/src/app/map.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/map.tsx) | `['top', 'left', 'right']` | **Interactive Map**: Mapbox GL integration ([`MapboxMapView.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/map/MapboxMapView.tsx)), eatery pins, active crawl route banner, floating navigation pill. |
 | `/food/[id]` | [`frontend/src/app/food/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/food/%5Bid%5D.tsx) | Full-bleed with clamped `insets.top` & sticky bottom bar | **Food Detail & Lore Screen**: Full-bleed hero with SVG gradient scrim, floating glass navigation & bookmark pills, Sili heat meter (1–5 flames), Flavor Anatomy taste chips, Nagueño Dining Ritual card with dialect quote, Lore & Cultural Roots card, rich eatery discovery cards with direct map navigation, and sticky bottom action bar (Stamp Passport +60 XP, Dine-In Pass, Map shortcut). |
+| `/establishment/[id]` | [`frontend/src/app/establishment/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/establishment/%5Bid%5D.tsx) | Full-bleed with clamped `insets.top` & sticky bottom bar | **Store / Establishment Info Screen**: Full-bleed hero with SVG gradient scrim, floating frosted glass controls (back, live open/closed pill, bookmark), venue stats strip (Budget, Hours, Distance), atmosphere & vibe pills, rich menu cards with food photos, signature badges & one-tap order, photo gallery preview, contact & phone linking, and sticky bottom action bar (Call, Passes, Locate on Map). |
 | `/feed` | [`frontend/src/app/feed.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/feed.tsx) | `['top', 'left', 'right']` | **Naga Community Social Feed**: Street food trips, eatery dispatches, live Naga Moments stories ([`NagaMomentsBar.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/NagaMomentsBar.tsx)), filterable post cards ([`SocialFeedCard.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/SocialFeedCard.tsx)), post composer ([`CreatePostModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CreatePostModal.tsx)), comments sheet ([`CommentsBottomSheet.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CommentsBottomSheet.tsx)). |
 | `/basket` | [`frontend/src/app/basket.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/basket.tsx) | `['top', 'left', 'right']` | **Passport & Journal (Preserved)**: Tasting stamps collection, level ranks, badge gallery, active pre-orders tab with pickup QR pass modal. |
 | `/saved` | [`frontend/src/app/saved.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/saved.tsx) | `['top', 'left', 'right']` | **Saved Favorites**: Tabbed lists of bookmarked dishes and eateries with quick removal and clear-all actions. |
@@ -39,15 +40,15 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
   - ✅ **DO**: `import { SafeAreaView } from 'react-native-safe-area-context';`
   - ❌ **NEVER**: `import { SafeAreaView } from 'react-native';`
 - **Edges Strategy**:
-  - **Tab Screens with Floating `NavBar`** (`/`, `/explore`, `/map`, `/saved`, `/basket`, `/profile`, `/search`, `/business`, `/food/[id]`, `/establishment/[id]`):
+  - **Tab Screens with Floating `NavBar`** (`/`, `/explore`, `/map`, `/saved`, `/basket`, `/profile`, `/search`, `/business`):
     - Use `<SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>`
     - Prevents double-padding at the bottom where the floating [`NavBar`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/common/NavBar.tsx) or sticky CTA already manages its elevation.
   - **Auth & Onboarding Screens** (`/welcome`, `/login`, `/signup`, `/onboarding`, `/forgot-password`):
     - Use `<SafeAreaView style={styles.screen} edges={['top', 'bottom', 'left', 'right']}>`
     - Keeps bottom action buttons comfortably above the home indicator / navigation bar.
-  - **Full-Bleed Hero Screens** (`/trail/[id]`):
+  - **Full-Bleed Hero Screens** (`/trail/[id]`, `/food/[id]`, `/establishment/[id]`):
     - Extends hero artwork all the way to $y=0$ behind the translucent status bar.
-    - Floating action rows (back buttons, category pills) must pad down dynamically using:
+    - Floating action rows (back buttons, category pills, glass controls) must pad down dynamically using:
       ```tsx
       const insets = useSafeAreaInsets();
       const topInset = Math.max(
@@ -92,6 +93,34 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 ## 5. AI Action & Modification Log
 
 *Every AI session must append its actions here:*
+
+### [2026-10-26] - Store Info Page Polish: Banner & Logo Slot, Bounded Dish Cards, Removed Tags
+- **User Request**:
+  1. the food picture and dishes offer here parts, are over extending like all the way down so improper sizing
+  2. food store should have a place for their banner and also their logo
+  3. remove the tagsd of the resturant like casual dining, and etc
+- **Fixes Applied**:
+  1. **Fixed Dish Card & Food Thumbnail Sizing**:
+     - Replaced unbounded flex stretch (`height: '100%'`) with explicit fixed dimensions (`dishThumbnailContainer`: `width: 84, height: 84, borderRadius: 12, overflow: 'hidden'`).
+     - Added `alignItems: 'center'` and `padding: 12` to `dishCard` so dish cards are strictly bounded (~108px total height) with proportional typography and zero downward over-extension.
+  2. **Dedicated Store Banner & Logo**:
+     - Added wide store cover banner (`bannerWrapper`: 250px height) at the top.
+     - Added prominent store logo badge (`storeLogo`: 80×80px with 3.5px white border, soft elevation, and `marginTop: -42` overlapping the banner) with a green verified checkmark.
+     - Added `logo?: string` to [`types.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/types.ts) and populated curated logos across all mock venues in [`mockData.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/mockData.ts).
+  3. **Removed Restaurant Tags**:
+     - Completely removed all venue atmosphere tags (`atmosphereTags`, `categoryPill`, casual dining, etc.).
+     - Replaced with clean title block, neighborhood distance, and an inline live Open/Closed pill badge.
+
+### [2026-10-26] - Store / Establishment Info Page Redesign (`/establishment/[id]`)
+- **User Request**: "apply the same learning and fix to the store info page too".
+- **Architectural & Aesthetic Upgrades Applied**:
+  1. **Full-Bleed Venue Hero Banner**: Edge-to-edge photography with SVG LinearGradient scrimming, floating frosted glass controls (`glassIconButton` for back and bookmark, `glassStatusBadge` for live open/closed status), and safe area clamped status bar inset.
+  2. **Venue Stats Strip**: Quick-glance metrics row showing price budget level (`₱ Budget`), operating hours (`Opens Daily`), and distance from Centro Naga.
+  3. **Atmosphere & Vibe Badges**: Displays curated tags (`establishment.atmosphereTags`) such as `Casual Dining`, `Bicolano Classics`, `Heritage Recipe`, and `Air-Conditioned`.
+  4. **Rich Menu Cards with Food Photos**: Paired dishes offered with corresponding high-resolution photography from `FOOD_ITEMS`, signature offering badges (`★ SIGNATURE`), serving notes, price tags, and interactive one-tap "Order / Added" basket buttons.
+  5. **Horizontal Photo Gallery Preview**: Horizontal scroll strip rendering venue and atmosphere preview photography (`establishment.galleryImages`).
+  6. **Store Details & Direct Calling**: Address with copy feedback, daily operating hours, and tap-to-call direct phone linking (`Linking.openURL('tel:...')`).
+  7. **Pinned Frosted Bottom Action Bar**: Floating thumb-reach bar with quick phone dialer, active pre-order passes counter, and primary "Locate on Naga Map" CTA routing to `/map?selectedPlaceId=...`.
 
 ### [2026-10-26] - Food Detail Page Redesign (`/food/[id]`)
 - **User Request**: Redesign the food info page to look better and modern instead of plain and boring, researching what makes a great food info page before redesigning.

@@ -152,4 +152,20 @@ When adding new trails or editing this screen:
 ## 9. Route Preservation Invariants
 - When modifying navigation bars or bottom tabs, decouple UI visibility from file-system routing. Never delete or move route files in `src/app/` solely to remove them from a tab bar; keep the route active for deep links and modal navigation.
 
+---
+
+## 10. Store / Establishment Info Page Architecture (`/establishment/[id]`)
+
+### 10.1 Dual-Image Hierarchy: Store Banner + Elevated Store Logo
+- A store page must clearly distinguish between the **Store Cover Banner** (a wide 240px–260px horizontal scenic shot of the venue) and the **Store Brand Logo** (an 80×80px squircle emblem with a 3.5px white border and soft shadow, overlapping the banner with `marginTop: -42`).
+- Never rely on a single full-bleed hero without an avatar/logo slot; users expect a distinct visual identity for the merchant brand alongside the cover photo.
+
+### 10.2 Bounded Dish Thumbnail Sizing (Never Unbounded Percentage Heights)
+- **The Pitfall**: Setting `height: '100%'` or `minHeight: ...` on an image container inside a flex row where the parent card height is variable.
+- **Why It Fails**: In React Native and React Native Web, child images with `height: '100%'` inside cross-axis stretching flex rows can blow up vertically and stretch down the entire length of the page ("over-extending all the way down").
+- **The Rule**: Always set explicit fixed dimensions on food thumbnails in menu rows (`dishThumbnailContainer`: `width: 84, height: 84, borderRadius: 12, overflow: 'hidden'`). Pair with `alignItems: 'center'` and `padding: 12` on the card wrapper to guarantee stable ~108px high rows.
+
+### 10.3 Avoid Atmospheric Tag Clutter
+- Avoid cluttering store profiles with generic administrative category pills (such as "Casual Dining", "Heritage Institution", "Air-Conditioned", etc.). Keep the header focused on brand, live open status, neighborhood, distance, and authentic dishes.
+
 

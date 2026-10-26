@@ -63,6 +63,7 @@ export interface Establishment {
   isOpenNow: boolean;
   contactNumber?: string;
   heroImage: string;
+  logo?: string;
   galleryImages: string[];
   foodsOffered: EstablishmentFoodOffering[];
   priceLevel: PriceLevel;

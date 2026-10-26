@@ -234,6 +234,7 @@ export const ESTABLISHMENTS: Establishment[] = [
     isOpenNow: true,
     contactNumber: '+63 917 555 8291',
     heroImage: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80',
+    logo: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=240&q=80',
     galleryImages: [
       'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80',
       'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
@@ -285,6 +286,7 @@ export const ESTABLISHMENTS: Establishment[] = [
     isOpenNow: true,
     contactNumber: '+63 920 882 1430',
     heroImage: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80',
+    logo: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=240&q=80',
     galleryImages: [
       'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80',
       'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
@@ -327,6 +329,7 @@ export const ESTABLISHMENTS: Establishment[] = [
     isOpenNow: true,
     contactNumber: '+63 54 473 8812',
     heroImage: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
+    logo: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=240&q=80',
     galleryImages: [
       'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
       'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=900&q=80',
@@ -370,6 +373,7 @@ export const ESTABLISHMENTS: Establishment[] = [
     isOpenNow: true,
     contactNumber: '+63 54 473 1339',
     heroImage: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=900&q=80',
+    logo: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=240&q=80',
     galleryImages: [
       'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=900&q=80',
       'https://images.unsplash.com/photo-1547496502-affa22d38842?auto=format&fit=crop&w=900&q=80',
@@ -420,6 +424,7 @@ export const ESTABLISHMENTS: Establishment[] = [
     isOpenNow: true,
     contactNumber: '+63 54 811 1888',
     heroImage: 'https://images.unsplash.com/photo-1536591375315-1b836814d60a?auto=format&fit=crop&w=900&q=80',
+    logo: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=240&q=80',
     galleryImages: [
       'https://images.unsplash.com/photo-1536591375315-1b836814d60a?auto=format&fit=crop&w=900&q=80',
       'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=900&q=80',
@@ -463,6 +468,7 @@ export const ESTABLISHMENTS: Establishment[] = [
     isOpenNow: true,
     contactNumber: '+63 54 473 3881',
     heroImage: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=900&q=80',
+    logo: 'https://images.unsplash.com/photo-1547496502-affa22d38842?auto=format&fit=crop&w=240&q=80',
     galleryImages: [
       'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=900&q=80',
       'https://images.unsplash.com/photo-1547496502-affa22d38842?auto=format&fit=crop&w=900&q=80',
@@ -510,6 +516,7 @@ export const ESTABLISHMENTS: Establishment[] = [
     openingHours: '5:30 AM – 6:00 PM',
     isOpenNow: true,
     heroImage: 'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=900&q=80',
+    logo: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=240&q=80',
     galleryImages: [
       'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=900&q=80',
       'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
@@ -553,6 +560,7 @@ export const ESTABLISHMENTS: Establishment[] = [
     isOpenNow: true,
     contactNumber: '+63 918 442 9012',
     heroImage: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=900&q=80',
+    logo: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=240&q=80',
     galleryImages: [
       'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=900&q=80',
       'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
