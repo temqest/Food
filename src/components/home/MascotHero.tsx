@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { useQuest } from '@/context/QuestContext';
+import { useNotifications } from '@/context/NotificationContext';
 import { NagaQuestCarousel } from './NagaQuestCarousel';
 
 export interface MascotHeroProps {
@@ -19,6 +20,7 @@ export interface MascotHeroProps {
 export const MascotHero: React.FC<MascotHeroProps> = ({ children }) => {
   const { user } = useAuth();
   const { streakCount } = useQuest();
+  const { unreadCount } = useNotifications();
 
   const displayName = user?.name ? user.name.split(' ')[0] : 'Bryl';
 
@@ -61,13 +63,18 @@ export const MascotHero: React.FC<MascotHeroProps> = ({ children }) => {
         {/* Right: Rounded Utils Navbar Pill (Bell, People/Map, Settings/Profile) */}
         <View style={styles.utilsNavbar}>
           <Pressable
-            onPress={() => router.push('/search')}
+            onPress={() => router.push('/notifications')}
             style={({ pressed }) => [styles.utilIconBtn, pressed && styles.pressed]}
             hitSlop={6}
             accessibilityRole="button"
-            accessibilityLabel="Notifications"
+            accessibilityLabel={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
           >
             <Ionicons name="notifications-outline" size={19} color="#1C1C1E" />
+            {unreadCount > 0 && (
+              <View style={styles.notifBadge}>
+                <Text style={styles.notifBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+              </View>
+            )}
           </Pressable>
 
           <Pressable
@@ -187,6 +194,27 @@ const styles = StyleSheet.create({
   utilIconBtn: {
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+  },
+  notifBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -7,
+    backgroundColor: '#D32F2F',
+    minWidth: 15,
+    height: 15,
+    borderRadius: 7.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+  },
+  notifBadgeText: {
+    fontSize: 8.5,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    lineHeight: 11,
   },
 
   /* Greeting Section */

@@ -21,21 +21,12 @@ import { useBasket, PreOrder, BasketItem } from '@/context/BasketContext';
 import { IOSTokens } from '@/constants/theme';
 import QRCode from 'react-native-qrcode-svg';
 
-const PICKUP_TIME_SLOTS = [
-  'ASAP (15–20 mins)',
-  'In 30 mins',
-  'In 45 mins',
-  'In 1 hour',
-];
-
 export default function BasketScreen() {
   const {
     items,
     activePreOrders,
     diningOption,
     setDiningOption,
-    pickupTimeSlot,
-    setPickupTimeSlot,
     specialInstructions,
     setSpecialInstructions,
     updateQuantity,
@@ -456,35 +447,6 @@ export default function BasketScreen() {
                         )}
                       </View>
                     </Pressable>
-                  </View>
-
-                  {/* Pickup Time Slots */}
-                  <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionLabel}>Estimated Pickup Time</Text>
-                  </View>
-                  <View style={styles.slotPillRow}>
-                    {PICKUP_TIME_SLOTS.map((slot) => {
-                      const isSelected = pickupTimeSlot === slot;
-                      return (
-                        <Pressable
-                          key={slot}
-                          onPress={() => setPickupTimeSlot(slot)}
-                          style={[
-                            styles.slotPill,
-                            isSelected && styles.slotPillActive,
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.slotPillText,
-                              isSelected && styles.slotPillTextActive,
-                            ]}
-                          >
-                            {slot}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
                   </View>
 
                   {/* Special Cooking Instructions Box */}
@@ -1504,34 +1466,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#C7C7CC',
     backgroundColor: 'transparent',
-  },
-
-  // Pickup Slots
-  slotPillRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  slotPill: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  slotPillActive: {
-    backgroundColor: '#1C1C1E',
-    borderColor: '#1C1C1E',
-  },
-  slotPillText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#666666',
-  },
-  slotPillTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
   },
 
   // Instruction Card

@@ -19,8 +19,9 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `/food/[id]` | [`frontend/src/app/food/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/food/%5Bid%5D.tsx) | Full-bleed with clamped `insets.top` & sticky bottom bar | **Food Detail & Lore Screen**: Full-bleed hero with SVG gradient scrim, floating glass navigation & bookmark pills, Sili heat meter (1–5 flames), Flavor Anatomy taste chips, Nagueño Dining Ritual card with dialect quote, Lore & Cultural Roots card, rich eatery discovery cards with direct map navigation, and sticky bottom action bar (Stamp Passport +60 XP, Dine-In Pass, Map shortcut). |
 | `/establishment/[id]` | [`frontend/src/app/establishment/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/establishment/%5Bid%5D.tsx) | Full-bleed with clamped `insets.top` & sticky bottom bar | **Store / Establishment Info Screen**: Full-bleed hero with SVG gradient scrim, floating frosted glass controls (back, live open/closed pill, bookmark), venue stats strip (Budget, Hours, Distance), atmosphere & vibe pills, rich menu cards with food photos, signature badges & one-tap order, photo gallery preview, contact & phone linking, and sticky bottom action bar (Call, Passes, Locate on Map). |
 | `/feed` | [`frontend/src/app/feed.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/feed.tsx) | `['top', 'left', 'right']` | **Naga Community Social Feed**: Street food trips, eatery dispatches, live Naga Moments stories ([`NagaMomentsBar.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/NagaMomentsBar.tsx)), filterable post cards ([`SocialFeedCard.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/SocialFeedCard.tsx)), post composer ([`CreatePostModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CreatePostModal.tsx)), comments sheet ([`CommentsBottomSheet.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CommentsBottomSheet.tsx)). |
-| `/basket` | [`frontend/src/app/basket.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/basket.tsx) | `['top', 'left', 'right']` | **Food Basket & Pre-Orders Hub**: Dual-tab hub for Cart & Checkout (steppers, store grouping, dining option selector, pickup schedule chips, special kitchen notes, bill breakdown, and Proceed to Payment CTA) and Active Passes (digital QR voucher pass, payment badges, 4-stage live kitchen status tracker, counter call/map actions, demo status simulation). |
+| `/basket` | [`frontend/src/app/basket.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/basket.tsx) | `['top', 'left', 'right']` | **Food Basket & Pre-Orders Hub**: Dual-tab hub for Cart & Checkout (steppers, store grouping, dining option selector, special kitchen notes, bill breakdown, and Proceed to Payment CTA) and Active Passes (digital QR voucher pass, payment badges, 4-stage live kitchen status tracker, counter call/map actions, demo status simulation). |
 | `/streak` | [`frontend/src/app/streak.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/streak.tsx) | `['top', 'left', 'right']` | **Duolingo-Inspired Streak & Trophy Hub**: Hero flame counter with countdown timer, 7-day habit consistency calendar, Sili Shield (streak freeze) indicator, Level & XP progress HUD, 5-tier streak trophies showcase (Bronze, Silver, Gold, Diamond, Centennial), mealtime reminder nudges (Lunch, Merienda, Night Crawl), and 1-tap check-in action. |
+| `/notifications` | [`frontend/src/app/notifications.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/notifications.tsx) | `['top', 'left', 'right']` | **Notifications Hub**: Central notification center for pre-order pickup alerts, daily taste pulse streak reminders, trophy unlock celebrations, community likes & comments, and local flavor drops. Interactive category filters (All, Orders, Streaks, Trophies, Social, Specials), unread badges, mark-all-as-read, item dismissal, and deep link navigation. |
 | `/payment` | [`frontend/src/app/payment.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/payment.tsx) | `['top', 'left', 'right', 'bottom']` | **Payment & Checkout**: Supports Cash on Arrival (pay at store counter), GCash E-Wallet with mobile number validation, and Maya / BSP QR Ph Universal National QR scan with receipt references; customer pass contact details; itemized summary. |
 | `/saved` | [`frontend/src/app/saved.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/saved.tsx) | `['top', 'left', 'right']` | **Saved Favorites (Preserved)**: Tabbed lists of bookmarked dishes and eateries with quick removal and clear-all actions; accessible via Profile screen Activity section. |
 | `/search` | [`frontend/src/app/search.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/search.tsx) | `['top', 'left', 'right']` | **Search Screen**: Live filter by dish, ingredient, district, or open status; category tags; empty state suggestions. |
@@ -70,6 +71,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `QuestContext` | [`frontend/src/context/QuestContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/QuestContext.tsx) | Tasting log, gamification XP, level calculation, passport stamp collection. |
 | `BasketContext` | [`frontend/src/context/BasketContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/BasketContext.tsx) | Pre-orders, quantity management, scheduled pickup time, active vouchers. |
 | `BusinessContext` | [`frontend/src/context/BusinessContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/BusinessContext.tsx) | Restaurant owner menu management, live order queue, open/closed toggle. |
+| `NotificationContext` | [`frontend/src/context/NotificationContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/NotificationContext.tsx) | In-app notification state, dynamic unread badge count, mark as read, delete, and clear-all actions. |
 | `SocialFeedContext` | [`frontend/src/context/SocialFeedContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/SocialFeedContext.tsx) | Community social feed state: posts, stories, likes, bookmarks, comments, filter category, post creation. |
 | `SocialFeedData` | [`frontend/src/data/socialFeedData.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/socialFeedData.ts) | Typed models (`SocialPost`, `PostAuthor`, `SocialComment`, `NagaMomentStory`) and rich initial Naga food crawl posts & moments. |
 | `DiceBear Avatars` | [`frontend/src/utils/dicebearAvatar.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/utils/dicebearAvatar.ts) | Generates `@dicebear/core` + `@dicebear/styles/adventurer-neutral.json` with `with { type: 'json' }` avatars with random/seeded background colors, inlining `<use>` references for native compatibility. |
@@ -95,6 +97,30 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 ## 5. AI Action & Modification Log
 
 *Every AI session must append its actions here:*
+
+### [2026-10-26] - Basket Checkout Streamlining (Removed Estimated Pickup Time)
+- **User Request**: "can u in the basket page remove the estimated pickup time part in that page"
+- **Architectural & Design Upgrades Applied**:
+  - Removed the `Estimated Pickup Time` header and slot pill chips (`PICKUP_TIME_SLOTS`) from [`basket.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/basket.tsx).
+  - Streamlined the checkout stack so the Dining Option selector (`Dine-In Pass` vs `Takeout Box`) transitions directly into Kitchen Instructions and Payment Summary.
+  - Purged unused styles (`slotPillRow`, `slotPill`, `slotPillActive`, `slotPillText`, `slotPillTextActive`) and destructuring.
+
+### [2026-10-26] - Dedicated Notifications Hub (`/notifications`) & Home Topbar Integration
+- **User Request**: "in home page create a notification page and connect it w/ the notif in my home page topbar" & "remove the sparkle icon usage and emoji"
+- **Architectural & Design Upgrades Applied**:
+  1. **Notification State Management**:
+     - Created [`NotificationContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/NotificationContext.tsx) to manage in-app notifications, unread counts, mark-as-read, delete, and clear-all actions.
+     - Seeded initial realistic Naga food app notifications across 5 categories (Orders, Streaks, Trophies, Social, Specials) with clean typography, no emojis, and professional icon mapping (`pricetag` for Specials).
+     - Wrapped `<NotificationProvider>` in [`_layout.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/_layout.tsx).
+  2. **Home Topbar Integration**:
+     - In [`MascotHero.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/MascotHero.tsx), re-routed the notification bell button from `/search` to `/notifications`.
+     - Added dynamic red unread counter badge (`unreadCount`) directly on the bell icon with `9+` overflow cap and accessible label.
+  3. **Dedicated Notifications Screen (`/notifications`)**:
+     - Built [`notifications.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/notifications.tsx) following safe area standards (`SafeAreaView` with `edges={['top', 'left', 'right']}`).
+     - Header includes back button, dynamic new notifications count badge, and 1-tap "Read All" checkmark action.
+     - Horizontal category filter bar (`All`, `Orders`, `Streaks`, `Trophies`, `Social`, `Specials`) with dynamic badge counts.
+     - Tactile notification cards with colored category icons, unread indicator dots, blue left-border accents, relative timestamps, and one-tap deep links (`/basket`, `/streak`, `/feed`, `/food/toasted-siopao`).
+     - Empty state with friendly illustration and shortcut to Explore Codex when all notifications are cleared.
 
 ### [2026-10-26] - Duolingo-Inspired Streak, Level & Trophy Hub (`/streak`) - Compact Redesign & Polish
 - **User Request**:
@@ -359,3 +385,16 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
   - Switched `emptyActionsRow` to centered natural wrapping (`flexDirection: 'row'`, `alignItems: 'center'`, `justifyContent: 'center'`, `gap: 10`, `flexWrap: 'wrap'`).
   - Styled both buttons with crisp, compact padding (`paddingVertical: 10, paddingHorizontal: 14`) and added `overflow: 'hidden'` to `emptyCard`.
   - Verified with `npx tsc --noEmit` (0 errors).
+
+### [2026-10-26] - Notifications Hub, Basket Cleanup & Community Feed Polish
+- **User Requests**:
+  1. Connected Home topbar notification bell to new notification page with dynamic unread badge count.
+  2. Created `/notifications` screen & [`NotificationContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/NotificationContext.tsx) with interactive category filters, mark-all-read, and item dismissal.
+  3. In `/basket`: Removed estimated pickup time section, headers, and time slots.
+  4. In `/notifications`: Removed all sparkle icons and emojis per user aesthetic preference.
+  5. In `/feed` (Naga Community):
+     - Removed the white container box and hairline border behind Naga Moments story avatar circles in [`NagaMomentsBar.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/NagaMomentsBar.tsx), allowing circles to float cleanly on page background.
+     - Removed `sparkles-outline` icon from the "All Stories" filter tab in [`FeedFilterStrip.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/FeedFilterStrip.tsx), replacing it with `layers-outline` (the exact icon used in `/notifications` for "All").
+- **Verification**:
+  - `npx tsc --noEmit` verified with 0 errors.
+

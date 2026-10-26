@@ -84,11 +84,8 @@ export const NagaMomentsBar: React.FC<NagaMomentsBarProps> = ({ onOpenCreateModa
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(60, 60, 67, 0.15)',
-    backgroundColor: '#FFFFFF',
-    marginBottom: 8,
+    paddingVertical: 4,
+    marginBottom: 4,
   },
   sectionTitleRow: {
     flexDirection: 'row',

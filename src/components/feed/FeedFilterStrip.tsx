@@ -7,7 +7,7 @@ export const FeedFilterStrip: React.FC = () => {
   const { activeFilter, setActiveFilter } = useSocialFeed();
 
   const filterTabs: { id: FeedFilterType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-    { id: 'all', label: 'All Stories', icon: 'sparkles-outline' },
+    { id: 'all', label: 'All Stories', icon: 'layers-outline' },
     { id: 'trips', label: 'Foodies & Trips', icon: 'map-outline' },
     { id: 'businesses', label: 'Verified Eateries', icon: 'restaurant-outline' },
     { id: 'trending', label: 'Trending', icon: 'flame-outline' },
