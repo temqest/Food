@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -24,6 +24,33 @@ export const SocialFeedCard: React.FC<SocialFeedCardProps> = ({ post, onOpenComm
   const { toggleLikePost, toggleBookmarkPost } = useSocialFeed();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
+
+  // Dynamic aspect ratio: clamp between 0.8 (4:5 portrait) and 1.91 (landscape)
+  const [aspectRatio, setAspectRatio] = useState<number>(() => {
+    if (post.aspectRatio) {
+      return Math.min(Math.max(post.aspectRatio, 0.8), 1.91);
+    }
+    return 4 / 3;
+  });
+
+  useEffect(() => {
+    if (post.aspectRatio) {
+      setAspectRatio(Math.min(Math.max(post.aspectRatio, 0.8), 1.91));
+      return;
+    }
+    if (post.image) {
+      Image.getSize(
+        post.image,
+        (w, h) => {
+          if (w > 0 && h > 0) {
+            const ratio = w / h;
+            setAspectRatio(Math.min(Math.max(ratio, 0.8), 1.91));
+          }
+        },
+        () => {}
+      );
+    }
+  }, [post.image, post.aspectRatio]);
 
   // Heart bounce animation
   const [scaleAnim] = useState(() => new Animated.Value(1));
@@ -123,7 +150,7 @@ export const SocialFeedCard: React.FC<SocialFeedCardProps> = ({ post, onOpenComm
       </View>
 
       {/* 2. Media Section (Double-Tap to Like) */}
-      <Pressable onPress={handleDoubleTap} style={styles.mediaContainer}>
+      <Pressable onPress={handleDoubleTap} style={[styles.mediaContainer, { aspectRatio }]}>
         <Image source={{ uri: post.image }} style={styles.foodImage} resizeMode="cover" />
 
         {/* Tappable Dish Tag Overlay (smart truncation) */}
@@ -397,9 +424,9 @@ const styles = StyleSheet.create({
   },
   mediaContainer: {
     width: '100%',
-    height: 300,
     position: 'relative',
     backgroundColor: '#F2F2F7',
+    overflow: 'hidden',
   },
   foodImage: {
     width: '100%',

@@ -34,6 +34,7 @@ interface SocialFeedContextType {
     spiceLevel?: 'mild' | 'moderate' | 'fiery';
     rating?: number;
     tags?: string[];
+    aspectRatio?: number;
   }) => void;
   activeStory: NagaMomentStory | null;
   openStory: (story: NagaMomentStory) => void;
@@ -119,6 +120,7 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     spiceLevel?: 'mild' | 'moderate' | 'fiery';
     rating?: number;
     tags?: string[];
+    aspectRatio?: number;
   }) => {
     const isBiz = newPostData.authorType === 'business';
 
@@ -146,6 +148,7 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       foodName: newPostData.foodName,
       foodPrice: newPostData.foodPrice || '₱80',
       image: newPostData.image,
+      aspectRatio: newPostData.aspectRatio,
       caption: newPostData.caption,
       insiderTip: newPostData.insiderTip,
       spiceLevel: newPostData.spiceLevel || 'moderate',

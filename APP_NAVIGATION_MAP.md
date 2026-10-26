@@ -609,3 +609,23 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
      - Primary "Share Post" button in the header and sticky bottom bar creates post with attached caption, image, food tag, eatery tag, foodie tags, and district metadata.
 - **Verification**:
   - `npx tsc --noEmit` verified with 0 errors.
+
+### [2026-10-26] - Full-Picture Image Picker & Dynamic Post Aspect Ratio (No Mandatory Cropping)
+- **User Question & Request**:
+  - "why is the picture picker add require cropping and not the full picture, and just dynamically adjust it on post if its horizontal / vertical to fit well on the app"
+- **Issues Identified**:
+  - `ImagePicker.launchImageLibraryAsync` and `launchCameraAsync` had `allowsEditing: true` and `aspect: [4, 3]`, which triggered the device's native cropping screen, forcing users to crop rectangular or vertical photos.
+  - `SocialFeedCard.tsx` had a hardcoded `height: 300` on `mediaContainer` with `resizeMode: "cover"`, which cropped horizontal or portrait photos into an arbitrary box.
+- **Architectural & UI Upgrades Applied**:
+  1. **Disabled Mandatory Cropping**:
+     - Removed `allowsEditing: true` and `aspect: [4, 3]` across both [`CreatePostModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CreatePostModal.tsx) and [`AddProductModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/AddProductModal.tsx).
+     - Image pickers now return the full, uncropped photo as captured by the user.
+  2. **Captured Natural Image Aspect Ratio**:
+     - Captured `width` and `height` from `result.assets[0]` and computed `aspectRatio` (`width / height`).
+     - Passed `aspectRatio` through `createPost` in [`SocialFeedContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/SocialFeedContext.tsx) and stored it on [`SocialPost`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/socialFeedData.ts).
+  3. **Dynamic Responsive Feed Card Aspect Ratio (`SocialFeedCard.tsx`)**:
+     - Replaced hardcoded `height: 300` on `mediaContainer` with dynamic `aspectRatio` clamped between `0.8` (4:5 portrait) and `1.91` (landscape).
+     - If `aspectRatio` is absent (legacy posts), dynamically measures the image dimensions using `Image.getSize`.
+     - Horizontal and vertical pictures now seamlessly display in full without cropping or distortion.
+- **Verification**:
+  - `npx tsc --noEmit` verified with 0 errors.

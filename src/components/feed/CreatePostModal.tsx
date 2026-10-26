@@ -42,6 +42,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
   const { user } = useAuth();
 
   const [selectedPhoto, setSelectedPhoto] = useState<string>('');
+  const [photoAspectRatio, setPhotoAspectRatio] = useState<number | undefined>(undefined);
   const [caption, setCaption] = useState('');
   const [taggedPlace, setTaggedPlace] = useState<string | null>(null);
   const [taggedFood, setTaggedFood] = useState<string | null>(null);
@@ -51,13 +52,16 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.85,
+        allowsEditing: false,
+        quality: 0.9,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setSelectedPhoto(result.assets[0].uri);
+        const asset = result.assets[0];
+        setSelectedPhoto(asset.uri);
+        if (asset.width && asset.height) {
+          setPhotoAspectRatio(asset.width / asset.height);
+        }
       }
     } catch (err) {
       console.warn('Error launching image library:', err);
@@ -80,13 +84,16 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
       }
 
       const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.85,
+        allowsEditing: false,
+        quality: 0.9,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setSelectedPhoto(result.assets[0].uri);
+        const asset = result.assets[0];
+        setSelectedPhoto(asset.uri);
+        if (asset.width && asset.height) {
+          setPhotoAspectRatio(asset.width / asset.height);
+        }
       }
     } catch (err) {
       console.warn('Error launching camera:', err);
@@ -99,6 +106,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
 
   const handleClose = () => {
     setSelectedPhoto('');
+    setPhotoAspectRatio(undefined);
     setCaption('');
     setTaggedPlace(null);
     setTaggedFood(null);
@@ -127,6 +135,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
       authorType: 'user',
       caption: caption.trim(),
       image: postImage,
+      aspectRatio: selectedPhoto ? photoAspectRatio : undefined,
       establishmentId: matchedEst?.id,
       establishmentName: taggedPlace || undefined,
       foodId: matchedFood?.id,
@@ -222,7 +231,16 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
             <View style={styles.photoSection}>
               {selectedPhoto ? (
                 <View style={styles.previewCard}>
-                  <Image source={{ uri: selectedPhoto }} style={styles.previewImage} resizeMode="cover" />
+                  <Image
+                    source={{ uri: selectedPhoto }}
+                    style={[
+                      styles.previewImage,
+                      photoAspectRatio
+                        ? { aspectRatio: Math.min(Math.max(photoAspectRatio, 0.8), 1.91) }
+                        : null,
+                    ]}
+                    resizeMode="cover"
+                  />
                   <View style={styles.previewActionsBar}>
                     <Pressable
                       onPress={pickImage}
@@ -239,7 +257,10 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
                       <Text style={styles.actionButtonText}>Take Photo</Text>
                     </Pressable>
                     <Pressable
-                      onPress={() => setSelectedPhoto('')}
+                      onPress={() => {
+                        setSelectedPhoto('');
+                        setPhotoAspectRatio(undefined);
+                      }}
                       style={({ pressed }) => [styles.removeButton, pressed && styles.pressed]}
                       accessibilityLabel="Remove photo"
                     >

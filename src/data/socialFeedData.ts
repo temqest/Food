@@ -42,6 +42,7 @@ export interface SocialPost {
   comments: SocialComment[];
   tripStopCount?: number;
   tags: string[];
+  aspectRatio?: number;
 }
 
 export interface NagaMomentStory {
