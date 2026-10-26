@@ -15,7 +15,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `/` or `/index` | [`frontend/src/app/index.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/index.tsx) | `['top', 'left', 'right']` | **Home Screen**: Mascot hero, streak button, Naga Quest infinite carousel ([`NagaQuestCarousel.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/NagaQuestCarousel.tsx)), Craving Dial ([`CravingDialWidget.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/CravingDialWidget.tsx)), Food showcase box, floating [`NavBar`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/common/NavBar.tsx). |
 | `/explore` | [`frontend/src/app/explore.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/explore.tsx) | `['top', 'left', 'right']` | **Flavor Codex**: Bicolano culinary encyclopedia, search bar ([`CodexHeroHeader.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/codex/CodexHeroHeader.tsx)), category filter strip, dish cards ([`DishCodexCard.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/codex/DishCodexCard.tsx)), deep lore sheet ([`DishDossierModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/codex/DishDossierModal.tsx)). |
 | `/trail/[id]` | [`frontend/src/app/trail/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/trail/%5Bid%5D.tsx) | Full-bleed with clamped `insets.top` | **Expedition Food Trail**: Full-bleed hero ([`TrailHeroBanner.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailHeroBanner.tsx)), progress HUD ([`TrailProgressBar.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailProgressBar.tsx)), winding Bezier S-curve road ([`TrailSteppingBridge.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailSteppingBridge.tsx)), food stops ([`TrailStopStation.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailStopStation.tsx)), finish crest ([`TrailFinishCrest.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailFinishCrest.tsx)). |
-| `/map` | [`frontend/src/app/map.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/map.tsx) | `['top', 'left', 'right']` | **Interactive Map**: Mapbox GL integration ([`MapboxMapView.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/map/MapboxMapView.tsx)), eatery pins, active crawl route banner, floating navigation pill. |
+| `/map` | [`frontend/src/app/map.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/map.tsx) | `['top', 'left', 'right']` | **Interactive Map**: Viewport-anchored Mapbox GL map ([`MapboxMapView.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/map/MapboxMapView.tsx)), bespoke vector SVG category pins (noodles, pot, bread, dining, gifts, stalls), floating location badge with live spot counter, quick `Open Now` toggle, horizontal category filter pills, interactive horizontal spot carousel ([`MapSpotCarousel.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/map/MapSpotCarousel.tsx)) with signature dishes, prices, menu routes, and directions. |
 | `/food/[id]` | [`frontend/src/app/food/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/food/%5Bid%5D.tsx) | Full-bleed with clamped `insets.top` & sticky bottom bar | **Food Detail & Lore Screen**: Full-bleed hero with SVG gradient scrim, floating glass navigation & bookmark pills, Sili heat meter (1–5 flames), Flavor Anatomy taste chips, Nagueño Dining Ritual card with dialect quote, Lore & Cultural Roots card, rich eatery discovery cards with direct map navigation, and sticky bottom action bar (Stamp Passport +60 XP, Dine-In Pass, Map shortcut). |
 | `/establishment/[id]` | [`frontend/src/app/establishment/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/establishment/%5Bid%5D.tsx) | Full-bleed with clamped `insets.top` & sticky bottom bar | **Store / Establishment Info Screen**: Full-bleed hero with SVG gradient scrim, floating frosted glass controls (back, live open/closed pill, bookmark), venue stats strip (Budget, Hours, Distance), atmosphere & vibe pills, rich menu cards with food photos, signature badges & one-tap order, photo gallery preview, contact & phone linking, and sticky bottom action bar (Call, Passes, Locate on Map). |
 | `/feed` | [`frontend/src/app/feed.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/feed.tsx) | `['top', 'left', 'right']` | **Naga Community Social Feed**: Street food trips, eatery dispatches, live Naga Moments stories ([`NagaMomentsBar.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/NagaMomentsBar.tsx)), filterable post cards ([`SocialFeedCard.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/SocialFeedCard.tsx)), post composer ([`CreatePostModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CreatePostModal.tsx)), comments sheet ([`CommentsBottomSheet.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CommentsBottomSheet.tsx)). |
@@ -92,7 +92,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `components/codex/` | `CodexHeroHeader`, `CodexFilterBar`, `DishCodexCard`, `DishDossierModal` | Clean culinary encyclopedia cards, category filters, and deep lore bottom sheet. |
 | `components/home/` | `MascotHero`, `NagaQuestCarousel`, `CravingDialWidget`, `FoodShowcaseBox` | Dynamic greetings, streak flame button, banner carousel, and interactive flavor dial. |
 | `components/common/` | `NavBar`, `SearchInput`, `RecommendationModal`, `UserAvatar` | Floating bottom navigation pill: Home (`/`), Map (`/map`), Search elevated center button (`/search`), Feed (`/feed`), Basket (`/basket` with dynamic badge count), search inputs, modal sheets, and universal native Android/iOS `SvgXml` avatar renderer. |
-| `components/map/` | `MapboxMapView` | Mapbox GL mobile/web interactive map with custom marker callouts. |
+| `components/map/` | `MapboxMapView`, `MapSpotCarousel`, `NagaMapCanvas` | Mapbox GL mobile/web interactive map with vector SVG category pins, glowing selection pulse, floating controls, and interactive horizontal food spot carousel. |
 | `components/gamification/` | `PassportStampModal`, `SilitoMysteryBox` | Tasting journal stamps, celebratory unboxing animations. |
 
 ---
@@ -100,6 +100,45 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 ## 5. AI Action & Modification Log
 
 *Every AI session must append its actions here:*
+
+### [2026-10-26] - Naga Interactive Map Overhaul: Vector SVG Pins, Expanded Filters & High-Utility Spot Carousel (`/map`)
+- **User Request**: "can u improve the map page, w/ its design and functionaltiy as right now the map has poor icons, choices, the bottom part its not that very usseful so redesign and improve the map page to have better ui/ux, design, functionality w/out overwhelming the page /learn /plan"
+- **Issues Identified**:
+  1. Map markers used low-resolution platform emojis (`🥟`, `🍜`, `🎁`, etc.) inside generic circular bubbles.
+  2. Category choices were limited to 3 types with emoji labels and lacked crucial categories (`carinderia`, `pasalubong-center`, `street-stall`) and an `Open Now` filter.
+  3. Bottom sheet was a static single-spot card that completely hid dishes, signature offerings, prices, and direct navigation actions.
+  4. Outer `ScrollView` wrapper caused severe gesture conflicts when users attempted to pan or zoom the map.
+- **Architectural & Design Upgrades Applied**:
+  1. **Bespoke Vector SVG Map Pins**:
+     - Upgraded [`MapboxMapView.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/map/MapboxMapView.tsx) to render crisp vector SVG icon paths customized by category:
+       - `kinalas-station`: Terracotta Crimson `#D42F13` with steaming noodle bowl SVG.
+       - `carinderia`: Forest Amber `#2E7D32` with cooking pot SVG.
+       - `bakery`: Golden Wheat `#D97706` with bakery bread SVG.
+       - `restaurant`: Warm Ember `#C05621` with dining fork & knife SVG.
+       - `pasalubong-center`: Royal Violet `#7C3AED` with gift ribbon SVG.
+       - `street-stall`: Coastal Teal `#0284C7` with market awning SVG.
+     - Elevated teardrop pointer pin with 2.5px white border, soft drop shadow, animated glowing pulse ring on selection, and clean label chips.
+  2. **High-Utility Horizontal Spot Carousel**:
+     - Built [`MapSpotCarousel.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/map/MapSpotCarousel.tsx) floating above the floating `NavBar`.
+     - Displays 76×76px food/venue thumbnail with live `Open` / `Closed` badge dot.
+     - Venue name, distance in km/m, and neighborhood.
+     - Prominent signature dish highlight pill with price (e.g., `🍜 Kinalas Special (with Egg) · ₱85`) with terracotta background `#FFF2EE`.
+     - Direct actions: Primary `View Menu & Order` routing to `/establishment/[id]`, 1-tap `Directions` launching native maps, and bookmark toggle synced with `SavedContext`.
+     - Bi-directional sync: Tapping a pin scrolls the carousel to the card; swiping the carousel flies the map camera to that venue.
+  3. **Expanded Filters & Gesture Harmony (`/map.tsx`)**:
+     - Converted `/map` into a viewport-anchored interactive layout, removing the outer `ScrollView` so map panning and zooming are 100% fluid.
+     - Floating frosted top bar with Naga City location badge, live spots count, and instant `🟢 Open Now` toggle.
+     - Horizontal category filter pills (`All Spots`, `Kinalas`, `Carinderia`, `Heritage Dining`, `Bakeries`, `Pasalubong`, `Street Stalls`).
+     - Empty state with 1-tap "Reset Filters" action when no places match active filters.
+  4. **Recenter Control Refinement & High Elevation**:
+     - Positioned the recenter FAB cleanly and comfortably above the restaurant cards at `bottom: Platform.OS === 'ios' ? 312 : 304` (~60px of clear breathing space above the card carousel).
+     - Streamlined the recenter button into a permanent, sleek 44×44 circular FAB (`Ionicons` `locate`, size 20) with 1-tap smooth camera reset to downtown Naga City (`flyTo` duration 500ms).
+     - Removed dynamic panned-away distance calculation, banner pills, and unneeded event churn to maximize UI simplicity and responsiveness.
+  5. **Map Performance & 60fps Optimization**:
+     - Memoized `SpotCard` in [`MapSpotCarousel.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/map/MapSpotCarousel.tsx) with `React.memo` and tuned `FlatList` windowing (`initialNumToRender={3}`, `maxToRenderPerBatch={3}`, `windowSize={5}`) to eliminate VirtualizedList lag warnings.
+     - Removed GPU-heavy `backdrop-filter: blur(8px)` on Mapbox marker DOM labels, switching to GPU-optimized solid translucent badges (`rgba(18, 18, 18, 0.94)`) with `will-change: transform; contain: layout style;`.
+     - Restored native 60fps inertial panning (`map.dragPan.enable()`) and stabilized message bridge callbacks with refs.
+
 
 ### [2026-10-26] - Foodie Friends & Weekly Taste League Hub (`/friends`) & Topbar Integration
 - **User Request**: "in my home page topbar, there is this icon of two people, right now it just direct to the map as a placeholder. what is a good page for me to add there?" -> Chose Option 1 (Foodie Friends & Leaderboard Hub) + executed /plan.

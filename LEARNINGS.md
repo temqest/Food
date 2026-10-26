@@ -186,5 +186,39 @@ When adding new trails or editing this screen:
 - **Header Rows with Subtitles**: When pairing a dynamic store name with a section subtitle (e.g., `About {establishment.name}` alongside `Provenance`), enclose the title in a container with `flex: 1`, declare `numberOfLines={1}`, and add `flexShrink: 0` to the subtitle so the title never pushes the subtitle off screen or causes irregular row wrapping.
 - **Card Previews**: Set `numberOfLines={1}` and `ellipsizeMode="tail"` on all establishment names inside preview cards (`EstablishmentCard.tsx`) to guarantee consistent card heights.
 
+---
 
+## 12. Interactive Mobile Maps & Food Spot Exploration UX
 
+### 12.1 Viewport-Anchored Map Canvas (Never Wrap Maps in Outer Vertical ScrollViews)
+- **The Pitfall**: Placing a map view inside a vertical `ScrollView` alongside top editorial titles and bottom preview sheets.
+- **Why It Fails**: Vertical drag gestures directly collide with map panning. Users attempting to swipe or pan the map end up scrolling the page down or up, producing an unresponsive, jittery experience.
+- **The Rule**: Maps must be anchored to the full viewport (`position: 'absolute'`, inset 0, or `flex: 1`). Controls (search, category filters) float at the top with translucent backing, while discovery carousels float at the bottom above the navigation bar.
+
+### 12.2 Bespoke Vector SVG Category Pins (Never Use Emojis as Map Markers)
+- **The Pitfall**: Using emoji characters (`🍜`, `🥟`, `🎁`) inside circular DOM div markers.
+- **Why It Fails**: Emojis render inconsistently across Android, iOS, and Web; they blur when scaled, lack color customization, and give the app a toy-like, low-effort appearance.
+- **The Rule**: Use inline vector SVG paths inside a dedicated teardrop pointer pin with a crisp white border, drop shadow, and color coding by food category:
+  - Noodle / Kinalas: Terracotta `#D42F13`
+  - Carinderia: Forest Green `#2E7D32`
+  - Bakeries: Golden Wheat `#D97706`
+  - Heritage Dining: Warm Ember `#C05621`
+  - Pasalubong: Royal Violet `#7C3AED`
+  - Street Food: Coastal Teal `#0284C7`
+- Selected pins must smoothly scale (`transform: scale(1.18) translateY(-8px)`) with a radiant pulse ring to provide immediate tactile feedback.
+
+### 12.3 High-Utility Spot Carousel with Bi-Directional Map Sync
+- **The Pitfall**: Displaying a static bottom card that only shows venue name and distance, hiding dishes and offerings.
+- **The Rule**:
+  1. Always surface the **signature dish & price** on the card (e.g. `🍜 Kinalas Special (with Egg) · ₱85`)—food is the core decision-making driver.
+  2. Implement **bi-directional synchronization**:
+     - Tapping a pin on the map smoothly scrolls the bottom carousel to that venue card (`scrollToIndex`).
+     - Swiping the carousel triggers `map.flyTo` to center the camera on the newly viewed venue.
+  3. Include 1-tap **Directions** (native Apple Maps/Google Maps deep link) and **View Menu** routing.
++
++### 12.4 Floating Recenter FAB Placement & Simplicity
++- **The Rule**: Place recenter action buttons with generous breathing room (~60px) above floating card carousels (`bottom: 304px` on Android/Web, `312px` on iOS). Keep the recenter trigger clean, persistent, and uncluttered (a 44×44 circular locate icon button) rather than cluttering the screen with conditional distance-tracking banners or labels.
++
++### 12.5 Map Performance & WebGL Compositing Optimization
++- **Never use `backdrop-filter: blur()` on dynamically positioned map marker DOM labels**: CSS blur over a continuous WebGL canvas triggers massive GPU readback and frame-drop during pan/zoom gestures. Use solid or high-opacity badges (`rgba(18, 18, 18, 0.94)`) with `will-change: transform; contain: layout style;` to preserve smooth 60fps panning.
++- **VirtualizedList Batching**: Always memoize horizontal carousel card components with `React.memo` and define `initialNumToRender={3}`, `maxToRenderPerBatch={3}`, and `windowSize={5}` to prevent `VirtualizedList` 500ms+ rendering update lag.

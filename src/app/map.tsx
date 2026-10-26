@@ -1,331 +1,264 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Pressable,
-  Image,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { NavBar } from '@/components/common/NavBar';
-import { MapboxMapView } from '@/components/map/MapboxMapView';
+import { MapboxMapView, MapboxMapViewRef } from '@/components/map/MapboxMapView';
+import { MapSpotCarousel } from '@/components/map/MapSpotCarousel';
 import { ESTABLISHMENTS } from '@/data/mockData';
 import { FOOD_TRAILS } from '@/data/gamification';
-import { useSaved } from '@/context/SavedContext';
-import { useQuest } from '@/context/QuestContext';
+import { Establishment, EstablishmentType } from '@/data/types';
+
+interface FilterOption {
+  id: string;
+  label: string;
+  iconName?: keyof typeof Ionicons.glyphMap;
+  type?: EstablishmentType | 'all';
+}
+
+const FILTER_OPTIONS: FilterOption[] = [
+  { id: 'all', label: 'All Spots', iconName: 'grid-outline' },
+  { id: 'kinalas-station', label: 'Kinalas', iconName: 'restaurant-outline', type: 'kinalas-station' },
+  { id: 'carinderia', label: 'Carinderia', iconName: 'flame-outline', type: 'carinderia' },
+  { id: 'restaurant', label: 'Heritage Dining', iconName: 'wine-outline', type: 'restaurant' },
+  { id: 'bakery', label: 'Bakeries', iconName: 'cafe-outline', type: 'bakery' },
+  { id: 'pasalubong-center', label: 'Pasalubong', iconName: 'gift-outline', type: 'pasalubong-center' },
+  { id: 'street-stall', label: 'Street Stalls', iconName: 'trail-sign-outline', type: 'street-stall' },
+];
 
 export default function MapScreen() {
+  const mapRef = useRef<MapboxMapViewRef>(null);
   const params = useLocalSearchParams<{ trailId?: string }>();
   const [selectedType, setSelectedType] = useState<string>('all');
+  const [openOnly, setOpenOnly] = useState<boolean>(false);
   const [selectedEstablishmentId, setSelectedEstablishmentId] = useState<string>(
     ESTABLISHMENTS[0].id
   );
-  const [isScrollEnabled, setIsScrollEnabled] = useState<boolean>(true);
-  const { isEstablishmentSaved, toggleSaveEstablishment } = useSaved();
-  const { logTasting } = useQuest();
-  const [checkedInIds, setCheckedInIds] = useState<string[]>([]);
 
   const activeTrail = FOOD_TRAILS.find((t) => t.id === params.trailId);
 
-  const filteredEstablishments = ESTABLISHMENTS.filter((est) => {
-    if (activeTrail) {
-      return activeTrail.establishmentIds.includes(est.id);
-    }
-    if (selectedType === 'all') return true;
-    return est.type === selectedType;
-  });
+  // Filter establishments by active trail, category, and open status
+  const filteredEstablishments = useMemo(() => {
+    return ESTABLISHMENTS.filter((est) => {
+      if (activeTrail) {
+        return activeTrail.establishmentIds.includes(est.id);
+      }
+      if (selectedType !== 'all' && est.type !== selectedType) {
+        return false;
+      }
+      if (openOnly && !est.isOpenNow) {
+        return false;
+      }
+      return true;
+    });
+  }, [activeTrail, selectedType, openOnly]);
 
   const selectedEstablishment =
     filteredEstablishments.find((e) => e.id === selectedEstablishmentId) ||
     filteredEstablishments[0] ||
     ESTABLISHMENTS[0];
 
-  const handleSelectType = (type: string) => {
-    setSelectedType(type);
-    const matches = ESTABLISHMENTS.filter((est) => type === 'all' || est.type === type);
+  const handleSelectType = (typeId: string) => {
+    setSelectedType(typeId);
+    const matches = ESTABLISHMENTS.filter((est) => {
+      if (typeId !== 'all' && est.type !== typeId) return false;
+      if (openOnly && !est.isOpenNow) return false;
+      return true;
+    });
     if (matches.length > 0 && !matches.some((m) => m.id === selectedEstablishmentId)) {
       setSelectedEstablishmentId(matches[0].id);
     }
   };
 
-  const isSaved = isEstablishmentSaved(selectedEstablishment.id);
-  const isCheckedIn = checkedInIds.includes(selectedEstablishment.id);
-
-  const handleCheckIn = () => {
-    if (isCheckedIn) return;
-    const primary = selectedEstablishment.foodsOffered[0];
-    logTasting({
-      foodId: primary ? primary.foodId : 'kinalas',
-      foodName: primary ? primary.foodName : selectedEstablishment.name,
-      establishmentId: selectedEstablishment.id,
-      establishmentName: selectedEstablishment.name,
-      rating: 5,
-      spiceRating: 3,
-      notes: `Logged while exploring ${selectedEstablishment.neighborhood} on the Naga Map!`,
+  const handleToggleOpenOnly = () => {
+    const nextVal = !openOnly;
+    setOpenOnly(nextVal);
+    const matches = ESTABLISHMENTS.filter((est) => {
+      if (selectedType !== 'all' && est.type !== selectedType) return false;
+      if (nextVal && !est.isOpenNow) return false;
+      return true;
     });
-    setCheckedInIds((prev) => [...prev, selectedEstablishment.id]);
+    if (matches.length > 0 && !matches.some((m) => m.id === selectedEstablishmentId)) {
+      setSelectedEstablishmentId(matches[0].id);
+    }
   };
 
-  const distanceStr =
-    selectedEstablishment.distanceKm < 1
-      ? `${Math.round(selectedEstablishment.distanceKm * 1000)} m`
-      : `${selectedEstablishment.distanceKm} km`;
+  const handleSelectEstablishment = useCallback((est: Establishment) => {
+    setSelectedEstablishmentId((prev) => (prev !== est.id ? est.id : prev));
+  }, []);
+
+  const handleRecenter = useCallback(() => {
+    mapRef.current?.recenter();
+  }, []);
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={isScrollEnabled}
-      >
-        <View style={styles.mainContainer}>
-          {/* Editorial Title */}
-          <View style={styles.titleSection}>
-            <Text style={styles.headingSans}>
-              Flavors on <Text style={styles.headingSerif}>the map</Text>
+      {/* Viewport-Anchored Map Canvas */}
+      <View style={styles.mapWrapper}>
+        <MapboxMapView
+          ref={mapRef}
+          establishments={filteredEstablishments}
+          selectedId={selectedEstablishment.id}
+          onSelectEstablishment={handleSelectEstablishment}
+          height="100%"
+        />
+      </View>
+
+      {/* Floating Top Overlays */}
+      <View style={styles.topOverlay} pointerEvents="box-none">
+        {/* Top Info & Action Bar */}
+        <View style={styles.topBar}>
+          <View style={styles.locationBadge}>
+            <Ionicons name="location-sharp" size={13} color="#D42F13" />
+            <Text style={styles.locationTitle}>Naga City</Text>
+            <View style={styles.dotSeparator} />
+            <Text style={styles.spotCountText}>
+              {filteredEstablishments.length} {filteredEstablishments.length === 1 ? 'spot' : 'spots'}
             </Text>
-            <Text style={styles.subheadText}>
-              Locate authentic heritage eateries, carinderias, and walking crawl trails in Naga.
+          </View>
+
+          {/* Quick Open Now Toggle */}
+          <Pressable
+            onPress={handleToggleOpenOnly}
+            style={({ pressed }) => [
+              styles.openNowBtn,
+              openOnly && styles.openNowBtnActive,
+              pressed && styles.pressed,
+            ]}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel="Filter by currently open spots"
+          >
+            <View style={[styles.statusDot, openOnly && styles.statusDotActive]} />
+            <Text style={[styles.openNowText, openOnly && styles.openNowTextActive]}>
+              Open Now
             </Text>
-          </View>
-
-          {/* Active Food Trail Banner (If selected) */}
-          {activeTrail && (
-            <View style={styles.activeTrailBanner}>
-              <View style={styles.activeTrailTop}>
-                <View style={styles.activeTrailBadge}>
-                  <Ionicons name="footsteps" size={11} color="#FFFFFF" />
-                  <Text style={styles.activeTrailBadgeText}>ACTIVE CRAWL ROUTE</Text>
-                </View>
-                <Pressable
-                  onPress={() => router.setParams({ trailId: undefined })}
-                  hitSlop={8}
-                  style={styles.exitTrailBtn}
-                >
-                  <Text style={styles.exitTrailBtnText}>Exit Trail ×</Text>
-                </Pressable>
-              </View>
-              <Text style={styles.activeTrailTitle}>{activeTrail.title}</Text>
-              <Text style={styles.activeTrailTagline}>{activeTrail.tagline}</Text>
-              <View style={styles.activeTrailFooter}>
-                <Text style={styles.activeTrailStats}>
-                  {activeTrail.estimatedMinutes} mins · {activeTrail.difficulty} · +{activeTrail.xpBonus} XP
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {/* Quick Filter Pills (Hidden if active trail) */}
-          {!activeTrail && (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.filterScroll}
-            >
-              <Pressable
-                onPress={() => handleSelectType('all')}
-                style={({ pressed }) => [
-                  styles.filterPill,
-                  selectedType === 'all' && styles.filterPillActive,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.filterText,
-                    selectedType === 'all' && styles.filterTextActive,
-                  ]}
-                >
-                  All Places
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => handleSelectType('kinalas-station')}
-                style={({ pressed }) => [
-                  styles.filterPill,
-                  selectedType === 'kinalas-station' && styles.filterPillActive,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.filterText,
-                    selectedType === 'kinalas-station' && styles.filterTextActive,
-                  ]}
-                >
-                  🍜 Kinalas Stations
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => handleSelectType('bakery')}
-                style={({ pressed }) => [
-                  styles.filterPill,
-                  selectedType === 'bakery' && styles.filterPillActive,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.filterText,
-                    selectedType === 'bakery' && styles.filterTextActive,
-                  ]}
-                >
-                  🥟 Bakeries
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => handleSelectType('restaurant')}
-                style={({ pressed }) => [
-                  styles.filterPill,
-                  selectedType === 'restaurant' && styles.filterPillActive,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.filterText,
-                    selectedType === 'restaurant' && styles.filterTextActive,
-                  ]}
-                >
-                  🥥 Heritage Dining
-                </Text>
-              </Pressable>
-            </ScrollView>
-          )}
-
-          {/* Interactive Map Canvas */}
-          <View style={styles.mapCard}>
-            <MapboxMapView
-              establishments={filteredEstablishments}
-              selectedId={selectedEstablishment.id}
-              onSelectEstablishment={(est) => setSelectedEstablishmentId(est.id)}
-              height={360}
-              onInteractionStart={() => setIsScrollEnabled(false)}
-              onInteractionEnd={() => setIsScrollEnabled(true)}
-            />
-          </View>
-
-          {/* Selected Place Preview Sheet */}
-          <View style={styles.previewSheet}>
-            <View style={styles.grabber} />
-
-            <View style={styles.sheetTopRow}>
-              <View style={styles.sheetInfoLeft}>
-                <Text style={styles.sheetName}>{selectedEstablishment.name}</Text>
-                <Text style={styles.sheetSubhead}>
-                  {selectedEstablishment.typeLabel} · {distanceStr}
-                </Text>
-              </View>
-
-              <Pressable
-                onPress={() => toggleSaveEstablishment(selectedEstablishment.id)}
-                style={({ pressed }) => [styles.bookmarkBtn, pressed && styles.pressed]}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel="Save spot"
-              >
-                <Ionicons
-                  name={isSaved ? 'bookmark' : 'bookmark-outline'}
-                  size={22}
-                  color={isSaved ? '#D42F13' : '#8E8E93'}
-                />
-              </Pressable>
-            </View>
-
-            <View style={styles.sheetBody}>
-              <Image
-                source={{ uri: selectedEstablishment.heroImage }}
-                style={styles.sheetThumb}
-                resizeMode="cover"
-              />
-
-              <View style={styles.sheetBodyText}>
-                <Text style={styles.sheetAddress} numberOfLines={1}>
-                  {selectedEstablishment.address}
-                </Text>
-                <Text
-                  style={[
-                    styles.sheetStatus,
-                    selectedEstablishment.isOpenNow ? styles.statusOpen : styles.statusClosed,
-                  ]}
-                >
-                  {selectedEstablishment.isOpenNow ? 'Open Now' : 'Closed'} · {selectedEstablishment.openingHours}
-                </Text>
-              </View>
-            </View>
-
-            {/* Dual Actions: Check-in Tasting & View Full Details */}
-            <View style={styles.sheetButtonsRow}>
-              <Pressable
-                onPress={handleCheckIn}
-                style={({ pressed }) => [
-                  styles.checkInBtn,
-                  isCheckedIn && styles.checkInBtnActive,
-                  pressed && styles.pressed,
-                ]}
-                hitSlop={6}
-                accessibilityRole="button"
-                accessibilityLabel="Check in tasting at this spot"
-              >
-                <Ionicons
-                  name={isCheckedIn ? 'checkmark-circle' : 'flame'}
-                  size={15}
-                  color={isCheckedIn ? '#34C759' : '#D42F13'}
-                />
-                <Text
-                  style={[
-                    styles.checkInBtnText,
-                    isCheckedIn && styles.checkInBtnTextActive,
-                  ]}
-                >
-                  {isCheckedIn ? 'Checked In' : 'Taste (+60 XP)'}
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => {
-                  router.push({
-                    pathname: '/establishment/[id]',
-                    params: { id: selectedEstablishment.id },
-                  });
-                }}
-                style={({ pressed }) => [styles.detailsButton, pressed && styles.primaryPressed]}
-                accessibilityRole="button"
-                accessibilityLabel={`View details for ${selectedEstablishment.name}`}
-              >
-                <Text style={styles.detailsButtonText}>View Spot</Text>
-                <Ionicons
-                  name="arrow-forward"
-                  size={14}
-                  color="#FFFFFF"
-                  style={{ marginLeft: 4 }}
-                />
-              </Pressable>
-            </View>
-          </View>
+          </Pressable>
         </View>
-      </ScrollView>
+
+        {/* Active Trail Banner (If exploring a curated crawl) */}
+        {activeTrail && (
+          <View style={styles.activeTrailBanner}>
+            <View style={styles.activeTrailTop}>
+              <View style={styles.activeTrailBadge}>
+                <Ionicons name="footsteps" size={11} color="#FFFFFF" />
+                <Text style={styles.activeTrailBadgeText}>ACTIVE CRAWL ROUTE</Text>
+              </View>
+              <Pressable
+                onPress={() => router.setParams({ trailId: undefined })}
+                hitSlop={8}
+                style={styles.exitTrailBtn}
+              >
+                <Text style={styles.exitTrailBtnText}>Exit Trail ×</Text>
+              </Pressable>
+            </View>
+            <Text style={styles.activeTrailTitle}>{activeTrail.title}</Text>
+            <Text style={styles.activeTrailTagline}>{activeTrail.tagline}</Text>
+            <View style={styles.activeTrailFooter}>
+              <Text style={styles.activeTrailStats}>
+                {activeTrail.estimatedMinutes} mins · {activeTrail.difficulty} · +{activeTrail.xpBonus} XP
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Horizontal Category Filter Pills */}
+        {!activeTrail && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScroll}
+          >
+            {FILTER_OPTIONS.map((opt) => {
+              const isActive = selectedType === opt.id;
+              return (
+                <Pressable
+                  key={opt.id}
+                  onPress={() => handleSelectType(opt.id)}
+                  style={({ pressed }) => [
+                    styles.filterPill,
+                    isActive && styles.filterPillActive,
+                    pressed && styles.pressed,
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Filter by ${opt.label}`}
+                >
+                  {opt.iconName && (
+                    <Ionicons
+                      name={opt.iconName}
+                      size={13}
+                      color={isActive ? '#FFFFFF' : '#3A3A3C'}
+                      style={{ marginRight: 5 }}
+                    />
+                  )}
+                  <Text style={[styles.filterText, isActive && styles.filterTextActive]}>
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        )}
+
+      </View>
+
+      {/* Floating Recenter Button (Elevated comfortably above the restaurant cards) */}
+      <View style={styles.floatingRecenterContainer} pointerEvents="box-none">
+        <Pressable
+          onPress={handleRecenter}
+          style={({ pressed }) => [
+            styles.floatingRecenterBtn,
+            pressed && styles.pressed,
+          ]}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Recenter map to original Naga City center"
+        >
+          <Ionicons name="locate" size={20} color="#111111" />
+        </Pressable>
+      </View>
+
+      {/* Floating Bottom Spot Carousel */}
+      <View style={styles.bottomOverlay} pointerEvents="box-none">
+        {filteredEstablishments.length > 0 ? (
+          <MapSpotCarousel
+            establishments={filteredEstablishments}
+            selectedId={selectedEstablishment.id}
+            onSelectEstablishment={handleSelectEstablishment}
+          />
+        ) : (
+          <View style={styles.emptyStateCard}>
+            <Ionicons name="search-outline" size={24} color="#8E8E93" />
+            <Text style={styles.emptyStateTitle}>No spots found</Text>
+            <Text style={styles.emptyStateSubtitle}>
+              Try turning off "Open Now" or clearing the category filter.
+            </Text>
+            <Pressable
+              onPress={() => {
+                setSelectedType('all');
+                setOpenOnly(false);
+              }}
+              style={({ pressed }) => [styles.resetFiltersBtn, pressed && styles.pressed]}
+            >
+              <Text style={styles.resetFiltersBtnText}>Reset Filters</Text>
+            </Pressable>
+          </View>
+        )}
+      </View>
 
       {/* Floating Bottom Nav */}
       <NavBar currentTab="map" />
     </SafeAreaView>
   );
 }
-
-const serifFamily = Platform.select({
-  ios: 'Georgia',
-  android: 'serif',
-  web: 'Georgia, "Times New Roman", serif',
-  default: 'Georgia',
-});
 
 const sansFamily = Platform.select({
   ios: 'system-ui',
@@ -337,95 +270,156 @@ const sansFamily = Platform.select({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#E8EEF3',
+    position: 'relative',
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 90,
-  },
-  mainContainer: {
-    maxWidth: 600,
-    width: '100%',
-    alignSelf: 'center',
-    paddingHorizontal: 16,
+  mapWrapper: {
+    ...StyleSheet.absoluteFill,
+    zIndex: 1,
   },
 
-  // Title Section
-  titleSection: {
-    paddingTop: Platform.OS === 'ios' ? 14 : 20,
-    paddingBottom: 14,
+  // Floating Top Overlays
+  topOverlay: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 10 : 12,
+    left: 0,
+    right: 0,
+    zIndex: 20,
+    paddingHorizontal: 14,
   },
-  headingSans: {
-    fontFamily: sansFamily,
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#000000',
-    letterSpacing: -0.8,
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
   },
-  headingSerif: {
-    fontFamily: serifFamily,
-    fontStyle: 'italic',
-    fontSize: 30,
-    fontWeight: '400',
-    color: '#000000',
+  locationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
-  subheadText: {
+  locationTitle: {
     fontFamily: sansFamily,
     fontSize: 13,
-    color: 'rgba(60, 60, 67, 0.65)',
-    marginTop: 4,
-    lineHeight: 18,
+    fontWeight: '700',
+    color: '#111111',
+    marginLeft: 4,
+    letterSpacing: -0.2,
+  },
+  dotSeparator: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: '#8E8E93',
+    marginHorizontal: 6,
+  },
+  spotCountText: {
+    fontFamily: sansFamily,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8E8E93',
+  },
+  openNowBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    gap: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+  },
+  openNowBtnActive: {
+    backgroundColor: '#E8F8EE',
+    borderColor: '#34C759',
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#8E8E93',
+  },
+  statusDotActive: {
+    backgroundColor: '#34C759',
+  },
+  openNowText: {
+    fontFamily: sansFamily,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#3A3A3C',
+  },
+  openNowTextActive: {
+    color: '#1E3A2B',
   },
 
   // Active Trail Banner
   activeTrailBanner: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: 'rgba(28, 28, 30, 0.94)',
     borderRadius: 16,
-    padding: 14,
-    marginBottom: 14,
+    padding: 12,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   activeTrailTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   activeTrailBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#D42F13',
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 5,
+    paddingHorizontal: 6,
+    paddingVertical: 2.5,
+    borderRadius: 4,
     gap: 4,
   },
   activeTrailBadgeText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: 0.4,
+    letterSpacing: 0.3,
   },
   exitTrailBtn: {
     paddingVertical: 2,
     paddingHorizontal: 6,
   },
   exitTrailBtnText: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: '#E5E5EA',
     fontWeight: '600',
   },
   activeTrailTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   activeTrailTagline: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: 'rgba(255, 255, 255, 0.75)',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   activeTrailFooter: {
     flexDirection: 'row',
@@ -437,20 +431,25 @@ const styles = StyleSheet.create({
     color: '#FF9500',
   },
 
-  // Filter Pills
+  // Horizontal Category Filter Pills
   filterScroll: {
-    paddingBottom: 14,
-    gap: 8,
+    paddingVertical: 2,
+    gap: 7,
   },
   filterPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6.5,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1.5 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
   filterPillActive: {
     backgroundColor: '#111111',
@@ -458,154 +457,92 @@ const styles = StyleSheet.create({
   },
   filterText: {
     fontFamily: sansFamily,
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '600',
-    color: '#6E6E73',
+    color: '#3A3A3C',
   },
   filterTextActive: {
     color: '#FFFFFF',
   },
 
-  // Map
-  mapCard: {
-    borderRadius: 18,
-    overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
-    marginBottom: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E5E5EA',
+  // Floating Recenter FAB Button (Elevated comfortably above the restaurant cards)
+  floatingRecenterContainer: {
+    position: 'absolute',
+    right: 16,
+    bottom: Platform.OS === 'ios' ? 312 : 304,
+    zIndex: 25,
+  },
+  floatingRecenterBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.16,
+    shadowRadius: 6,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
 
-  // Preview Sheet
-  previewSheet: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 18,
+  // Floating Bottom Spot Carousel
+  bottomOverlay: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 94 : 86,
+    left: 0,
+    right: 0,
+    zIndex: 20,
     alignItems: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E5E5EA',
   },
-  grabber: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#E5E5EA',
-    marginBottom: 14,
+
+  // Empty state card if no spots match filter
+  emptyStateCard: {
+    width: 290,
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    borderRadius: 18,
+    padding: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
-  sheetTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    width: '100%',
-    marginBottom: 12,
-  },
-  sheetInfoLeft: {
-    flex: 1,
-    marginRight: 8,
-  },
-  sheetName: {
+  emptyStateTitle: {
     fontFamily: sansFamily,
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#000000',
-    letterSpacing: -0.3,
+    color: '#111111',
+    marginTop: 6,
+    marginBottom: 3,
   },
-  sheetSubhead: {
-    fontFamily: sansFamily,
-    fontSize: 13,
-    color: '#8E8E93',
-    marginTop: 2,
-  },
-  bookmarkBtn: {
-    padding: 4,
-  },
-  sheetBody: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: 16,
-  },
-  sheetThumb: {
-    width: 58,
-    height: 58,
-    borderRadius: 12,
-    backgroundColor: '#F2F2F7',
-  },
-  sheetBodyText: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  sheetAddress: {
-    fontFamily: sansFamily,
-    fontSize: 13,
-    color: '#8E8E93',
-  },
-  sheetStatus: {
+  emptyStateSubtitle: {
     fontFamily: sansFamily,
     fontSize: 12,
-    marginTop: 4,
-    fontWeight: '600',
+    color: '#8E8E93',
+    textAlign: 'center',
+    marginBottom: 10,
+    lineHeight: 16,
   },
-  statusOpen: {
-    color: '#34C759',
-  },
-  statusClosed: {
-    color: '#FF3B30',
-  },
-
-  // Action Buttons
-  sheetButtonsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    width: '100%',
-  },
-  checkInBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 48,
+  resetFiltersBtn: {
+    backgroundColor: '#111111',
     paddingHorizontal: 14,
-    borderRadius: 14,
-    backgroundColor: '#FFF2EE',
-    borderWidth: 1,
-    borderColor: 'rgba(212, 47, 19, 0.2)',
-    gap: 5,
+    paddingVertical: 7,
+    borderRadius: 12,
   },
-  checkInBtnActive: {
-    backgroundColor: '#E8F8EE',
-    borderColor: 'rgba(52, 199, 89, 0.3)',
-  },
-  checkInBtnText: {
+  resetFiltersBtnText: {
     fontFamily: sansFamily,
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#D42F13',
-  },
-  checkInBtnTextActive: {
-    color: '#34C759',
-  },
-  detailsButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: '#D42F13',
-  },
-  detailsButtonText: {
-    fontFamily: sansFamily,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: -0.2,
   },
 
   pressed: {
-    opacity: 0.6,
-  },
-  primaryPressed: {
-    opacity: 0.85,
+    opacity: 0.7,
   },
 });

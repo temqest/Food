@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect, useCallback } from 'react';
+import React, { useMemo, useRef, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 import {
   View,
   Text,
@@ -15,26 +15,44 @@ import { BrandColors } from '@/constants/theme';
 
 const WebViewComponent = WebView as any;
 
+export interface MapboxMapViewRef {
+  recenter: () => void;
+}
+
 interface MapboxMapViewProps {
   establishments: Establishment[];
   selectedId?: string;
   onSelectEstablishment: (establishment: Establishment) => void;
-  height?: number;
+  height?: number | string;
   onInteractionStart?: () => void;
   onInteractionEnd?: () => void;
+  showFloatingRecenter?: boolean;
 }
 
-export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
+export const MapboxMapView = forwardRef<MapboxMapViewRef, MapboxMapViewProps>(({
   establishments,
   selectedId,
   onSelectEstablishment,
-  height = 360,
+  height = '100%',
   onInteractionStart,
   onInteractionEnd,
-}) => {
+  showFloatingRecenter = false,
+}, ref) => {
   const webViewRef = useRef<any>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const isMapReadyRef = useRef(false);
+
+  const onSelectEstablishmentRef = useRef(onSelectEstablishment);
+  onSelectEstablishmentRef.current = onSelectEstablishment;
+
+  const onInteractionStartRef = useRef(onInteractionStart);
+  onInteractionStartRef.current = onInteractionStart;
+
+  const onInteractionEndRef = useRef(onInteractionEnd);
+  onInteractionEndRef.current = onInteractionEnd;
+
+  const establishmentsRef = useRef(establishments);
+  establishmentsRef.current = establishments;
 
   // Send message to WebView or iframe without reloading page
   const postToMap = useCallback((type: string, payload: any) => {
@@ -50,7 +68,17 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
     }
   }, []);
 
-  // Sync markers when filtered list changes (0ms reload, purely client-side DOM)
+  // Recenter Naga City
+  const handleRecenter = useCallback(() => {
+    postToMap('RECENTER', {});
+  }, [postToMap]);
+
+  // Expose recenter method via ref
+  useImperativeHandle(ref, () => ({
+    recenter: handleRecenter,
+  }), [handleRecenter]);
+
+  // Sync markers when filtered list changes
   useEffect(() => {
     if (isMapReadyRef.current) {
       postToMap('UPDATE_MARKERS', {
@@ -58,8 +86,10 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
           id: e.id,
           name: e.name,
           type: e.type,
+          typeLabel: e.typeLabel,
           lat: e.coordinates.latitude,
           lng: e.coordinates.longitude,
+          isOpenNow: e.isOpenNow,
         })),
       });
     }
@@ -72,7 +102,7 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
     }
   }, [selectedId, postToMap]);
 
-  // Handle messages from map
+  // Handle messages from map (stable handler)
   const onMessage = useCallback(
     (event: any) => {
       try {
@@ -87,35 +117,37 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
           isMapReadyRef.current = true;
           // Sync current establishments & selection
           postToMap('UPDATE_MARKERS', {
-            establishments: establishments.map((e) => ({
+            establishments: establishmentsRef.current.map((e) => ({
               id: e.id,
               name: e.name,
               type: e.type,
+              typeLabel: e.typeLabel,
               lat: e.coordinates.latitude,
               lng: e.coordinates.longitude,
+              isOpenNow: e.isOpenNow,
             })),
           });
           if (selectedId) {
             postToMap('SELECT_ID', { id: selectedId });
           }
         } else if (data?.type === 'SELECT_ESTABLISHMENT') {
-          const est = establishments.find((e) => e.id === data.payload.id);
+          const est = establishmentsRef.current.find((e) => e.id === data.payload.id);
           if (est) {
-            onSelectEstablishment(est);
+            onSelectEstablishmentRef.current?.(est);
           }
         } else if (data?.type === 'TOUCH_START') {
-          onInteractionStart?.();
+          onInteractionStartRef.current?.();
         } else if (data?.type === 'TOUCH_END') {
-          onInteractionEnd?.();
+          onInteractionEndRef.current?.();
         }
       } catch {
         // ignore parse errors
       }
     },
-    [establishments, onSelectEstablishment, onInteractionStart, onInteractionEnd, postToMap, selectedId]
+    [postToMap, selectedId]
   );
 
-  // Listen for web window messages
+  // Listen for web window messages once
   useEffect(() => {
     if (Platform.OS === 'web') {
       const handleWebMessage = (e: MessageEvent) => {
@@ -126,12 +158,7 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
     }
   }, [onMessage]);
 
-  // Recenter Naga City
-  const handleRecenter = () => {
-    postToMap('RECENTER', {});
-  };
-
-  // Static HTML generated ONCE to avoid re-mounting / WebGL thrashing
+  // Static HTML generated ONCE with SVG vector pin markers
   const staticHtmlContent = useMemo(() => {
     return `<!DOCTYPE html>
 <html>
@@ -161,54 +188,82 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
       overscroll-behavior: none;
     }
 
-    /* Marker styling */
+    /* Bespoke Vector SVG Marker Styling */
     .custom-marker {
       display: flex;
       flex-direction: column;
       align-items: center;
       cursor: pointer;
-      transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+      position: relative;
+      transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
       z-index: 10;
       will-change: transform;
     }
+
     .custom-marker.selected {
-      z-index: 50;
-      transform: scale(1.18) translateY(-4px);
+      z-index: 100;
+      transform: translateY(-8px) scale(1.18);
     }
 
-    .marker-bubble {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: #FFFFFF;
-      border: 2px solid #111111;
+    .marker-pin-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .marker-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 19px;
+      background-color: var(--pin-color, #D42F13);
+      border: 2.5px solid #FFFFFF;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.24);
       position: relative;
-      transition: background-color 0.15s ease, border-color 0.15s ease;
+      z-index: 2;
+      transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .custom-marker.selected .marker-bubble {
-      background: #D42F13;
+    .custom-marker.selected .marker-badge {
+      background-color: #D42F13;
       border-color: #FFFFFF;
-      box-shadow: 0 6px 16px rgba(212, 47, 19, 0.45);
+      box-shadow: 0 8px 22px rgba(212, 47, 19, 0.55);
+    }
+
+    .marker-pointer {
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 7px solid var(--pin-color, #D42F13);
+      margin-top: -1.5px;
+      z-index: 1;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.18));
+      transition: border-top-color 0.2s ease;
+    }
+
+    .custom-marker.selected .marker-pointer {
+      border-top-color: #D42F13;
     }
 
     .pulse-ring {
       position: absolute;
-      width: 48px;
-      height: 48px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
-      background: rgba(212, 47, 19, 0.35);
-      top: -7px;
-      left: -7px;
+      background: rgba(212, 47, 19, 0.38);
+      top: -9px;
+      left: -9px;
       animation: pulseAnim 1.6s infinite ease-out;
       pointer-events: none;
       display: none;
+      z-index: 0;
     }
+
     .custom-marker.selected .pulse-ring {
       display: block;
     }
@@ -216,36 +271,38 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
     @keyframes pulseAnim {
       0% {
         transform: scale(0.65);
-        opacity: 0.9;
+        opacity: 0.95;
       }
       100% {
-        transform: scale(1.55);
+        transform: scale(1.6);
         opacity: 0;
       }
     }
 
     .marker-label {
-      background: rgba(17, 17, 17, 0.88);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(18, 18, 18, 0.94);
       color: #FFFFFF;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       padding: 3px 8px;
       border-radius: 10px;
-      margin-top: 4px;
+      margin-top: 3px;
       white-space: nowrap;
-      max-width: 110px;
+      max-width: 125px;
       overflow: hidden;
       text-overflow: ellipsis;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
-      border: 0.5px solid rgba(255,255,255,0.2);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.22);
+      border: 0.5px solid rgba(255,255,255,0.25);
       pointer-events: none;
+      letter-spacing: -0.15px;
     }
+
     .custom-marker.selected .marker-label {
-      background: #D42F13;
+      background: #111111;
+      border-color: #D42F13;
+      color: #FFFFFF;
       font-weight: 800;
-      border-color: rgba(255,255,255,0.4);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.35);
     }
 
     .mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-bottom-left {
@@ -254,7 +311,7 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
     }
     .mapboxgl-ctrl-attrib {
       font-size: 9px !important;
-      background: rgba(255, 255, 255, 0.6) !important;
+      background: rgba(255, 255, 255, 0.7) !important;
       border-radius: 4px;
     }
     .mapboxgl-ctrl-logo {
@@ -275,7 +332,7 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
       container: 'map',
       style: '${MAPBOX_STYLES.streets}',
       center: [${NAGA_CITY_CENTER.longitude}, ${NAGA_CITY_CENTER.latitude}],
-      zoom: 14.5,
+      zoom: 14.3,
       pitch: 28,
       bearing: -5,
       attributionControl: true,
@@ -283,12 +340,7 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
       trackResize: true
     });
 
-    // Disable double tap zoom delays and enable smooth inertial drag
-    map.dragPan.enable({
-      linearity: 0.25,
-      maxSpeed: 1400,
-      deceleration: 2500
-    });
+    map.dragPan.enable();
     map.touchZoomRotate.enable({ around: 'center' });
 
     function sendEvent(type, payload) {
@@ -300,24 +352,48 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
       }
     }
 
-    // Capture touch events to notify parent
     window.addEventListener('touchstart', () => sendEvent('TOUCH_START', {}), { passive: true });
     window.addEventListener('touchend', () => sendEvent('TOUCH_END', {}), { passive: true });
     window.addEventListener('touchcancel', () => sendEvent('TOUCH_END', {}), { passive: true });
 
-    function getIconForType(type) {
+    // Category Color & Vector SVG Map
+    function getCategoryConfig(type) {
       switch (type) {
-        case 'bakery': return '🥟';
-        case 'kinalas-station': return '🍜';
-        case 'pasalubong-center': return '🎁';
-        case 'carinderia': return '🍲';
-        case 'street-stall': return '🍢';
-        default: return '🥥';
+        case 'kinalas-station':
+          return {
+            color: '#D42F13', // Terracotta Crimson
+            svg: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11c0 5 3.5 8 8 8s8-3 8-8H4z"/><path d="M7 4c0 2-1 3-1 4"/><path d="M12 4c0 2-1 3-1 4"/><path d="M17 4c0 2-1 3-1 4"/><line x1="3" y1="11" x2="21" y2="11"/></svg>'
+          };
+        case 'carinderia':
+          return {
+            color: '#2E7D32', // Forest Amber
+            svg: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-8z"/><path d="M2 10h20"/><path d="M9 6h6"/><path d="M12 6V3"/></svg>'
+          };
+        case 'bakery':
+          return {
+            color: '#D97706', // Golden Wheat
+            svg: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13c0-3.5 3-7 9-7s9 3.5 9 7-3 5-9 5-9-1.5-9-5z"/><path d="M7 11c1-1 2-2 3-2"/><path d="M14 9c1 0 2 1 3 2"/></svg>'
+          };
+        case 'restaurant':
+          return {
+            color: '#C05621', // Warm Ember
+            svg: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2v20"/><path d="M21 2c0 3-1.5 5-3 5"/><path d="M3 2v7c0 1.5 1 2.5 2.5 2.5V22"/><path d="M8 2v7c0 1.5-1 2.5-2.5 2.5"/><line x1="5.5" y1="2" x2="5.5" y2="7"/></svg>'
+          };
+        case 'pasalubong-center':
+          return {
+            color: '#7C3AED', // Royal Violet
+            svg: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>'
+          };
+        case 'street-stall':
+        default:
+          return {
+            color: '#0284C7', // Coastal Teal
+            svg: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'
+          };
       }
     }
 
     function renderEstablishments(items) {
-      // Clean previous markers not in new items
       const newIds = new Set(items.map(i => i.id));
       Object.keys(markersMap).forEach(id => {
         if (!newIds.has(id)) {
@@ -329,16 +405,28 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
       items.forEach(est => {
         if (markersMap[est.id]) return; // already rendered
 
+        const config = getCategoryConfig(est.type);
+
         const el = document.createElement('div');
         el.className = 'custom-marker' + (est.id === currentSelectedId ? ' selected' : '');
         el.id = 'marker-' + est.id;
+        el.style.setProperty('--pin-color', config.color);
 
         const pulse = document.createElement('div');
         pulse.className = 'pulse-ring';
 
-        const bubble = document.createElement('div');
-        bubble.className = 'marker-bubble';
-        bubble.textContent = getIconForType(est.type);
+        const pinBody = document.createElement('div');
+        pinBody.className = 'marker-pin-body';
+
+        const badge = document.createElement('div');
+        badge.className = 'marker-badge';
+        badge.innerHTML = config.svg;
+
+        const pointer = document.createElement('div');
+        pointer.className = 'marker-pointer';
+
+        pinBody.appendChild(badge);
+        pinBody.appendChild(pointer);
 
         const label = document.createElement('div');
         label.className = 'marker-label';
@@ -346,7 +434,7 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
         label.textContent = nameWords[0] + (nameWords[1] ? ' ' + nameWords[1] : '');
 
         el.appendChild(pulse);
-        el.appendChild(bubble);
+        el.appendChild(pinBody);
         el.appendChild(label);
 
         el.addEventListener('click', (e) => {
@@ -354,7 +442,7 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
           selectMarker(est.id, true);
         });
 
-        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat([est.lng, est.lat])
           .addTo(map);
 
@@ -379,7 +467,7 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
           zoom: 15.3,
           pitch: 30,
           essential: true,
-          duration: 750
+          duration: 480
         });
 
         if (shouldNotify) {
@@ -387,6 +475,9 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
         }
       }
     }
+
+    const NAGA_CENTER_LNG = ${NAGA_CITY_CENTER.longitude};
+    const NAGA_CENTER_LAT = ${NAGA_CITY_CENTER.latitude};
 
     map.on('load', () => {
       sendEvent('MAP_LOADED', { ok: true });
@@ -401,10 +492,10 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
           selectMarker(data.payload.id, false);
         } else if (data.type === 'RECENTER') {
           map.flyTo({
-            center: [${NAGA_CITY_CENTER.longitude}, ${NAGA_CITY_CENTER.latitude}],
-            zoom: 14.5,
+            center: [NAGA_CENTER_LNG, NAGA_CENTER_LAT],
+            zoom: 14.3,
             pitch: 28,
-            duration: 850
+            duration: 500
           });
         }
       } catch (e) {
@@ -421,7 +512,7 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
 
   return (
     <View
-      style={[styles.container, { height }]}
+      style={[styles.container, typeof height === 'number' ? { height } : styles.flexContainer]}
       onTouchStart={onInteractionStart}
       onTouchEnd={onInteractionEnd}
       onTouchCancel={onInteractionEnd}
@@ -435,7 +526,6 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
             width: '100%',
             height: '100%',
             border: 'none',
-            borderRadius: 18,
             touchAction: 'none',
           }}
           title="Naga Interactive Map"
@@ -458,42 +548,39 @@ export const MapboxMapView: React.FC<MapboxMapViewProps> = ({
           renderLoading={() => (
             <View style={styles.loadingOverlay}>
               <ActivityIndicator size="small" color={BrandColors.primary} />
-              <Text style={styles.loadingText}>Loading Mapbox...</Text>
+              <Text style={styles.loadingText}>Loading Naga Mapbox...</Text>
             </View>
           )}
         />
       )}
 
-      {/* Top Bar: Clean live badge and recenter shortcut */}
-      <View style={styles.topBar}>
-        <View style={styles.badge}>
-          <Ionicons name="location-sharp" size={13} color={BrandColors.primary} />
-          <Text style={styles.badgeText}>Live Naga Map</Text>
+      {/* Floating Recenter Shortcut (optional inside MapboxMapView) */}
+      {showFloatingRecenter && (
+        <View style={styles.recenterWrapper} pointerEvents="box-none">
+          <Pressable
+            onPress={handleRecenter}
+            style={({ pressed }) => [styles.controlButton, pressed && styles.pressed]}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Recenter Naga City Map"
+          >
+            <Ionicons name="locate" size={18} color="#111111" />
+          </Pressable>
         </View>
-
-        <Pressable
-          onPress={handleRecenter}
-          style={({ pressed }) => [styles.controlButton, pressed && styles.pressed]}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel="Recenter Naga City"
-        >
-          <Ionicons name="locate" size={16} color="#111111" />
-        </Pressable>
-      </View>
+      )}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
     width: '100%',
     backgroundColor: '#E8EEF3',
-    borderRadius: 18,
     overflow: 'hidden',
     position: 'relative',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
+  },
+  flexContainer: {
+    flex: 1,
   },
   webView: {
     flex: 1,
@@ -513,52 +600,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#8E8E93',
   },
-  topBar: {
+  recenterWrapper: {
     position: 'absolute',
-    top: 10,
-    left: 10,
-    right: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    pointerEvents: 'box-none',
-    zIndex: 20,
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.94)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-    gap: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#111111',
-    letterSpacing: -0.1,
+    right: 14,
+    bottom: 12,
+    zIndex: 25,
   },
   controlButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.16,
+    shadowRadius: 5,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
   pressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.96 }],
+    opacity: 0.75,
+    transform: [{ scale: 0.94 }],
   },
 });

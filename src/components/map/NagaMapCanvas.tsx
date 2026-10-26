@@ -6,7 +6,7 @@ interface NagaMapCanvasProps {
   establishments: Establishment[];
   selectedId?: string;
   onSelectEstablishment: (establishment: Establishment) => void;
-  height?: number;
+  height?: number | string;
 }
 
 /**
