@@ -9,12 +9,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { SearchInput } from '@/components/common/SearchInput';
 import { NavBar } from '@/components/common/NavBar';
 import { FoodCard } from '@/components/food/FoodCard';
 import { EstablishmentCard } from '@/components/establishment/EstablishmentCard';
 import { RecommendationModal } from '@/components/common/RecommendationModal';
+import { useSaved } from '@/context/SavedContext';
 import { FOOD_ITEMS, ESTABLISHMENTS, CATEGORIES } from '@/data/mockData';
 
 export default function SearchScreen() {
@@ -22,8 +23,9 @@ export default function SearchScreen() {
   const [query, setQuery] = useState(params.q || '');
   const [selectedCategory, setSelectedCategory] = useState<string>(params.category || 'all');
   const [openOnly, setOpenOnly] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dishes' | 'places'>('dishes');
+  const [activeTab, setActiveTab] = useState<'dishes' | 'places' | 'favorites'>('dishes');
   const [isRecommendationOpen, setIsRecommendationOpen] = useState(false);
+  const { savedFoods, savedEstablishments } = useSaved();
 
   // Filter food items
   const matchedFoods = useMemo(() => {
@@ -70,21 +72,53 @@ export default function SearchScreen() {
     }).sort((a, b) => a.distanceKm - b.distanceKm);
   }, [query, matchedFoods, openOnly]);
 
+  // Filter saved favorite foods
+  const matchedFavoriteFoods = useMemo(() => {
+    return savedFoods.filter((food) => {
+      const q = query.toLowerCase().trim();
+      const matchesQuery =
+        !q ||
+        food.name.toLowerCase().includes(q) ||
+        food.tagline.toLowerCase().includes(q) ||
+        food.description.toLowerCase().includes(q) ||
+        (food.bikolName && food.bikolName.toLowerCase().includes(q)) ||
+        food.tags.some((t) => t.toLowerCase().includes(q));
+
+      const matchesCat =
+        selectedCategory === 'all' || food.category === selectedCategory;
+
+      return matchesQuery && matchesCat;
+    });
+  }, [query, selectedCategory, savedFoods]);
+
+  // Filter saved favorite establishments
+  const matchedFavoriteEstablishments = useMemo(() => {
+    const q = query.toLowerCase().trim();
+
+    return savedEstablishments.filter((est) => {
+      const nameOrAddressMatch =
+        est.name.toLowerCase().includes(q) ||
+        est.neighborhood.toLowerCase().includes(q) ||
+        est.description.toLowerCase().includes(q);
+
+      const foodMatch =
+        !q ||
+        nameOrAddressMatch ||
+        est.foodsOffered.some((f) => {
+          const matchFoodName = f.foodName.toLowerCase().includes(q);
+          const matchFoodId = f.foodId.toLowerCase().includes(q);
+          return matchFoodName || matchFoodId;
+        }) ||
+        matchedFoods.some((mf) => est.foodsOffered.some((ef) => ef.foodId === mf.id));
+
+      const matchesOpen = !openOnly || est.isOpenNow;
+
+      return foodMatch && matchesOpen;
+    }).sort((a, b) => a.distanceKm - b.distanceKm);
+  }, [query, matchedFoods, openOnly, savedEstablishments]);
+
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
-      {/* Minimal Icon-Only Back Button */}
-      <View style={styles.topBar}>
-        <Pressable
-          onPress={() => router.back()}
-          style={({ pressed }) => [styles.backIconButton, pressed && styles.pressed]}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-        >
-          <Ionicons name="arrow-back" size={24} color="#000000" />
-        </Pressable>
-      </View>
-
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -108,7 +142,7 @@ export default function SearchScreen() {
               value={query}
               onChangeText={setQuery}
               placeholder="Search dishes or places..."
-              autoFocus={!params.q && !params.category}
+              autoFocus={false}
               onClear={() => setQuery('')}
             />
           </View>
@@ -130,8 +164,8 @@ export default function SearchScreen() {
               accessibilityRole="button"
               accessibilityLabel="Try something new recommendation"
             >
-              <Ionicons name="dice" size={14} color="#D42F13" style={{ marginRight: 4 }} />
-              <Text style={styles.categoryFilterSurpriseText}>Try Something New</Text>
+              <Ionicons name="dice" size={14} color="#D42F13" style={{ marginRight: 5 }} />
+              <Text style={styles.categoryFilterSurpriseText} numberOfLines={1}>Try New</Text>
             </Pressable>
 
             <Pressable
@@ -194,7 +228,7 @@ export default function SearchScreen() {
             ))}
           </ScrollView>
 
-          {/* Segmented Control: Dishes vs Places */}
+          {/* Segmented Control: Dishes vs Places vs Favorites */}
           <View style={styles.segmentWrapper}>
             <View style={styles.segmentContainer}>
               <Pressable
@@ -209,6 +243,7 @@ export default function SearchScreen() {
                     styles.segmentLabel,
                     activeTab === 'dishes' && styles.segmentLabelActive,
                   ]}
+                  numberOfLines={1}
                 >
                   Dishes ({matchedFoods.length})
                 </Text>
@@ -226,8 +261,27 @@ export default function SearchScreen() {
                     styles.segmentLabel,
                     activeTab === 'places' && styles.segmentLabelActive,
                   ]}
+                  numberOfLines={1}
                 >
                   Places ({matchedEstablishments.length})
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => setActiveTab('favorites')}
+                style={[
+                  styles.segmentTab,
+                  activeTab === 'favorites' && styles.segmentTabActive,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.segmentLabel,
+                    activeTab === 'favorites' && styles.segmentLabelActive,
+                  ]}
+                  numberOfLines={1}
+                >
+                  Favorites ({matchedFavoriteFoods.length + matchedFavoriteEstablishments.length})
                 </Text>
               </Pressable>
             </View>
@@ -263,39 +317,112 @@ export default function SearchScreen() {
                 </Pressable>
               </View>
             )
-          ) : matchedEstablishments.length > 0 ? (
-            <View style={styles.insetGroup}>
-              {matchedEstablishments.map((est, index) => (
-                <EstablishmentCard
-                  key={est.id}
-                  establishment={est}
-                  layout="row"
-                  isFirst={index === 0}
-                  isLast={index === matchedEstablishments.length - 1}
-                />
-              ))}
-            </View>
-          ) : (
-            <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconCircle}>
-                <Ionicons
-                  name="storefront-outline"
-                  size={36}
-                  color="#8E8E93"
-                />
+          ) : activeTab === 'places' ? (
+            matchedEstablishments.length > 0 ? (
+              <View style={styles.insetGroup}>
+                {matchedEstablishments.map((est, index) => (
+                  <EstablishmentCard
+                    key={est.id}
+                    establishment={est}
+                    layout="row"
+                    isFirst={index === 0}
+                    isLast={index === matchedEstablishments.length - 1}
+                  />
+                ))}
               </View>
-              <Text style={styles.emptyTitle}>No Places Found</Text>
-              <Text style={styles.emptyDesc}>
-                Try adjusting your search terms or selecting a different category filter.
-              </Text>
-              <Pressable
-                onPress={() => setIsRecommendationOpen(true)}
-                style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.pressed]}
-              >
-                <Ionicons name="sparkles" size={15} color="#FFFFFF" />
-                <Text style={styles.emptyActionBtnText}>Try Foodie Roulette Instead</Text>
-              </Pressable>
-            </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <View style={styles.emptyIconCircle}>
+                  <Ionicons
+                    name="storefront-outline"
+                    size={36}
+                    color="#8E8E93"
+                  />
+                </View>
+                <Text style={styles.emptyTitle}>No Places Found</Text>
+                <Text style={styles.emptyDesc}>
+                  Try adjusting your search terms or selecting a different category filter.
+                </Text>
+                <Pressable
+                  onPress={() => setIsRecommendationOpen(true)}
+                  style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.pressed]}
+                >
+                  <Ionicons name="sparkles" size={15} color="#FFFFFF" />
+                  <Text style={styles.emptyActionBtnText}>Try Foodie Roulette Instead</Text>
+                </Pressable>
+              </View>
+            )
+          ) : (
+            /* Favorites Tab: shows liked foods & places */
+            (matchedFavoriteFoods.length > 0 || matchedFavoriteEstablishments.length > 0) ? (
+              <View style={styles.favoritesContainer}>
+                {matchedFavoriteFoods.length > 0 && (
+                  <View style={styles.favoriteSection}>
+                    <View style={styles.favoriteSectionHeader}>
+                      <Ionicons name="restaurant" size={15} color="#D42F13" style={{ marginRight: 6 }} />
+                      <Text style={styles.favoriteSectionTitle}>
+                        Favorite Dishes ({matchedFavoriteFoods.length})
+                      </Text>
+                    </View>
+                    <View style={styles.insetGroup}>
+                      {matchedFavoriteFoods.map((food) => (
+                        <FoodCard key={food.id} food={food} layout="row" />
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                {matchedFavoriteEstablishments.length > 0 && (
+                  <View style={[styles.favoriteSection, matchedFavoriteFoods.length > 0 && { marginTop: 18 }]}>
+                    <View style={styles.favoriteSectionHeader}>
+                      <Ionicons name="storefront" size={15} color="#D42F13" style={{ marginRight: 6 }} />
+                      <Text style={styles.favoriteSectionTitle}>
+                        Favorite Places ({matchedFavoriteEstablishments.length})
+                      </Text>
+                    </View>
+                    <View style={styles.insetGroup}>
+                      {matchedFavoriteEstablishments.map((est, index) => (
+                        <EstablishmentCard
+                          key={est.id}
+                          establishment={est}
+                          layout="row"
+                          isFirst={index === 0}
+                          isLast={index === matchedFavoriteEstablishments.length - 1}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <View style={styles.emptyIconCircle}>
+                  <Ionicons
+                    name="heart-outline"
+                    size={36}
+                    color="#D42F13"
+                  />
+                </View>
+                <Text style={styles.emptyTitle}>
+                  {query ? 'No Matching Favorites' : 'No Favorites Yet'}
+                </Text>
+                <Text style={styles.emptyDesc}>
+                  {query
+                    ? 'None of your saved dishes or places matched your search query.'
+                    : 'Tap the bookmark icon on any dish or place in Naga to quickly find them here.'}
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    setQuery('');
+                    setActiveTab('dishes');
+                  }}
+                  style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.pressed]}
+                >
+                  <Ionicons name="search" size={15} color="#FFFFFF" />
+                  <Text style={styles.emptyActionBtnText}>Browse All Dishes</Text>
+                </Pressable>
+              </View>
+            )
           )}
         </View>
       </ScrollView>
@@ -331,18 +458,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F2F2F7',
   },
-  topBar: {
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 4 : 10,
-    paddingBottom: 2,
-  },
-  backIconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   scrollView: {
     flex: 1,
   },
@@ -356,7 +471,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   titleSection: {
-    paddingTop: 8,
+    paddingTop: 16,
     paddingBottom: 14,
   },
   headingSans: {
@@ -390,14 +505,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryFilter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 18,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   categoryFilterActive: {
     backgroundColor: '#111111',
@@ -449,9 +565,10 @@ const styles = StyleSheet.create({
   },
   segmentLabel: {
     fontFamily: sansFamily,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
     color: '#8E8E93',
+    letterSpacing: -0.2,
   },
   segmentLabelActive: {
     fontWeight: '700',
@@ -504,6 +621,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(212, 47, 19, 0.08)',
     borderWidth: 1,
     borderColor: 'rgba(212, 47, 19, 0.25)',
+    paddingHorizontal: 12,
   },
   categoryFilterSurpriseText: {
     fontFamily: sansFamily,
@@ -529,5 +647,24 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.6,
+  },
+  favoritesContainer: {
+    paddingBottom: 8,
+  },
+  favoriteSection: {
+    marginBottom: 8,
+  },
+  favoriteSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  favoriteSectionTitle: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1C1C1E',
+    letterSpacing: -0.2,
   },
 });

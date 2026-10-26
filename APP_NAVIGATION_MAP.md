@@ -93,6 +93,27 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 
 *Every AI session must append its actions here:*
 
+### [2026-10-26] - Search Disabled AutoFocus & Added Favorites Tab
+- **User Request**:
+  1. Remove pre-defined auto-search trigger so opening Search doesn't immediately pop up the keyboard.
+  2. Add a new tab for Favorites so users can easily see/search places and foods they liked.
+- **Changes Applied**:
+  - [`search.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/search.tsx):
+    - Set `autoFocus={false}` on `SearchInput` to prevent unwanted automatic keyboard popup on navigation.
+    - Integrated [`SavedContext`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/SavedContext.tsx) to query liked dishes (`savedFoods`) and places (`savedEstablishments`).
+    - Added a third "Favorites" tab to the segmented control with dynamic counters and search query filtering.
+    - Added stacked "Favorite Dishes" and "Favorite Places" lists with dedicated empty states.
+
+### [2026-10-26] - Search Screen Header & Surprise Pill Polish
+- **User Request**:
+  1. Remove the back button on top its not needed.
+  2. The try something new its a bit too tall, as the icon and the text is on two rows, make it shorter and more compact, w/out losing meaning.
+- **Changes Applied**:
+  - [`search.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/search.tsx):
+    - Removed redundant `topBar` back arrow button since Search is now a primary bottom navigation tab.
+    - Fixed vertical stacking bug in filter pills by adding `flexDirection: 'row'` and `alignItems: 'center'` to `categoryFilter`.
+    - Shortened surprise recommendation pill to a single compact row: `🎲 Try New` with `paddingHorizontal: 12`, matching standard pill height without losing meaning.
+
 ### [2026-10-26] - NavBar Reconfiguration (Map to Tab 2, Search to Center, Codex Unlinked)
 - **User Request**: 
   1. Replace current Codex place with the Map.
