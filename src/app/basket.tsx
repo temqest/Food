@@ -7,64 +7,140 @@ import {
   Pressable,
   Image,
   Modal,
+  TextInput,
   Platform,
+  Alert,
+  Linking,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { NavBar } from '@/components/common/NavBar';
-import { useBasket, PreOrder } from '@/context/BasketContext';
-import { useQuest } from '@/context/QuestContext';
-import { COLLECTIBLE_BADGES, EXPLORER_RANKS } from '@/data/gamification';
-import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
-import { PassportStampModal } from '@/components/gamification/PassportStampModal';
-import { ActiveQuestLogWidget } from '@/components/gamification/ActiveQuestLogWidget';
+import { useBasket, PreOrder, BasketItem } from '@/context/BasketContext';
+import { IOSTokens } from '@/constants/theme';
+import QRCode from 'react-native-qrcode-svg';
 
-type PassportTab = 'stamps' | 'badges' | 'passes';
+const PICKUP_TIME_SLOTS = [
+  'ASAP (15–20 mins)',
+  'In 30 mins',
+  'In 45 mins',
+  'In 1 hour',
+];
 
-export default function PassportScreen() {
+export default function BasketScreen() {
   const {
     items,
+    activePreOrders,
+    diningOption,
+    setDiningOption,
+    pickupTimeSlot,
+    setPickupTimeSlot,
+    specialInstructions,
+    setSpecialInstructions,
     updateQuantity,
+    updateItemNote,
+    removeFromBasket,
+    clearBasket,
     placePreOrder,
+    advanceOrderStatusDemo,
+    cancelOrder,
+    getBasketCount,
     getBasketSubtotal,
+    activeTabSection,
+    setActiveTabSection,
   } = useBasket();
 
-  const {
-    currentRank,
-    nextRank,
-    xp,
-    rankProgressPercent,
-    tastingLog,
-    unlockedBadgeIds,
-  } = useQuest();
+  // Active tab state: 'cart' | 'passes'
+  const activeTab = activeTabSection === 'current' ? 'cart' : 'passes';
+  const setActiveTab = (tab: 'cart' | 'passes') => {
+    setActiveTabSection(tab === 'cart' ? 'current' : 'history');
+  };
 
-  const [activeTab, setActiveTab] = useState<PassportTab>('stamps');
+  // Modals
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
-  const [placedOrder, setPlacedOrder] = useState<PreOrder | null>(null);
+  const [confirmedOrder, setConfirmedOrder] = useState<PreOrder | null>(null);
+  const [enlargedQrPass, setEnlargedQrPass] = useState<PreOrder | null>(null);
 
-  // New Tasting Stamp Modal state
-  const [stampModalVisible, setStampModalVisible] = useState(false);
-  const [selectedFoodForStamp, setSelectedFoodForStamp] = useState(FOOD_ITEMS[0]);
-  const [selectedEstForStamp, setSelectedEstForStamp] = useState(ESTABLISHMENTS[0]);
+  // Note Edit Modal state
+  const [editingItem, setEditingItem] = useState<BasketItem | null>(null);
+  const [noteInput, setNoteInput] = useState('');
 
   const subtotal = getBasketSubtotal();
   const fee = 0; // Free reservation
   const total = subtotal + fee;
+  const basketCount = getBasketCount();
 
   const handlePlaceOrder = () => {
+    if (items.length === 0) return;
     const newOrder = placePreOrder();
     if (newOrder) {
-      setPlacedOrder(newOrder);
+      setConfirmedOrder(newOrder);
       setConfirmModalVisible(true);
     }
   };
 
-  const openLogModal = () => {
-    setSelectedFoodForStamp(FOOD_ITEMS[0]);
-    setSelectedEstForStamp(ESTABLISHMENTS[0]);
-    setStampModalVisible(true);
+  const handleClearBasketPrompt = () => {
+    if (Platform.OS === 'web') {
+      if (window.confirm('Clear all items from your basket?')) {
+        clearBasket();
+      }
+    } else {
+      Alert.alert(
+        'Clear Basket',
+        'Are you sure you want to remove all items from your basket?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Clear All', style: 'destructive', onPress: clearBasket },
+        ]
+      );
+    }
   };
+
+  const handleOpenNoteModal = (item: BasketItem) => {
+    setEditingItem(item);
+    setNoteInput(item.selectedNote || '');
+  };
+
+  const handleSaveNote = () => {
+    if (editingItem) {
+      updateItemNote(editingItem.id, noteInput.trim());
+      setEditingItem(null);
+    }
+  };
+
+  const handleCallEstablishment = (phone = '+63548813000') => {
+    Linking.openURL(`tel:${phone}`).catch(() => {
+      Alert.alert('Unable to Call', `Please dial ${phone} directly.`);
+    });
+  };
+
+  const handleCancelOrderPrompt = (orderId: string) => {
+    const doCancel = () => {
+      cancelOrder(orderId);
+      Alert.alert('Order Cancelled', 'Your pre-order pass has been cancelled.');
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Cancel this active pre-order pass?')) {
+        doCancel();
+      }
+    } else {
+      Alert.alert(
+        'Cancel Order Pass',
+        'Are you sure you want to cancel this pre-order? The kitchen will be notified.',
+        [
+          { text: 'Keep Pass', style: 'cancel' },
+          { text: 'Yes, Cancel', style: 'destructive', onPress: doCancel },
+        ]
+      );
+    }
+  };
+
+  // Group items by establishment
+  const establishmentId = items[0]?.establishmentId;
+  const establishmentName = items[0]?.establishmentName;
+  const establishmentAddress = items[0]?.establishmentAddress;
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
@@ -75,420 +151,910 @@ export default function PassportScreen() {
         keyboardDismissMode="on-drag"
       >
         <View style={styles.mainContainer}>
-          {/* Top Title & Header */}
+          {/* Header Title Section */}
           <View style={styles.titleSection}>
             <View style={styles.titleRow}>
               <Text style={styles.headingSans}>
-                Naga Food <Text style={styles.headingSerif}>passport</Text>
+                Food <Text style={styles.headingSerif}>basket</Text>
               </Text>
-              {activeTab === 'stamps' && (
+              {activeTab === 'cart' && items.length > 0 && (
                 <Pressable
-                  onPress={openLogModal}
-                  style={({ pressed }) => [styles.logDishBtn, pressed && styles.pressed]}
+                  onPress={handleClearBasketPrompt}
+                  style={({ pressed }) => [styles.clearBtn, pressed && styles.pressed]}
                   hitSlop={8}
                 >
-                  <Ionicons name="add" size={15} color="#FFFFFF" />
-                  <Text style={styles.logDishBtnText}>Log Dish</Text>
+                  <Ionicons name="trash-outline" size={14} color="#8E8E93" />
+                  <Text style={styles.clearBtnText}>Clear</Text>
                 </Pressable>
               )}
             </View>
             <Text style={styles.subheadText}>
-              Your official culinary journal, tasting stamps, badges, and carinderia expedition passes.
+              Pre-order meals, skip carinderia lines, and track live dining passes.
             </Text>
           </View>
 
-          {/* Explorer Level Summary Hero Card */}
-          <View style={styles.rankHeroCard}>
-            <View style={styles.rankHeroTop}>
-              <View style={styles.rankIconBadge}>
-                <Ionicons name="ribbon" size={20} color="#D42F13" />
-              </View>
-              <View style={styles.rankHeroTitles}>
-                <Text style={styles.rankHeroLevel}>LEVEL {currentRank.level}</Text>
-                <Text style={styles.rankHeroName}>{currentRank.title}</Text>
-              </View>
-              <View style={styles.xpTotalBox}>
-                <Text style={styles.xpTotalNumber}>{xp}</Text>
-                <Text style={styles.xpTotalLabel}>TOTAL XP</Text>
-              </View>
-            </View>
-
-            <View style={styles.rankProgressSection}>
-              <View style={styles.rankProgressBarTrack}>
-                <View
-                  style={[styles.rankProgressBarFill, { width: `${rankProgressPercent}%` }]}
-                />
-              </View>
-              <View style={styles.rankProgressLabels}>
-                <Text style={styles.rankProgressPercentText}>{rankProgressPercent}% Progress</Text>
-                <Text style={styles.rankNextRankText}>
-                  {nextRank ? `${nextRank.minXp - xp} XP to ${nextRank.title}` : 'Max Title Achieved'}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Segmented Controls */}
+          {/* Segmented Switcher */}
           <View style={styles.segmentWrapper}>
             <View style={styles.segmentContainer}>
               <Pressable
-                onPress={() => setActiveTab('stamps')}
+                onPress={() => setActiveTab('cart')}
                 style={[
-                  styles.segmentButton,
-                  activeTab === 'stamps' && styles.segmentButtonActive,
+                  styles.segmentTab,
+                  activeTab === 'cart' && styles.segmentTabActive,
                 ]}
               >
-                <Text
-                  style={[
-                    styles.segmentText,
-                    activeTab === 'stamps' && styles.segmentTextActive,
-                  ]}
-                >
-                  Tasting Log ({tastingLog.length})
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => setActiveTab('badges')}
-                style={[
-                  styles.segmentButton,
-                  activeTab === 'badges' && styles.segmentButtonActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.segmentText,
-                    activeTab === 'badges' && styles.segmentTextActive,
-                  ]}
-                >
-                  Badges ({unlockedBadgeIds.length})
-                </Text>
+                <View style={styles.tabLabelRow}>
+                  <Ionicons
+                    name="cart"
+                    size={16}
+                    color={activeTab === 'cart' ? '#1C1C1E' : '#8E8E93'}
+                  />
+                  <Text
+                    style={[
+                      styles.segmentLabel,
+                      activeTab === 'cart' && styles.segmentLabelActive,
+                    ]}
+                  >
+                    Cart ({basketCount})
+                  </Text>
+                </View>
               </Pressable>
 
               <Pressable
                 onPress={() => setActiveTab('passes')}
                 style={[
-                  styles.segmentButton,
-                  activeTab === 'passes' && styles.segmentButtonActive,
+                  styles.segmentTab,
+                  activeTab === 'passes' && styles.segmentTabActive,
                 ]}
               >
-                <Text
-                  style={[
-                    styles.segmentText,
-                    activeTab === 'passes' && styles.segmentTextActive,
-                  ]}
-                >
-                  Dine-In Passes ({items.length})
-                </Text>
+                <View style={styles.tabLabelRow}>
+                  <Ionicons
+                    name="ticket"
+                    size={16}
+                    color={activeTab === 'passes' ? '#1C1C1E' : '#8E8E93'}
+                  />
+                  <Text
+                    style={[
+                      styles.segmentLabel,
+                      activeTab === 'passes' && styles.segmentLabelActive,
+                    ]}
+                  >
+                    Passes ({activePreOrders.length})
+                  </Text>
+                  {activePreOrders.length > 0 && (
+                    <View style={styles.liveOrderDot} />
+                  )}
+                </View>
               </Pressable>
             </View>
           </View>
 
-          {/* TAB 1: TASTING LOG & PASSPORT STAMPS */}
-          {activeTab === 'stamps' && (
+          {/* ======================================================== */}
+          {/* TAB 1: CART & PRE-ORDER CHECKOUT                         */}
+          {/* ======================================================== */}
+          {activeTab === 'cart' && (
             <View style={styles.tabContent}>
-              {tastingLog.length === 0 ? (
+              {items.length === 0 ? (
                 <View style={styles.emptyCard}>
-                  <Ionicons name="book-outline" size={44} color="#8E8E93" />
-                  <Text style={styles.emptyTitle}>Your Passport is Fresh</Text>
+                  <View style={styles.emptyIconCircle}>
+                    <Ionicons name="bag-handle-outline" size={38} color="#D42F13" />
+                  </View>
+                  <Text style={styles.emptyTitle}>Your Basket is Empty</Text>
                   <Text style={styles.emptyDesc}>
-                    Begin exploring Naga&apos;s carinderias, order authentic dishes, and stamp your
-                    first bowl!
+                    Craving authentic Naga dishes? Explore local carinderias and bakeries, pick your favorites, and reserve an expedition pass.
                   </Text>
-                  <Pressable onPress={openLogModal} style={styles.emptyActionBtn}>
-                    <Text style={styles.emptyActionBtnText}>Stamp First Tasting</Text>
-                  </Pressable>
+                  <View style={styles.emptyActionsRow}>
+                    <Pressable
+                      onPress={() => router.push('/search')}
+                      style={({ pressed }) => [styles.emptyPrimaryBtn, pressed && styles.pressed]}
+                    >
+                      <Ionicons name="search" size={16} color="#FFFFFF" />
+                      <Text style={styles.emptyPrimaryText}>Search Dishes & Spots</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => router.push('/explore')}
+                      style={({ pressed }) => [styles.emptySecondaryBtn, pressed && styles.pressed]}
+                    >
+                      <Ionicons name="book-outline" size={16} color="#111111" />
+                      <Text style={styles.emptySecondaryText}>Flavor Codex</Text>
+                    </Pressable>
+                  </View>
                 </View>
               ) : (
-                <View style={styles.stampsList}>
-                  {tastingLog.map((entry) => (
-                    <View key={entry.id} style={styles.stampCard}>
-                      <View style={styles.stampCardHeader}>
-                        {entry.image ? (
-                          <Image source={{ uri: entry.image }} style={styles.stampThumb} />
-                        ) : (
-                          <View style={styles.stampThumbPlaceholder}>
-                            <Ionicons name="restaurant" size={20} color="#D42F13" />
-                          </View>
-                        )}
-                        <View style={styles.stampInfo}>
-                          <View style={styles.stampBadgeOfficial}>
-                            <Ionicons name="checkmark-circle" size={12} color="#D42F13" />
-                            <Text style={styles.stampBadgeOfficialText}>VERIFIED TASTING</Text>
-                          </View>
-                          <Text style={styles.stampFoodName}>{entry.foodName}</Text>
-                          <Text style={styles.stampEstName}>
-                            at <Text style={{ fontWeight: '600' }}>{entry.establishmentName}</Text>
-                          </Text>
-                          <Text style={styles.stampDate}>{entry.date}</Text>
-                        </View>
-                      </View>
-
-                      {/* Ratings Row */}
-                      <View style={styles.stampRatingsRow}>
-                        <View style={styles.ratingCol}>
-                          <Text style={styles.ratingLabel}>Flavor</Text>
-                          <View style={styles.starsRow}>
-                            {[1, 2, 3, 4, 5].map((s) => (
-                              <Ionicons
-                                key={s}
-                                name={s <= entry.rating ? 'star' : 'star-outline'}
-                                size={13}
-                                color="#FF9500"
-                              />
-                            ))}
-                          </View>
-                        </View>
-
-                        <View style={styles.ratingCol}>
-                          <Text style={styles.ratingLabel}>Heat</Text>
-                          <View style={styles.starsRow}>
-                            {[1, 2, 3, 4, 5].map((s) => (
-                              <Ionicons
-                                key={s}
-                                name="flame"
-                                size={14}
-                                color={s <= entry.spiceRating ? '#D42F13' : '#E5E5EA'}
-                              />
-                            ))}
-                          </View>
-                        </View>
-                      </View>
-
-                      {/* Notes Box */}
-                      {entry.notes && (
-                        <View style={styles.stampNotesBox}>
-                          <Text style={styles.stampNotesText}>
-                            &ldquo;{entry.notes}&rdquo;
-                          </Text>
-                        </View>
-                      )}
+                <View style={styles.cartContent}>
+                  {/* Establishment Header */}
+                  <View style={styles.establishmentHeaderCard}>
+                    <View style={styles.estIconBox}>
+                      <Ionicons name="storefront" size={20} color="#D42F13" />
                     </View>
-                  ))}
+                    <View style={styles.estInfoBlock}>
+                      <View style={styles.estBadgeRow}>
+                        <Text style={styles.estBadgeText}>PARTNER CARINDERIA</Text>
+                        <Ionicons name="checkmark-circle" size={13} color="#34C759" />
+                      </View>
+                      <Text style={styles.estNameText} numberOfLines={1}>
+                        {establishmentName}
+                      </Text>
+                      <Text style={styles.estAddressText} numberOfLines={1}>
+                        {establishmentAddress}
+                      </Text>
+                    </View>
+                    {establishmentId && (
+                      <Pressable
+                        onPress={() => router.push(`/establishment/${establishmentId}` as any)}
+                        style={({ pressed }) => [styles.addMoreBtn, pressed && styles.pressed]}
+                        hitSlop={8}
+                      >
+                        <Ionicons name="add" size={15} color="#D42F13" />
+                        <Text style={styles.addMoreText}>Add</Text>
+                      </Pressable>
+                    )}
+                  </View>
+
+                  {/* Items List */}
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionLabel}>Order Items ({basketCount})</Text>
+                  </View>
+
+                  <View style={styles.itemsCard}>
+                    {items.map((item, index) => {
+                      const isLast = index === items.length - 1;
+                      return (
+                        <View
+                          key={item.id}
+                          style={[styles.itemRow, isLast && styles.itemRowLast]}
+                        >
+                          <Image
+                            source={{ uri: item.image }}
+                            style={styles.itemThumb}
+                          />
+
+                          <View style={styles.itemDetails}>
+                            <Text style={styles.itemName} numberOfLines={2}>
+                              {item.foodName}
+                            </Text>
+                            <Text style={styles.itemPrice}>₱{item.price}</Text>
+
+                            {/* Cooking Note / Customization */}
+                            {item.selectedNote ? (
+                              <Pressable
+                                onPress={() => handleOpenNoteModal(item)}
+                                style={({ pressed }) => [styles.noteChip, pressed && styles.pressed]}
+                              >
+                                <Ionicons name="pencil" size={10} color="#8E8E93" />
+                                <Text style={styles.noteChipText} numberOfLines={1}>
+                                  &ldquo;{item.selectedNote}&rdquo;
+                                </Text>
+                              </Pressable>
+                            ) : (
+                              <Pressable
+                                onPress={() => handleOpenNoteModal(item)}
+                                style={({ pressed }) => [styles.addNoteChip, pressed && styles.pressed]}
+                              >
+                                <Ionicons name="add" size={11} color="#D42F13" />
+                                <Text style={styles.addNoteChipText}>Add cooking note</Text>
+                              </Pressable>
+                            )}
+                          </View>
+
+                          {/* Quantity Stepper */}
+                          <View style={styles.stepperContainer}>
+                            <Pressable
+                              onPress={() => updateQuantity(item.id, -1)}
+                              style={({ pressed }) => [styles.stepperBtn, pressed && styles.pressed]}
+                              hitSlop={6}
+                              accessibilityLabel="Decrease quantity"
+                            >
+                              <Ionicons
+                                name={item.quantity === 1 ? 'trash-outline' : 'remove'}
+                                size={15}
+                                color={item.quantity === 1 ? '#D42F13' : '#111111'}
+                              />
+                            </Pressable>
+
+                            <Text style={styles.stepperCount}>{item.quantity}</Text>
+
+                            <Pressable
+                              onPress={() => updateQuantity(item.id, 1)}
+                              style={({ pressed }) => [styles.stepperBtn, pressed && styles.pressed]}
+                              hitSlop={6}
+                              accessibilityLabel="Increase quantity"
+                            >
+                              <Ionicons name="add" size={15} color="#111111" />
+                            </Pressable>
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+
+                  {/* Dining Option Selector */}
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionLabel}>Dining Option</Text>
+                  </View>
+                  <View style={styles.optionRow}>
+                    <Pressable
+                      onPress={() => setDiningOption('dine_in')}
+                      style={[
+                        styles.optionCard,
+                        diningOption === 'dine_in' && styles.optionCardActive,
+                      ]}
+                    >
+                      <View style={styles.optionIconCircle}>
+                        <Ionicons
+                          name="restaurant"
+                          size={18}
+                          color={diningOption === 'dine_in' ? '#D42F13' : '#8E8E93'}
+                        />
+                      </View>
+                      <View style={styles.optionTextCol}>
+                        <Text
+                          style={[
+                            styles.optionTitle,
+                            diningOption === 'dine_in' && styles.optionTitleActive,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          Dine-In Pass
+                        </Text>
+                        <Text style={styles.optionSub} numberOfLines={1}>
+                          Table meal, skip counter wait
+                        </Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.optionIndicator,
+                          diningOption === 'dine_in'
+                            ? styles.optionIndicatorActive
+                            : styles.optionIndicatorInactive,
+                        ]}
+                      >
+                        {diningOption === 'dine_in' && (
+                          <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                        )}
+                      </View>
+                    </Pressable>
+
+                    <Pressable
+                      onPress={() => setDiningOption('takeout')}
+                      style={[
+                        styles.optionCard,
+                        diningOption === 'takeout' && styles.optionCardActive,
+                      ]}
+                    >
+                      <View style={styles.optionIconCircle}>
+                        <Ionicons
+                          name="bag-handle"
+                          size={18}
+                          color={diningOption === 'takeout' ? '#D42F13' : '#8E8E93'}
+                        />
+                      </View>
+                      <View style={styles.optionTextCol}>
+                        <Text
+                          style={[
+                            styles.optionTitle,
+                            diningOption === 'takeout' && styles.optionTitleActive,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          Takeout Box
+                        </Text>
+                        <Text style={styles.optionSub} numberOfLines={1}>
+                          Packed hot for pickup
+                        </Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.optionIndicator,
+                          diningOption === 'takeout'
+                            ? styles.optionIndicatorActive
+                            : styles.optionIndicatorInactive,
+                        ]}
+                      >
+                        {diningOption === 'takeout' && (
+                          <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                        )}
+                      </View>
+                    </Pressable>
+                  </View>
+
+                  {/* Pickup Time Slots */}
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionLabel}>Estimated Pickup Time</Text>
+                  </View>
+                  <View style={styles.slotPillRow}>
+                    {PICKUP_TIME_SLOTS.map((slot) => {
+                      const isSelected = pickupTimeSlot === slot;
+                      return (
+                        <Pressable
+                          key={slot}
+                          onPress={() => setPickupTimeSlot(slot)}
+                          style={[
+                            styles.slotPill,
+                            isSelected && styles.slotPillActive,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.slotPillText,
+                              isSelected && styles.slotPillTextActive,
+                            ]}
+                          >
+                            {slot}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  {/* Special Cooking Instructions Box */}
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionLabel}>Kitchen Instructions (Optional)</Text>
+                  </View>
+                  <View style={styles.instructionCard}>
+                    <Ionicons name="chatbox-ellipses-outline" size={18} color="#8E8E93" style={{ marginTop: 2 }} />
+                    <TextInput
+                      style={styles.instructionInput}
+                      placeholder="e.g. Extra spicy, separate broth, less oil, extra calamansi..."
+                      placeholderTextColor="#8E8E93"
+                      value={specialInstructions}
+                      onChangeText={setSpecialInstructions}
+                      multiline
+                      maxLength={140}
+                    />
+                  </View>
+
+                  {/* Bill Breakdown & Total */}
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionLabel}>Payment Summary</Text>
+                  </View>
+                  <View style={styles.billCard}>
+                    <View style={styles.billRow}>
+                      <Text style={styles.billLabel}>Item Subtotal</Text>
+                      <Text style={styles.billValue}>₱{subtotal}</Text>
+                    </View>
+                    <View style={styles.billRow}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <Text style={styles.billLabel}>Reservation Service Fee</Text>
+                        <View style={styles.freePill}>
+                          <Text style={styles.freePillText}>FREE</Text>
+                        </View>
+                      </View>
+                      <Text style={[styles.billValue, { color: '#34C759' }]}>₱0</Text>
+                    </View>
+                    <View style={styles.billDivider} />
+                    <View style={styles.billRowTotal}>
+                      <Text style={styles.totalLabel}>Total Due at Counter</Text>
+                      <Text style={styles.totalValue}>₱{total}</Text>
+                    </View>
+                    <View style={styles.paymentMethodNotice}>
+                      <Ionicons name="card-outline" size={14} color="#666666" />
+                      <Text style={styles.paymentNoticeText}>
+                        Pay directly upon counter pickup · Cash, GCash, or Maya
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Action CTA Button */}
+                  <Pressable
+                    onPress={() => router.push('/payment')}
+                    style={({ pressed }) => [styles.confirmBtn, pressed && styles.pressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Proceed to payment for ₱${total}`}
+                  >
+                    <Text style={styles.confirmBtnText}>
+                      Proceed to Payment (₱{total})
+                    </Text>
+                    <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+                  </Pressable>
                 </View>
               )}
             </View>
           )}
 
-          {/* TAB 2: BADGES & EXPEDITIONS */}
-          {activeTab === 'badges' && (
-            <View style={styles.tabContent}>
-              <Text style={styles.sectionHeading}>Collectible Badges</Text>
-              <Text style={styles.sectionSubHeading}>
-                Earn authentic Bikolano badges as you taste dishes across Naga City.
-              </Text>
-
-              <View style={styles.badgesGrid}>
-                {COLLECTIBLE_BADGES.map((badge) => {
-                  const isUnlocked = unlockedBadgeIds.includes(badge.id);
-
-                  return (
-                    <View
-                      key={badge.id}
-                      style={[styles.badgeTile, isUnlocked ? styles.badgeTileUnlocked : styles.badgeTileLocked]}
-                    >
-                      <View
-                        style={[
-                          styles.badgeIconCircle,
-                          isUnlocked ? { backgroundColor: '#FFF0EE' } : { backgroundColor: '#E5E5EA' },
-                        ]}
-                      >
-                        <Ionicons
-                          name={badge.icon as any}
-                          size={24}
-                          color={isUnlocked ? badge.color : '#8E8E93'}
-                        />
-                      </View>
-
-                      <Text style={[styles.badgeTileName, !isUnlocked && styles.badgeTextLocked]}>
-                        {badge.name}
-                      </Text>
-                      <Text style={styles.badgeTileCriteria} numberOfLines={2}>
-                        {badge.criteria}
-                      </Text>
-
-                      <View
-                        style={[
-                          styles.badgeRewardPill,
-                          isUnlocked ? styles.badgeRewardPillUnlocked : styles.badgeRewardPillLocked,
-                        ]}
-                      >
-                        <Text style={styles.badgeRewardPillText}>
-                          {isUnlocked ? `Unlocked (+${badge.xpReward} XP)` : `+${badge.xpReward} XP`}
-                        </Text>
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-
-              {/* Active Daily Food Quests */}
-              <View style={{ marginTop: 22, marginHorizontal: -16 }}>
-                <ActiveQuestLogWidget />
-              </View>
-
-              {/* Ranks Ladder */}
-              <Text style={[styles.sectionHeading, { marginTop: 8 }]}>Naga Explorer Titles</Text>
-              <View style={styles.rankLadderCard}>
-                {EXPLORER_RANKS.map((rank, idx) => {
-                  const isCurrent = currentRank.level === rank.level;
-                  const isPassed = currentRank.level > rank.level;
-
-                  return (
-                    <View
-                      key={rank.level}
-                      style={[
-                        styles.rankLadderRow,
-                        idx === EXPLORER_RANKS.length - 1 && styles.rankLadderRowLast,
-                      ]}
-                    >
-                      <View
-                        style={[
-                          styles.rankDot,
-                          isCurrent && styles.rankDotCurrent,
-                          isPassed && styles.rankDotPassed,
-                        ]}
-                      >
-                        {isPassed && <Ionicons name="checkmark" size={10} color="#FFFFFF" />}
-                      </View>
-                      <View style={styles.rankLadderInfo}>
-                        <View style={styles.rankLadderHeader}>
-                          <Text
-                            style={[
-                              styles.rankLadderTitle,
-                              isCurrent && styles.rankLadderTitleCurrent,
-                            ]}
-                          >
-                            Lvl {rank.level}: {rank.title}
-                          </Text>
-                          {isCurrent && (
-                            <View style={styles.currentTitleBadge}>
-                              <Text style={styles.currentTitleBadgeText}>CURRENT</Text>
-                            </View>
-                          )}
-                        </View>
-                        <Text style={styles.rankLadderDesc}>{rank.description}</Text>
-                        <Text style={styles.rankLadderXp}>{rank.minXp} XP required</Text>
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          )}
-
-          {/* TAB 3: DINE-IN PASSES (PRE-ORDERS) */}
+          {/* ======================================================== */}
+          {/* TAB 2: ACTIVE PASSES & LIVE ORDER TRACKER                */}
+          {/* ======================================================== */}
           {activeTab === 'passes' && (
             <View style={styles.tabContent}>
-              {items.length === 0 ? (
+              {activePreOrders.length === 0 ? (
                 <View style={styles.emptyCard}>
-                  <Ionicons name="ticket-outline" size={44} color="#8E8E93" />
+                  <View style={styles.emptyIconCircle}>
+                    <Ionicons name="ticket-outline" size={38} color="#007AFF" />
+                  </View>
                   <Text style={styles.emptyTitle}>No Active Dine-In Passes</Text>
                   <Text style={styles.emptyDesc}>
-                    Pre-order a meal from any carinderia or bakery to skip waiting in line.
+                    When you reserve dishes from any local carinderia or store, your digital passes and live kitchen status tracker appear here.
                   </Text>
-                  <Pressable onPress={() => router.push('/')} style={styles.emptyActionBtn}>
-                    <Text style={styles.emptyActionBtnText}>Explore Spots</Text>
+                  <Pressable
+                    onPress={() => setActiveTab('cart')}
+                    style={({ pressed }) => [styles.emptyPrimaryBtn, pressed && styles.pressed]}
+                  >
+                    <Ionicons name="cart-outline" size={16} color="#FFFFFF" />
+                    <Text style={styles.emptyPrimaryText}>View Food Basket</Text>
                   </Pressable>
                 </View>
               ) : (
                 <View style={styles.ordersContent}>
-                  {/* Establishment Info Header */}
-                  <View style={styles.establishmentHeaderCard}>
-                    <Ionicons name="storefront" size={18} color="#D42F13" />
-                    <View style={styles.establishmentHeaderInfo}>
-                      <Text style={styles.establishmentHeaderName}>
-                        {items[0].establishmentName}
-                      </Text>
-                      <Text style={styles.establishmentHeaderAddress}>
-                        {items[0].establishmentAddress}
-                      </Text>
-                    </View>
-                  </View>
+                  {activePreOrders.map((order) => {
+                    const isReceived = order.status === 'received';
+                    const isPreparing = order.status === 'preparing';
+                    const isReady = order.status === 'ready';
+                    const isCompleted = order.status === 'completed';
 
-                  {/* Items List */}
-                  <View style={styles.itemsCard}>
-                    {items.map((item, index) => (
-                      <View
-                        key={`${item.foodId}-${index}`}
-                        style={[
-                          styles.itemRow,
-                          index === items.length - 1 && styles.itemRowLast,
-                        ]}
-                      >
-                        <Image source={{ uri: item.image }} style={styles.itemImage} />
-                        <View style={styles.itemInfo}>
-                          <Text style={styles.itemName}>{item.foodName}</Text>
-                          <Text style={styles.itemPrice}>₱{item.price}</Text>
+                    return (
+                      <View key={order.id} style={styles.passTicketCard}>
+                        {/* Ticket Header */}
+                        <View style={styles.ticketTopHeader}>
+                          <View>
+                            <View style={styles.orderNumberRow}>
+                              <Text style={styles.orderNumberText}>{order.orderNumber}</Text>
+                              <View
+                                style={[
+                                  styles.statusBadge,
+                                  isReceived && styles.statusBadgeReceived,
+                                  isPreparing && styles.statusBadgePreparing,
+                                  isReady && styles.statusBadgeReady,
+                                  isCompleted && styles.statusBadgeCompleted,
+                                ]}
+                              >
+                                <Ionicons
+                                  name={
+                                    isReady
+                                      ? 'checkmark-circle'
+                                      : isPreparing
+                                      ? 'flame'
+                                      : isReceived
+                                      ? 'time'
+                                      : 'checkbox'
+                                  }
+                                  size={12}
+                                  color={
+                                    isReady
+                                      ? '#2E7D32'
+                                      : isPreparing
+                                      ? '#1976D2'
+                                      : isReceived
+                                      ? '#E65100'
+                                      : '#666666'
+                                  }
+                                />
+                                <Text
+                                  style={[
+                                    styles.statusBadgeText,
+                                    isReady && styles.statusTextReady,
+                                    isPreparing && styles.statusTextPreparing,
+                                    isReceived && styles.statusTextReceived,
+                                    isCompleted && styles.statusTextCompleted,
+                                  ]}
+                                >
+                                  {isReady
+                                    ? 'READY FOR PICKUP'
+                                    : isPreparing
+                                    ? 'IN KITCHEN'
+                                    : isReceived
+                                    ? 'ORDER RECEIVED'
+                                    : 'COMPLETED'}
+                                </Text>
+                              </View>
+                            </View>
+                            <Text style={styles.ticketEstName}>{order.establishmentName}</Text>
+                            <Text style={styles.ticketEstAddress}>{order.establishmentAddress}</Text>
+                          </View>
                         </View>
-                        <View style={styles.quantityControls}>
-                          <Pressable
-                            onPress={() => updateQuantity(item.foodId, item.quantity - 1)}
-                            style={styles.qtyBtn}
+
+                        {/* 4-Step Progress Tracker */}
+                        <View style={styles.trackerWrapper}>
+                          <View style={styles.trackerTrack}>
+                            {/* Step 1: Received */}
+                            <View style={styles.trackerStep}>
+                              <View
+                                style={[
+                                  styles.stepCircle,
+                                  (isReceived || isPreparing || isReady || isCompleted) && styles.stepCircleActive,
+                                ]}
+                              >
+                                <Ionicons name="receipt" size={13} color="#FFFFFF" />
+                              </View>
+                              <Text style={styles.stepLabel}>Received</Text>
+                            </View>
+
+                            <View
+                              style={[
+                                styles.stepLine,
+                                (isPreparing || isReady || isCompleted) && styles.stepLineActive,
+                              ]}
+                            />
+
+                            {/* Step 2: Preparing */}
+                            <View style={styles.trackerStep}>
+                              <View
+                                style={[
+                                  styles.stepCircle,
+                                  (isPreparing || isReady || isCompleted) && styles.stepCircleActive,
+                                ]}
+                              >
+                                <Ionicons name="flame" size={13} color="#FFFFFF" />
+                              </View>
+                              <Text style={styles.stepLabel}>Cooking</Text>
+                            </View>
+
+                            <View
+                              style={[
+                                styles.stepLine,
+                                (isReady || isCompleted) && styles.stepLineActive,
+                              ]}
+                            />
+
+                            {/* Step 3: Ready */}
+                            <View style={styles.trackerStep}>
+                              <View
+                                style={[
+                                  styles.stepCircle,
+                                  (isReady || isCompleted) && styles.stepCircleGreen,
+                                ]}
+                              >
+                                <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                              </View>
+                              <Text style={styles.stepLabel}>Ready</Text>
+                            </View>
+
+                            <View
+                              style={[
+                                styles.stepLine,
+                                isCompleted && styles.stepLineActive,
+                              ]}
+                            />
+
+                            {/* Step 4: Picked up */}
+                            <View style={styles.trackerStep}>
+                              <View
+                                style={[
+                                  styles.stepCircle,
+                                  isCompleted ? styles.stepCircleActive : styles.stepCirclePending,
+                                ]}
+                              >
+                                <Ionicons name="happy" size={13} color={isCompleted ? '#FFFFFF' : '#8E8E93'} />
+                              </View>
+                              <Text style={styles.stepLabel}>Served</Text>
+                            </View>
+                          </View>
+
+                          {/* Live Alert Banner */}
+                          <View
+                            style={[
+                              styles.etaBanner,
+                              isReady && styles.etaBannerReady,
+                            ]}
                           >
-                            <Ionicons name="remove" size={16} color="#000000" />
-                          </Pressable>
-                          <Text style={styles.qtyText}>{item.quantity}</Text>
+                            <Ionicons
+                              name={isReady ? 'notifications' : 'time-outline'}
+                              size={16}
+                              color={isReady ? '#2E7D32' : '#007AFF'}
+                            />
+                            <Text
+                              style={[
+                                styles.etaBannerText,
+                                isReady && styles.etaBannerTextReady,
+                              ]}
+                            >
+                              {isReady
+                                ? 'Your meal is ready! Present this digital pass at the counter.'
+                                : isPreparing
+                                ? `Freshly cooking · Approx ${order.estimatedMinutesRemaining} mins remaining`
+                                : `Order received · Target: ${order.pickupTimeSlot}`}
+                            </Text>
+                          </View>
+                        </View>
+
+                        {/* Perforated Ticket Notches & Divider */}
+                        <View style={styles.perforatedRow}>
+                          <View style={styles.leftNotch} />
+                          <View style={styles.dashedLine} />
+                          <View style={styles.rightNotch} />
+                        </View>
+
+                        {/* Ticket Lower Section: Digital Pass & QR Voucher */}
+                        <View style={styles.ticketBottomBody}>
+                          <View style={styles.qrPassCard}>
+                            <Pressable
+                              onPress={() => setEnlargedQrPass(order)}
+                              style={({ pressed }) => [
+                                styles.qrCodeWrapper,
+                                pressed && styles.pressed,
+                              ]}
+                              hitSlop={6}
+                            >
+                              <View style={styles.qrCodeContainer}>
+                                <QRCode
+                                  value={`PINOYPASS:${order.id}:${order.orderNumber}:${order.establishmentName}:${order.total}`}
+                                  size={68}
+                                  color="#111111"
+                                  backgroundColor="#FFFFFF"
+                                />
+                              </View>
+                              <Text style={styles.qrTapToEnlarge}>Tap to enlarge</Text>
+                            </Pressable>
+                            <View style={styles.qrInstructions}>
+                              <Text style={styles.qrPassTitle}>OFFICIAL PASS</Text>
+                              <Text style={styles.qrPassCode}>{order.orderNumber}</Text>
+                              <View style={styles.diningTypeChip}>
+                                <Ionicons
+                                  name={order.diningOption === 'takeout' ? 'bag-handle' : 'restaurant'}
+                                  size={11}
+                                  color="#444444"
+                                />
+                                <Text style={styles.diningTypeChipText}>
+                                  {order.diningOption === 'takeout' ? 'Takeout Box' : 'Dine-In Pass'}
+                                </Text>
+                              </View>
+
+                              {/* Payment Status Chip */}
+                              <View
+                                style={[
+                                  styles.diningTypeChip,
+                                  order.paymentStatus === 'paid'
+                                    ? { backgroundColor: '#E8F5E9' }
+                                    : { backgroundColor: '#FFF3E0' },
+                                ]}
+                              >
+                                <Ionicons
+                                  name={order.paymentStatus === 'paid' ? 'checkmark-circle' : 'cash-outline'}
+                                  size={11}
+                                  color={order.paymentStatus === 'paid' ? '#2E7D32' : '#E65100'}
+                                />
+                                <Text
+                                  style={[
+                                    styles.diningTypeChipText,
+                                    {
+                                      color: order.paymentStatus === 'paid' ? '#2E7D32' : '#E65100',
+                                      fontWeight: '700',
+                                    },
+                                  ]}
+                                >
+                                  {order.paymentStatus === 'paid'
+                                    ? `PAID · ${order.paymentMethod === 'gcash' ? 'GCASH' : 'MAYA / QR PH'}`
+                                    : 'CASH ON ARRIVAL'}
+                                </Text>
+                              </View>
+                              {order.paymentRefNumber ? (
+                                <Text style={[styles.qrHint, { fontSize: 10, color: '#2E7D32' }]}>
+                                  Ref: {order.paymentRefNumber}
+                                </Text>
+                              ) : null}
+                              <Text style={styles.qrHint}>Show at counter upon arrival</Text>
+                            </View>
+                          </View>
+
+                          {/* Ordered Items Preview */}
+                          <View style={styles.orderItemsBreakdown}>
+                            <Text style={styles.orderSummaryTitle}>Ordered Dishes:</Text>
+                            {order.items.map((it) => (
+                              <View key={it.id} style={styles.orderSummaryRow}>
+                                <Text style={styles.orderSummaryQty}>{it.quantity}×</Text>
+                                <Text style={styles.orderSummaryName} numberOfLines={1}>
+                                  {it.foodName}
+                                </Text>
+                                <Text style={styles.orderSummaryPrice}>₱{it.price * it.quantity}</Text>
+                              </View>
+                            ))}
+                            {order.specialInstructions ? (
+                              <Text style={styles.orderSpecialNotes}>
+                                Note: &ldquo;{order.specialInstructions}&rdquo;
+                              </Text>
+                            ) : null}
+                            <View style={styles.orderTotalRow}>
+                              <Text style={styles.orderTotalLabel}>
+                                {order.paymentStatus === 'paid' ? 'Total Paid' : 'Total at Counter (Cash)'}
+                              </Text>
+                              <Text style={styles.orderTotalValue}>₱{order.total}</Text>
+                            </View>
+                          </View>
+
+                          {/* Quick Actions Row */}
+                          <View style={styles.ticketActionRow}>
+                            <Pressable
+                              onPress={() => handleCallEstablishment()}
+                              style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
+                            >
+                              <Ionicons name="call-outline" size={15} color="#111111" />
+                              <Text style={styles.actionButtonText}>Call Counter</Text>
+                            </Pressable>
+
+                            <Pressable
+                              onPress={() => router.push('/map')}
+                              style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
+                            >
+                              <Ionicons name="navigate-outline" size={15} color="#111111" />
+                              <Text style={styles.actionButtonText}>Directions</Text>
+                            </Pressable>
+
+                            {isReceived && (
+                              <Pressable
+                                onPress={() => handleCancelOrderPrompt(order.id)}
+                                style={({ pressed }) => [styles.cancelOrderBtn, pressed && styles.pressed]}
+                              >
+                                <Ionicons name="close-circle-outline" size={15} color="#D42F13" />
+                                <Text style={styles.cancelOrderText}>Cancel</Text>
+                              </Pressable>
+                            )}
+                          </View>
+
+                          {/* Demo Interactive Advance Pill */}
                           <Pressable
-                            onPress={() => updateQuantity(item.foodId, item.quantity + 1)}
-                            style={styles.qtyBtn}
+                            onPress={() => advanceOrderStatusDemo(order.id)}
+                            style={({ pressed }) => [styles.demoAdvanceBtn, pressed && styles.pressed]}
                           >
-                            <Ionicons name="add" size={16} color="#000000" />
+                            <Ionicons name="flash" size={13} color="#FF9500" />
+                            <Text style={styles.demoAdvanceText}>
+                              Simulate Kitchen Progress (Tap to advance)
+                            </Text>
                           </Pressable>
                         </View>
                       </View>
-                    ))}
-                  </View>
-
-                  {/* Order Summary & Place Reservation Button */}
-                  <View style={styles.summaryCard}>
-                    <View style={styles.summaryRow}>
-                      <Text style={styles.summaryLabel}>Total Due at Counter</Text>
-                      <Text style={styles.summaryValue}>₱{total}</Text>
-                    </View>
-                    <Pressable
-                      onPress={handlePlaceOrder}
-                      style={({ pressed }) => [styles.placePassBtn, pressed && styles.pressed]}
-                    >
-                      <Text style={styles.placePassBtnText}>Confirm Dine-In Pass (₱{total})</Text>
-                    </Pressable>
-                  </View>
+                    );
+                  })}
                 </View>
               )}
             </View>
           )}
+
+          {/* Discreet Tasting Passport Banner */}
+          <View style={styles.passportShortcutCard}>
+            <View style={styles.passportShortcutLeft}>
+              <View style={styles.passportShortcutIconCircle}>
+                <Ionicons name="ribbon-outline" size={18} color="#D42F13" />
+              </View>
+              <View style={styles.passportShortcutTextCol}>
+                <Text style={styles.passportShortcutTitle} numberOfLines={1}>
+                  Culinary Passport & Badges
+                </Text>
+                <Text style={styles.passportShortcutDesc} numberOfLines={1}>
+                  Track your tasting stamps and Bikolano explorer ranks
+                </Text>
+              </View>
+            </View>
+            <Pressable
+              onPress={() => router.push('/profile')}
+              style={({ pressed }) => [styles.passportShortcutBtn, pressed && styles.pressed]}
+              hitSlop={8}
+            >
+              <Text style={styles.passportShortcutBtnText}>View in Profile</Text>
+              <Ionicons name="chevron-forward" size={14} color="#D42F13" />
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
 
       {/* Floating Bottom Nav */}
       <NavBar currentTab="basket" />
 
-      {/* Passport Stamp Logger Modal */}
-      <PassportStampModal
-        visible={stampModalVisible}
-        onClose={() => setStampModalVisible(false)}
-        foodId={selectedFoodForStamp.id}
-        foodName={selectedFoodForStamp.name}
-        establishmentId={selectedEstForStamp.id}
-        establishmentName={selectedEstForStamp.name}
-        image={selectedFoodForStamp.image}
-      />
+      {/* Note Editing Modal */}
+      <Modal visible={!!editingItem} animationType="fade" transparent>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHeaderRow}>
+              <Text style={styles.modalTitle}>Special Cooking Note</Text>
+              <Pressable onPress={() => setEditingItem(null)} hitSlop={8}>
+                <Ionicons name="close" size={22} color="#8E8E93" />
+              </Pressable>
+            </View>
+            <Text style={styles.modalSubTitle}>{editingItem?.foodName}</Text>
 
-      {/* Confirmation Modal */}
+            <TextInput
+              style={styles.modalNoteInput}
+              placeholder="e.g. Extra chili paste, broth on the side, well done..."
+              placeholderTextColor="#8E8E93"
+              value={noteInput}
+              onChangeText={setNoteInput}
+              multiline
+              autoFocus
+              maxLength={100}
+            />
+
+            <View style={styles.modalBtnRow}>
+              <Pressable
+                onPress={() => setEditingItem(null)}
+                style={styles.modalSecondaryBtn}
+              >
+                <Text style={styles.modalSecondaryText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={handleSaveNote}
+                style={styles.modalPrimaryBtn}
+              >
+                <Text style={styles.modalPrimaryText}>Save Note</Text>
+              </Pressable>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Order Confirmed Celebration Modal */}
       <Modal visible={confirmModalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <Ionicons name="checkmark-circle" size={48} color="#34C759" style={{ marginBottom: 12 }} />
-            <Text style={styles.modalTitle}>Pass Confirmed!</Text>
-            <Text style={styles.modalDesc}>
-              Your expedition order has been reserved at {placedOrder?.establishmentName}. Show your
-              order ID <Text style={{ fontWeight: '700' }}>{placedOrder?.orderNumber}</Text> at the counter.
+          <View style={styles.modalSuccessCard}>
+            <View style={styles.successIconBadge}>
+              <Ionicons name="checkmark-circle" size={54} color="#34C759" />
+            </View>
+            <Text style={styles.successTitle}>Pre-Order Pass Confirmed!</Text>
+            <Text style={styles.successDesc}>
+              Your expedition order has been received at{' '}
+              <Text style={{ fontWeight: '700', color: '#111111' }}>
+                {confirmedOrder?.establishmentName}
+              </Text>
+              . Show your order ID at the counter when you arrive.
             </Text>
+
+            <View style={styles.orderSummaryPill}>
+              <Text style={styles.orderSummaryPillLabel}>ORDER NUMBER</Text>
+              <Text style={styles.orderSummaryPillValue}>{confirmedOrder?.orderNumber}</Text>
+            </View>
+
             <Pressable
-              onPress={() => setConfirmModalVisible(false)}
-              style={styles.modalCloseBtn}
+              onPress={() => {
+                setConfirmModalVisible(false);
+                setActiveTab('passes');
+              }}
+              style={styles.modalDoneBtn}
             >
-              <Text style={styles.modalCloseBtnText}>Done</Text>
+              <Text style={styles.modalDoneBtnText}>View My Digital Pass</Text>
+              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Enlarged QR Code Modal for Counter Scanner */}
+      <Modal visible={!!enlargedQrPass} animationType="fade" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.enlargedQrCard}>
+            <View style={styles.enlargedQrHeader}>
+              <View style={{ flex: 1, paddingRight: 8 }}>
+                <Text style={styles.enlargedQrTitle}>Digital Counter Pass</Text>
+                <Text style={styles.enlargedQrSubtitle} numberOfLines={1}>
+                  {enlargedQrPass?.establishmentName}
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => setEnlargedQrPass(null)}
+                style={styles.enlargedQrCloseBtn}
+                hitSlop={10}
+              >
+                <Ionicons name="close" size={20} color="#111111" />
+              </Pressable>
+            </View>
+
+            <View style={styles.enlargedQrCodeBox}>
+              {enlargedQrPass && (
+                <QRCode
+                  value={`PINOYPASS:${enlargedQrPass.id}:${enlargedQrPass.orderNumber}:${enlargedQrPass.establishmentName}:${enlargedQrPass.total}`}
+                  size={190}
+                  color="#111111"
+                  backgroundColor="#FFFFFF"
+                />
+              )}
+            </View>
+
+            <View style={styles.enlargedQrOrderInfo}>
+              <Text style={styles.enlargedQrOrderNum}>{enlargedQrPass?.orderNumber}</Text>
+              <Text style={styles.enlargedQrMeta}>
+                {enlargedQrPass?.diningOption === 'takeout' ? 'Takeout Box' : 'Dine-In Pass'} ·{' '}
+                {enlargedQrPass?.pickupTimeSlot}
+              </Text>
+              <Text style={styles.enlargedQrHint}>
+                Present this QR code directly to the vendor staff or counter scanner.
+              </Text>
+            </View>
+
+            <Pressable
+              onPress={() => setEnlargedQrPass(null)}
+              style={styles.enlargedQrDoneBtn}
+            >
+              <Text style={styles.enlargedQrDoneBtnText}>Done</Text>
             </Pressable>
           </View>
         </View>
@@ -520,7 +1086,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 90,
+    paddingBottom: 110,
   },
   mainContainer: {
     maxWidth: 600,
@@ -528,11 +1094,15 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingHorizontal: 16,
   },
+  pressed: {
+    opacity: 0.75,
+    transform: [{ scale: 0.98 }],
+  },
 
   // Title section
   titleSection: {
     paddingTop: Platform.OS === 'ios' ? 14 : 20,
-    paddingBottom: 14,
+    paddingBottom: 12,
   },
   titleRow: {
     flexDirection: 'row',
@@ -548,611 +1118,1185 @@ const styles = StyleSheet.create({
   },
   headingSerif: {
     fontFamily: serifFamily,
-    fontStyle: 'italic',
-    fontSize: 30,
     fontWeight: '400',
-    color: '#000000',
+    fontStyle: 'italic',
+    color: '#D42F13',
   },
   subheadText: {
     fontFamily: sansFamily,
-    fontSize: 13,
-    color: 'rgba(60, 60, 67, 0.65)',
+    fontSize: 14,
+    color: '#666666',
     marginTop: 4,
-    lineHeight: 18,
+    lineHeight: 19,
   },
-  logDishBtn: {
-    backgroundColor: '#D42F13',
+  clearBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  logDishBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '600',
-    marginLeft: 3,
-  },
-
-  // Rank Hero Card
-  rankHeroCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E5E5EA',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 1,
-      },
-      web: {
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-      },
-    }),
-  },
-  rankHeroTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  rankIconBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FFF0EE',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  rankHeroTitles: {
-    flex: 1,
-  },
-  rankHeroLevel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#D42F13',
-    letterSpacing: 0.5,
-  },
-  rankHeroName: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#000000',
-    marginTop: 1,
-  },
-  xpTotalBox: {
-    alignItems: 'flex-end',
-  },
-  xpTotalNumber: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#D42F13',
-  },
-  xpTotalLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#8E8E93',
-    letterSpacing: 0.4,
-  },
-  rankProgressSection: {
-    marginTop: 2,
-  },
-  rankProgressBarTrack: {
-    height: 6,
+    gap: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 14,
     backgroundColor: '#E5E5EA',
-    borderRadius: 3,
-    overflow: 'hidden',
   },
-  rankProgressBarFill: {
-    height: '100%',
-    backgroundColor: '#D42F13',
-    borderRadius: 3,
-  },
-  rankProgressLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 6,
-  },
-  rankProgressPercentText: {
-    fontSize: 11,
+  clearBtnText: {
+    fontSize: 12,
     fontWeight: '600',
-    color: '#1C1C1E',
-  },
-  rankNextRankText: {
-    fontSize: 11,
-    color: 'rgba(60, 60, 67, 0.60)',
+    color: '#666666',
   },
 
-  // Segmented control
+  // Segmented Switcher
   segmentWrapper: {
     marginBottom: 16,
   },
   segmentContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(118, 118, 128, 0.12)',
-    borderRadius: 9,
-    padding: 2,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 14,
+    padding: 3,
   },
-  segmentButton: {
+  segmentTab: {
     flex: 1,
-    paddingVertical: 7,
+    paddingVertical: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 7,
+    borderRadius: 11,
   },
-  segmentButtonActive: {
+  segmentTabActive: {
     backgroundColor: '#FFFFFF',
     ...Platform.select({
-      ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.12,
-        shadowRadius: 2,
-      },
-      android: {
+      web: { boxShadow: '0 2px 6px rgba(0,0,0,0.08)' } as any,
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
         elevation: 2,
-      },
-      web: {
-        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
       },
     }),
   },
-  segmentText: {
-    fontFamily: sansFamily,
-    fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(60, 60, 67, 0.60)',
-  },
-  segmentTextActive: {
-    fontWeight: '600',
-    color: '#000000',
-  },
-
-  tabContent: {
-    marginBottom: 20,
-  },
-
-  // Empty state
-  emptyCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E5E5EA',
-  },
-  emptyTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#000000',
-    marginTop: 10,
-    marginBottom: 4,
-  },
-  emptyDesc: {
-    fontSize: 13,
-    color: 'rgba(60, 60, 67, 0.65)',
-    textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 16,
-  },
-  emptyActionBtn: {
-    backgroundColor: '#D42F13',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  emptyActionBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-
-  // Stamps List
-  stampsList: {
-    gap: 12,
-  },
-  stampCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E5E5EA',
-  },
-  stampCardHeader: {
-    flexDirection: 'row',
-    marginBottom: 10,
-  },
-  stampThumb: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    backgroundColor: '#E5E5EA',
-    marginRight: 12,
-  },
-  stampThumbPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    backgroundColor: '#FFF0EE',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  stampInfo: {
-    flex: 1,
-  },
-  stampBadgeOfficial: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 3,
-  },
-  stampBadgeOfficialText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#D42F13',
-    marginLeft: 3,
-    letterSpacing: 0.4,
-  },
-  stampFoodName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  stampEstName: {
-    fontSize: 12,
-    color: 'rgba(60, 60, 67, 0.65)',
-    marginTop: 1,
-  },
-  stampDate: {
-    fontSize: 11,
-    color: '#8E8E93',
-    marginTop: 2,
-  },
-  stampRatingsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#F9F9FB',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginBottom: 8,
-  },
-  ratingCol: {
+  tabLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  ratingLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: 'rgba(60, 60, 67, 0.60)',
-  },
-  starsRow: {
-    flexDirection: 'row',
-    gap: 2,
-  },
-  stampNotesBox: {
-    paddingHorizontal: 4,
-  },
-  stampNotesText: {
-    fontSize: 12,
-    fontStyle: 'italic',
-    color: 'rgba(60, 60, 67, 0.85)',
-    lineHeight: 16,
-  },
-
-  // Badges grid
-  sectionHeading: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000000',
-    marginBottom: 2,
-  },
-  sectionSubHeading: {
-    fontSize: 12,
-    color: 'rgba(60, 60, 67, 0.60)',
-    marginBottom: 12,
-  },
-  badgesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  badgeTile: {
-    width: '48%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 12,
-    alignItems: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E5E5EA',
-  },
-  badgeTileUnlocked: {
-    borderColor: 'rgba(212, 47, 19, 0.2)',
-  },
-  badgeTileLocked: {
-    opacity: 0.6,
-  },
-  badgeIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  badgeTileName: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#000000',
-    textAlign: 'center',
-    marginBottom: 3,
-  },
-  badgeTextLocked: {
-    color: '#8E8E93',
-  },
-  badgeTileCriteria: {
-    fontSize: 11,
-    color: 'rgba(60, 60, 67, 0.60)',
-    textAlign: 'center',
-    lineHeight: 14,
-    marginBottom: 8,
-  },
-  badgeRewardPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  badgeRewardPillUnlocked: {
-    backgroundColor: '#FFF0EE',
-  },
-  badgeRewardPillLocked: {
-    backgroundColor: '#F2F2F7',
-  },
-  badgeRewardPillText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#D42F13',
-  },
-
-  // Ranks ladder
-  rankLadderCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 14,
-    marginTop: 8,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E5E5EA',
-  },
-  rankLadderRow: {
-    flexDirection: 'row',
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#F2F2F7',
-  },
-  rankLadderRowLast: {
-    borderBottomWidth: 0,
-  },
-  rankDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#E5E5EA',
-    marginTop: 3,
-    marginRight: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rankDotPassed: {
-    backgroundColor: '#34C759',
-  },
-  rankDotCurrent: {
-    backgroundColor: '#D42F13',
-  },
-  rankLadderInfo: {
-    flex: 1,
-  },
-  rankLadderHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  rankLadderTitle: {
+  segmentLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000000',
-  },
-  rankLadderTitleCurrent: {
-    color: '#D42F13',
-    fontWeight: '700',
-  },
-  currentTitleBadge: {
-    backgroundColor: '#FFF0EE',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  currentTitleBadgeText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#D42F13',
-  },
-  rankLadderDesc: {
-    fontSize: 12,
-    color: 'rgba(60, 60, 67, 0.60)',
-    marginTop: 1,
-  },
-  rankLadderXp: {
-    fontSize: 11,
-    fontWeight: '600',
     color: '#8E8E93',
-    marginTop: 2,
+  },
+  segmentLabelActive: {
+    color: '#1C1C1E',
+    fontWeight: '700',
+  },
+  liveOrderDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#D42F13',
   },
 
-  // Passes & Orders
-  ordersContent: {
+  tabContent: {
+    marginBottom: 16,
+  },
+
+  // Empty State
+  emptyCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 32,
+    alignItems: 'center',
+    textAlign: 'center',
+    marginVertical: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#FFF0EE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#111111',
+    marginBottom: 8,
+  },
+  emptyDesc: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+    maxWidth: 340,
+  },
+  emptyActionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  emptyPrimaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#D42F13',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+  },
+  emptyPrimaryText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  emptySecondaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F2F2F7',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+  },
+  emptySecondaryText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111111',
+  },
+
+  // Cart Content
+  cartContent: {
     gap: 12,
   },
   establishmentHeaderCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E5E5EA',
-  },
-  establishmentHeaderInfo: {
-    marginLeft: 8,
-  },
-  establishmentHeaderName: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  establishmentHeaderAddress: {
-    fontSize: 11,
-    color: 'rgba(60, 60, 67, 0.60)',
-  },
-  itemsCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 14,
-    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
     borderColor: '#E5E5EA',
+  },
+  estIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#FFF0EE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  estInfoBlock: {
+    flex: 1,
+  },
+  estBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 2,
+  },
+  estBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#D42F13',
+    letterSpacing: 0.5,
+  },
+  estNameText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111111',
+  },
+  estAddressText: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 1,
+  },
+  addMoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: '#FFF0EE',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+  },
+  addMoreText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#D42F13',
+  },
+
+  sectionHeaderRow: {
+    marginTop: 6,
+    marginBottom: 2,
+  },
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#8E8E93',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+
+  // Items Card
+  itemsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    overflow: 'hidden',
   },
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    padding: 12,
+    borderBottomWidth: 1,
     borderBottomColor: '#F2F2F7',
+    gap: 12,
   },
   itemRowLast: {
     borderBottomWidth: 0,
   },
-  itemImage: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    backgroundColor: '#E5E5EA',
-    marginRight: 10,
+  itemThumb: {
+    width: 68,
+    height: 68,
+    borderRadius: 12,
+    backgroundColor: '#F2F2F7',
   },
-  itemInfo: {
+  itemDetails: {
     flex: 1,
   },
   itemName: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#000000',
+    fontWeight: '700',
+    color: '#111111',
+    lineHeight: 18,
   },
   itemPrice: {
-    fontSize: 12,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#D42F13',
+    marginTop: 2,
+  },
+  noteChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F2F2F7',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    marginTop: 4,
+    alignSelf: 'flex-start',
+    maxWidth: 200,
+  },
+  noteChipText: {
+    fontSize: 11,
+    color: '#666666',
+    fontStyle: 'italic',
+  },
+  addNoteChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingVertical: 2,
+    marginTop: 4,
+    alignSelf: 'flex-start',
+  },
+  addNoteChipText: {
+    fontSize: 11,
     fontWeight: '600',
     color: '#D42F13',
   },
-  quantityControls: {
+
+  // Steppers
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F2F2F7',
+    borderRadius: 12,
+    padding: 3,
+  },
+  stepperBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperCount: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#111111',
+    paddingHorizontal: 10,
+  },
+
+  // Dining Option Cards
+  optionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'stretch',
+  },
+  optionCard: {
+    flex: 1,
+    minHeight: 64,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    borderWidth: 1.5,
+    borderColor: '#E5E5EA',
   },
-  qtyBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  optionCardActive: {
+    borderColor: '#D42F13',
+    backgroundColor: '#FFFBFB',
+  },
+  optionIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
     backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  qtyText: {
-    fontSize: 14,
+  optionTextCol: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: 'center',
+  },
+  optionTitle: {
+    fontSize: 13,
     fontWeight: '700',
-    color: '#000000',
+    color: '#666666',
   },
-  summaryCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E5E5EA',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  summaryLabel: {
-    fontSize: 14,
-    color: 'rgba(60, 60, 67, 0.70)',
-  },
-  summaryValue: {
-    fontSize: 18,
-    fontWeight: '700',
+  optionTitleActive: {
     color: '#D42F13',
   },
-  placePassBtn: {
-    backgroundColor: '#D42F13',
-    paddingVertical: 12,
-    borderRadius: 10,
+  optionSub: {
+    fontSize: 10,
+    color: '#8E8E93',
+    marginTop: 2,
+  },
+  optionIndicator: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  placePassBtnText: {
+  optionIndicatorActive: {
+    backgroundColor: '#D42F13',
+  },
+  optionIndicatorInactive: {
+    borderWidth: 1.5,
+    borderColor: '#C7C7CC',
+    backgroundColor: 'transparent',
+  },
+
+  // Pickup Slots
+  slotPillRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  slotPill: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  slotPillActive: {
+    backgroundColor: '#1C1C1E',
+    borderColor: '#1C1C1E',
+  },
+  slotPillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666666',
+  },
+  slotPillTextActive: {
     color: '#FFFFFF',
-    fontSize: 14,
     fontWeight: '700',
   },
 
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  modalSheet: {
-    width: '100%',
-    maxWidth: 360,
+  // Instruction Card
+  instructionCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
-    alignItems: 'center',
+    borderRadius: 14,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000000',
-    marginBottom: 6,
-  },
-  modalDesc: {
+  instructionInput: {
+    flex: 1,
     fontSize: 13,
-    color: 'rgba(60, 60, 67, 0.70)',
-    textAlign: 'center',
+    color: '#111111',
     lineHeight: 18,
-    marginBottom: 18,
+    minHeight: 44,
   },
-  modalCloseBtn: {
-    backgroundColor: '#1C1C1E',
-    width: '100%',
-    paddingVertical: 10,
-    borderRadius: 10,
+
+  // Bill Card
+  billCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  billRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 4,
   },
-  modalCloseBtnText: {
-    color: '#FFFFFF',
+  billLabel: {
+    fontSize: 13,
+    color: '#666666',
+  },
+  billValue: {
     fontSize: 14,
     fontWeight: '600',
+    color: '#111111',
   },
-  pressed: {
-    opacity: 0.85,
+  freePill: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  freePillText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#2E7D32',
+  },
+  billDivider: {
+    height: 1,
+    backgroundColor: '#F2F2F7',
+    marginVertical: 10,
+  },
+  billRowTotal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  totalLabel: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#111111',
+  },
+  totalValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#D42F13',
+  },
+  paymentMethodNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+    backgroundColor: '#F8F9FA',
+    padding: 8,
+    borderRadius: 10,
+  },
+  paymentNoticeText: {
+    fontSize: 11,
+    color: '#666666',
+    flex: 1,
+  },
+
+  // Confirm CTA
+  confirmBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#D42F13',
+    paddingVertical: 15,
+    borderRadius: 16,
+    marginTop: 8,
+    ...Platform.select({
+      web: { boxShadow: '0 6px 18px rgba(212, 47, 19, 0.35)' } as any,
+      default: {
+        shadowColor: '#D42F13',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
+      },
+    }),
+  },
+  confirmBtnText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+
+  // ========================================================
+  // Passes Styles
+  // ========================================================
+  ordersContent: {
+    gap: 16,
+  },
+  passTicketCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    overflow: 'hidden',
+    ...Platform.select({
+      web: { boxShadow: '0 8px 24px rgba(0,0,0,0.06)' } as any,
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.06,
+        shadowRadius: 10,
+        elevation: 4,
+      },
+    }),
+  },
+  ticketTopHeader: {
+    padding: 16,
+    paddingBottom: 12,
+  },
+  orderNumberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  orderNumberText: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#111111',
+    letterSpacing: -0.5,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusBadgeReceived: { backgroundColor: '#FFF3E0' },
+  statusBadgePreparing: { backgroundColor: '#E3F2FD' },
+  statusBadgeReady: { backgroundColor: '#E8F5E9' },
+  statusBadgeCompleted: { backgroundColor: '#F2F2F7' },
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  statusTextReceived: { color: '#E65100' },
+  statusTextPreparing: { color: '#1976D2' },
+  statusTextReady: { color: '#2E7D32' },
+  statusTextCompleted: { color: '#666666' },
+
+  ticketEstName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111111',
+  },
+  ticketEstAddress: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 2,
+  },
+
+  // 4-Step Progress Tracker
+  trackerWrapper: {
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+  },
+  trackerTrack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginVertical: 8,
+  },
+  trackerStep: {
+    alignItems: 'center',
+    width: 52,
+  },
+  stepCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#E5E5EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepCircleActive: {
+    backgroundColor: '#007AFF',
+  },
+  stepCircleGreen: {
+    backgroundColor: '#34C759',
+  },
+  stepCirclePending: {
+    backgroundColor: '#E5E5EA',
+  },
+  stepLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#666666',
+    marginTop: 4,
+  },
+  stepLine: {
+    flex: 1,
+    height: 3,
+    backgroundColor: '#E5E5EA',
+    marginBottom: 16,
+    marginHorizontal: -4,
+  },
+  stepLineActive: {
+    backgroundColor: '#007AFF',
+  },
+
+  etaBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F0F6FF',
+    padding: 10,
+    borderRadius: 12,
+    marginTop: 6,
+  },
+  etaBannerReady: {
+    backgroundColor: '#E8F5E9',
+  },
+  etaBannerText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#007AFF',
+    flex: 1,
+  },
+  etaBannerTextReady: {
+    color: '#2E7D32',
+    fontWeight: '700',
+  },
+
+  // Perforated Divider
+  perforatedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 24,
+    position: 'relative',
+    marginVertical: -2,
+  },
+  leftNotch: {
+    width: 14,
+    height: 24,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+    backgroundColor: '#F2F2F7',
+    borderWidth: 1,
+    borderLeftWidth: 0,
+    borderColor: '#E5E5EA',
+  },
+  dashedLine: {
+    flex: 1,
+    height: 1,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    borderStyle: 'dashed',
+    marginHorizontal: 8,
+  },
+  rightNotch: {
+    width: 14,
+    height: 24,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+    backgroundColor: '#F2F2F7',
+    borderWidth: 1,
+    borderRightWidth: 0,
+    borderColor: '#E5E5EA',
+  },
+
+  // Ticket Bottom Body
+  ticketBottomBody: {
+    padding: 16,
+    paddingTop: 10,
+    gap: 12,
+  },
+  qrPassCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    backgroundColor: '#F9F9FB',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  qrCodeWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qrCodeContainer: {
+    padding: 6,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  qrTapToEnlarge: {
+    fontSize: 9,
+    color: '#8E8E93',
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  qrInstructions: {
+    flex: 1,
+  },
+  qrPassTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#8E8E93',
+    letterSpacing: 0.8,
+  },
+  qrPassCode: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#111111',
+    letterSpacing: -0.5,
+    marginVertical: 2,
+  },
+  diningTypeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#E5E5EA',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
+  diningTypeChipText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#444444',
+  },
+  qrHint: {
+    fontSize: 11,
+    color: '#666666',
+  },
+
+  orderItemsBreakdown: {
+    backgroundColor: '#F9F9FB',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  orderSummaryTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#8E8E93',
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  orderSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 2,
+  },
+  orderSummaryQty: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#D42F13',
+    width: 24,
+  },
+  orderSummaryName: {
+    flex: 1,
+    fontSize: 13,
+    color: '#111111',
+  },
+  orderSummaryPrice: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#111111',
+  },
+  orderSpecialNotes: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    color: '#666666',
+    marginTop: 6,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
+  },
+  orderTotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
+  },
+  orderTotalLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#111111',
+  },
+  orderTotalValue: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#D42F13',
+  },
+
+  ticketActionRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    backgroundColor: '#F2F2F7',
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  actionButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#111111',
+  },
+  cancelOrderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    backgroundColor: '#FFF0EE',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  cancelOrderText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#D42F13',
+  },
+
+  demoAdvanceBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#FFF9E6',
+    borderWidth: 1,
+    borderColor: '#FFE082',
+    paddingVertical: 8,
+    borderRadius: 10,
+    marginTop: 2,
+  },
+  demoAdvanceText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#B78103',
+  },
+
+  // Passport Shortcut Card
+  passportShortcutCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    marginTop: 8,
+    gap: 10,
+  },
+  passportShortcutLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+    minWidth: 0,
+  },
+  passportShortcutIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#FFF0EE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  passportShortcutTextCol: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: 'center',
+  },
+  passportShortcutTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#111111',
+  },
+  passportShortcutDesc: {
+    fontSize: 11,
+    color: '#8E8E93',
+    marginTop: 1,
+  },
+  passportShortcutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    flexShrink: 0,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    backgroundColor: '#FFF5F4',
+    borderRadius: 8,
+  },
+  passportShortcutBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#D42F13',
+  },
+
+  // Modals
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalSheet: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    width: '100%',
+    maxWidth: 400,
+    ...Platform.select({
+      web: { boxShadow: '0 12px 32px rgba(0,0,0,0.18)' } as any,
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 8,
+      },
+    }),
+  },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#111111',
+  },
+  modalSubTitle: {
+    fontSize: 13,
+    color: '#8E8E93',
+    marginBottom: 12,
+  },
+  modalNoteInput: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 14,
+    color: '#111111',
+    minHeight: 70,
+    textAlignVertical: 'top',
+    marginBottom: 16,
+  },
+  modalBtnRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  modalSecondaryBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+  },
+  modalSecondaryText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111111',
+  },
+  modalPrimaryBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#D42F13',
+    alignItems: 'center',
+  },
+  modalPrimaryText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+
+  // Celebration Modal
+  modalSuccessCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 28,
+    width: '100%',
+    maxWidth: 380,
+    alignItems: 'center',
+    textAlign: 'center',
+  },
+  successIconBadge: {
+    marginBottom: 12,
+  },
+  successTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#111111',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  successDesc: {
+    fontSize: 13,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 19,
+    marginBottom: 16,
+  },
+  orderSummaryPill: {
+    backgroundColor: '#F2F2F7',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 20,
+    width: '100%',
+  },
+  orderSummaryPillLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#8E8E93',
+    letterSpacing: 0.5,
+  },
+  orderSummaryPillValue: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#D42F13',
+    letterSpacing: -0.5,
+    marginTop: 2,
+  },
+  modalDoneBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#1C1C1E',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 14,
+    width: '100%',
+  },
+  modalDoneBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+
+  // Enlarged QR Pass Modal
+  enlargedQrCard: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 20,
+    alignItems: 'center',
+  },
+  enlargedQrHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 16,
+  },
+  enlargedQrTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#111111',
+  },
+  enlargedQrSubtitle: {
+    fontSize: 12,
+    color: '#666666',
+    marginTop: 2,
+  },
+  enlargedQrCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  enlargedQrCodeBox: {
+    padding: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    marginVertical: 8,
+  },
+  enlargedQrOrderInfo: {
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  enlargedQrOrderNum: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#111111',
+    letterSpacing: -0.5,
+  },
+  enlargedQrMeta: {
+    fontSize: 12,
+    color: '#666666',
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  enlargedQrHint: {
+    fontSize: 11,
+    color: '#8E8E93',
+    textAlign: 'center',
+    marginTop: 6,
+    paddingHorizontal: 16,
+    lineHeight: 15,
+  },
+  enlargedQrDoneBtn: {
+    width: '100%',
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: '#1C1C1E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  enlargedQrDoneBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

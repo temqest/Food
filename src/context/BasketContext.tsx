@@ -23,8 +23,12 @@ export interface PreOrder {
   subtotal: number;
   fee: number;
   total: number;
+  diningOption: 'dine_in' | 'takeout';
   pickupTimeSlot: string;
   specialInstructions?: string;
+  paymentMethod: 'cash' | 'gcash' | 'maya';
+  paymentStatus: 'pending_counter' | 'paid';
+  paymentRefNumber?: string;
   status: 'received' | 'preparing' | 'ready' | 'completed';
   createdAt: string;
   estimatedMinutesRemaining: number;
@@ -33,16 +37,22 @@ export interface PreOrder {
 interface BasketContextType {
   items: BasketItem[];
   activePreOrders: PreOrder[];
+  diningOption: 'dine_in' | 'takeout';
+  setDiningOption: (option: 'dine_in' | 'takeout') => void;
   pickupTimeSlot: string;
   setPickupTimeSlot: (slot: string) => void;
   specialInstructions: string;
   setSpecialInstructions: (text: string) => void;
+  paymentMethod: 'cash' | 'gcash' | 'maya';
+  setPaymentMethod: (method: 'cash' | 'gcash' | 'maya') => void;
   addToBasket: (item: Omit<BasketItem, 'id'>) => void;
   updateQuantity: (id: string, delta: number) => void;
+  updateItemNote: (id: string, note: string) => void;
   removeFromBasket: (id: string) => void;
   clearBasket: () => void;
-  placePreOrder: () => PreOrder | null;
+  placePreOrder: (paymentDetails?: { method?: 'cash' | 'gcash' | 'maya'; refNumber?: string }) => PreOrder | null;
   updateOrderStatus: (orderId: string, status: PreOrder['status']) => void;
+  advanceOrderStatusDemo: (orderId: string) => void;
   cancelOrder: (orderId: string) => void;
   getBasketCount: () => number;
   getBasketSubtotal: () => number;
@@ -104,8 +114,11 @@ const INITIAL_PRE_ORDERS: PreOrder[] = [
     subtotal: 280,
     fee: 0,
     total: 280,
+    diningOption: 'takeout',
     pickupTimeSlot: 'ASAP (15–20 mins)',
     specialInstructions: 'Please pack in insulated box for travel',
+    paymentMethod: 'cash',
+    paymentStatus: 'pending_counter',
     status: 'preparing',
     createdAt: '12 minutes ago',
     estimatedMinutesRemaining: 8,
@@ -115,8 +128,10 @@ const INITIAL_PRE_ORDERS: PreOrder[] = [
 export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<BasketItem[]>(INITIAL_BASKET_ITEMS);
   const [activePreOrders, setActivePreOrders] = useState<PreOrder[]>(INITIAL_PRE_ORDERS);
+  const [diningOption, setDiningOption] = useState<'dine_in' | 'takeout'>('dine_in');
   const [pickupTimeSlot, setPickupTimeSlot] = useState<string>('ASAP (15–20 mins)');
   const [specialInstructions, setSpecialInstructions] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'gcash' | 'maya'>('cash');
   const [activeTabSection, setActiveTabSection] = useState<'current' | 'history'>('current');
 
   const addToBasket = (newItem: Omit<BasketItem, 'id'>) => {
@@ -154,6 +169,12 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
   };
 
+  const updateItemNote = (id: string, note: string) => {
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, selectedNote: note } : item))
+    );
+  };
+
   const removeFromBasket = (id: string) => {
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
@@ -170,7 +191,7 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return items.reduce((sum, item) => sum + item.quantity, 0);
   };
 
-  const placePreOrder = (): PreOrder | null => {
+  const placePreOrder = (paymentDetails?: { method?: 'cash' | 'gcash' | 'maya'; refNumber?: string }): PreOrder | null => {
     if (items.length === 0) return null;
 
     const subtotal = getBasketSubtotal();
@@ -179,6 +200,11 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const firstItem = items[0];
+    const chosenMethod = paymentDetails?.method || paymentMethod;
+    const paymentStatus: PreOrder['paymentStatus'] = chosenMethod === 'cash' ? 'pending_counter' : 'paid';
+    const paymentRefNumber =
+      paymentDetails?.refNumber ||
+      (chosenMethod !== 'cash' ? `REF-${Math.floor(100000000 + Math.random() * 900000000)}` : undefined);
 
     const newOrder: PreOrder = {
       id: `ord-${Date.now()}`,
@@ -190,8 +216,12 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       subtotal,
       fee,
       total,
+      diningOption,
       pickupTimeSlot,
       specialInstructions: specialInstructions.trim() || undefined,
+      paymentMethod: chosenMethod,
+      paymentStatus,
+      paymentRefNumber,
       status: 'received',
       createdAt: 'Just now',
       estimatedMinutesRemaining: 15,
@@ -221,6 +251,30 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
   };
 
+  const advanceOrderStatusDemo = (orderId: string) => {
+    setActivePreOrders((prev) =>
+      prev.map((order) => {
+        if (order.id === orderId) {
+          const cycle: Record<PreOrder['status'], PreOrder['status']> = {
+            received: 'preparing',
+            preparing: 'ready',
+            ready: 'completed',
+            completed: 'received',
+          };
+          const nextStatus = cycle[order.status];
+          const estimatedMinutesRemaining =
+            nextStatus === 'received' ? 20 : nextStatus === 'preparing' ? 10 : 0;
+          return {
+            ...order,
+            status: nextStatus,
+            estimatedMinutesRemaining,
+          };
+        }
+        return order;
+      })
+    );
+  };
+
   const cancelOrder = (orderId: string) => {
     setActivePreOrders((prev) => prev.filter((order) => order.id !== orderId));
   };
@@ -230,16 +284,22 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       value={{
         items,
         activePreOrders,
+        diningOption,
+        setDiningOption,
         pickupTimeSlot,
         setPickupTimeSlot,
         specialInstructions,
         setSpecialInstructions,
+        paymentMethod,
+        setPaymentMethod,
         addToBasket,
         updateQuantity,
+        updateItemNote,
         removeFromBasket,
         clearBasket,
         placePreOrder,
         updateOrderStatus,
+        advanceOrderStatusDemo,
         cancelOrder,
         getBasketCount,
         getBasketSubtotal,

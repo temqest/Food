@@ -266,6 +266,48 @@ export default function ProfileScreen() {
             </View>
           )}
 
+          {/* Activity & Collections */}
+          <View style={styles.sectionBlock}>
+            <Text style={styles.sectionTitle}>Activity &amp; Collections</Text>
+            <View style={styles.insetGroup}>
+              <Pressable
+                onPress={() => router.push('/saved')}
+                style={({ pressed }) => [styles.groupRow, pressed && styles.rowPressed]}
+                accessibilityRole="button"
+                accessibilityLabel="Open Saved Delicacies and Eateries"
+              >
+                <View style={styles.rowLeft}>
+                  <View style={[styles.rowIconCircle, { backgroundColor: '#FFF0EE' }]}>
+                    <Ionicons name="heart" size={17} color="#D42F13" />
+                  </View>
+                  <View>
+                    <Text style={styles.rowLabel}>Saved Favorites</Text>
+                    <Text style={styles.rowSubLabel}>{totalSaved} bookmarked dishes &amp; eateries</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+              </Pressable>
+
+              <Pressable
+                onPress={() => router.push('/basket')}
+                style={({ pressed }) => [styles.groupRow, styles.groupRowLast, pressed && styles.rowPressed]}
+                accessibilityRole="button"
+                accessibilityLabel="Open Food Basket & Pre-Orders"
+              >
+                <View style={styles.rowLeft}>
+                  <View style={[styles.rowIconCircle, { backgroundColor: '#EBF3FF' }]}>
+                    <Ionicons name="bag-handle" size={17} color="#007AFF" />
+                  </View>
+                  <View>
+                    <Text style={styles.rowLabel}>Basket &amp; Passes</Text>
+                    <Text style={styles.rowSubLabel}>Active pre-orders &amp; counter pickup passes</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+              </Pressable>
+            </View>
+          </View>
+
           {/* SECTION 0: Business & Merchant Portal */}
           <View style={styles.sectionBlock}>
             <Text style={styles.sectionTitle}>Business &amp; Merchant Center</Text>

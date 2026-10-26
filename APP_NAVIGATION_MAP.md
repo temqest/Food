@@ -19,8 +19,9 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `/food/[id]` | [`frontend/src/app/food/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/food/%5Bid%5D.tsx) | Full-bleed with clamped `insets.top` & sticky bottom bar | **Food Detail & Lore Screen**: Full-bleed hero with SVG gradient scrim, floating glass navigation & bookmark pills, Sili heat meter (1–5 flames), Flavor Anatomy taste chips, Nagueño Dining Ritual card with dialect quote, Lore & Cultural Roots card, rich eatery discovery cards with direct map navigation, and sticky bottom action bar (Stamp Passport +60 XP, Dine-In Pass, Map shortcut). |
 | `/establishment/[id]` | [`frontend/src/app/establishment/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/establishment/%5Bid%5D.tsx) | Full-bleed with clamped `insets.top` & sticky bottom bar | **Store / Establishment Info Screen**: Full-bleed hero with SVG gradient scrim, floating frosted glass controls (back, live open/closed pill, bookmark), venue stats strip (Budget, Hours, Distance), atmosphere & vibe pills, rich menu cards with food photos, signature badges & one-tap order, photo gallery preview, contact & phone linking, and sticky bottom action bar (Call, Passes, Locate on Map). |
 | `/feed` | [`frontend/src/app/feed.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/feed.tsx) | `['top', 'left', 'right']` | **Naga Community Social Feed**: Street food trips, eatery dispatches, live Naga Moments stories ([`NagaMomentsBar.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/NagaMomentsBar.tsx)), filterable post cards ([`SocialFeedCard.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/SocialFeedCard.tsx)), post composer ([`CreatePostModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CreatePostModal.tsx)), comments sheet ([`CommentsBottomSheet.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CommentsBottomSheet.tsx)). |
-| `/basket` | [`frontend/src/app/basket.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/basket.tsx) | `['top', 'left', 'right']` | **Passport & Journal (Preserved)**: Tasting stamps collection, level ranks, badge gallery, active pre-orders tab with pickup QR pass modal. |
-| `/saved` | [`frontend/src/app/saved.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/saved.tsx) | `['top', 'left', 'right']` | **Saved Favorites**: Tabbed lists of bookmarked dishes and eateries with quick removal and clear-all actions. |
+| `/basket` | [`frontend/src/app/basket.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/basket.tsx) | `['top', 'left', 'right']` | **Food Basket & Pre-Orders Hub**: Dual-tab hub for Cart & Checkout (steppers, store grouping, dining option selector, pickup schedule chips, special kitchen notes, bill breakdown, and Proceed to Payment CTA) and Active Passes (digital QR voucher pass, payment badges, 4-stage live kitchen status tracker, counter call/map actions, demo status simulation). |
+| `/payment` | [`frontend/src/app/payment.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/payment.tsx) | `['top', 'left', 'right', 'bottom']` | **Payment & Checkout**: Supports Cash on Arrival (pay at store counter), GCash E-Wallet with mobile number validation, and Maya / BSP QR Ph Universal National QR scan with receipt references; customer pass contact details; itemized summary. |
+| `/saved` | [`frontend/src/app/saved.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/saved.tsx) | `['top', 'left', 'right']` | **Saved Favorites (Preserved)**: Tabbed lists of bookmarked dishes and eateries with quick removal and clear-all actions; accessible via Profile screen Activity section. |
 | `/search` | [`frontend/src/app/search.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/search.tsx) | `['top', 'left', 'right']` | **Search Screen**: Live filter by dish, ingredient, district, or open status; category tags; empty state suggestions. |
 | `/profile` | [`frontend/src/app/profile.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/profile.tsx) | `['top', 'left', 'right']` | **Profile & Settings**: User preferences, spice tolerance setting, favorite district, security settings, business portal switch. |
 | `/business` | [`frontend/src/app/business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx) | `['top', 'left', 'right']` | **Merchant Portal**: Dashboard for restaurant owners to update menu items, toggle open/closed status, manage pre-orders, and create promotions. |
@@ -84,7 +85,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `components/trail/` | `TrailHeroBanner`, `TrailProgressBar`, `TrailSteppingBridge`, `TrailStopStation`, `TrailFinishCrest`, `TrailStopDetailsSheet` | Winding road journey map, gamified crawl stops, and milestone crest. |
 | `components/codex/` | `CodexHeroHeader`, `CodexFilterBar`, `DishCodexCard`, `DishDossierModal` | Clean culinary encyclopedia cards, category filters, and deep lore bottom sheet. |
 | `components/home/` | `MascotHero`, `NagaQuestCarousel`, `CravingDialWidget`, `FoodShowcaseBox` | Dynamic greetings, streak flame button, banner carousel, and interactive flavor dial. |
-| `components/common/` | `NavBar`, `SearchInput`, `RecommendationModal`, `UserAvatar` | Floating bottom navigation pill: Home (`/`), Map (`/map`), Search elevated center button (`/search`), Feed (`/feed`), Saved (`/saved`), search inputs, modal sheets, and universal native Android/iOS `SvgXml` avatar renderer. |
+| `components/common/` | `NavBar`, `SearchInput`, `RecommendationModal`, `UserAvatar` | Floating bottom navigation pill: Home (`/`), Map (`/map`), Search elevated center button (`/search`), Feed (`/feed`), Basket (`/basket` with dynamic badge count), search inputs, modal sheets, and universal native Android/iOS `SvgXml` avatar renderer. |
 | `components/map/` | `MapboxMapView` | Mapbox GL mobile/web interactive map with custom marker callouts. |
 | `components/gamification/` | `PassportStampModal`, `SilitoMysteryBox` | Tasting journal stamps, celebratory unboxing animations. |
 
@@ -93,6 +94,33 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 ## 5. AI Action & Modification Log
 
 *Every AI session must append its actions here:*
+
+### [2026-10-26] - High-Utility Food Basket & Pre-Orders Hub + Bottom Nav Integration
+- **User Request**: "currently my saved favorites should i keep it or rpelace it w/ something more useful like basket? /plan"
+- **Architectural & Design Upgrades Applied**:
+  1. **Bottom Navigation Re-alignment**:
+     - Swapped the 5th tab in [`NavBar.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/common/NavBar.tsx) from `saved` to `basket` with dynamic item count badge (`badgeCount = basketCount`), giving users persistent 1-tap thumb access to their cart.
+     - Preserved [`saved.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/saved.tsx) and added a dedicated "Activity & Collections" section in [`profile.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/profile.tsx) for 1-tap access to bookmarked dishes and eateries.
+  2. **High-Utility Basket Screen (`/basket`)**:
+     - **Dual-Tab Segmented Architecture**: Cart (`basketCount`) and Active Passes (`activePreOrders.length`).
+     - **Tab 1 (Cart & Checkout)**:
+       - Partner carinderia header with address and direct store menu link.
+       - Strictly bounded dish cards with 68×68px rounded photography, dish title, price, and custom cooking note chips (`“Extra spicy, broth on side”`) with an interactive note edit modal.
+       - Haptic quantity steppers (`[-]` `[ QTY ]` `[+]`) with auto-delete trash can icon on $1$.
+       - Dining option selector: **Dine-In Pass** (reserve table & skip counter wait) vs **Takeout Box** (packed hot for pickup).
+       - Pickup schedule chips (`ASAP 15–20m`, `30m`, `45m`, `1h`).
+       - Custom kitchen instructions input box for carinderia cooks.
+       - Itemized bill breakdown with free reservation fee promo and counter payment notice (Cash, GCash, Maya).
+       - High-contrast sticky CTA: `Confirm Pre-Order (₱XXX)`.
+     - **Tab 2 (Active Passes & Live Order Tracker)**:
+       - Real-time digital pass ticket cards with perforated tear notches and QR voucher mockup for counter scanning.
+       - 4-Stage visual kitchen tracker (`Received` -> `Cooking` -> `Ready` -> `Served`) with real-time ETA banners.
+       - Interactive demo advance simulator (`advanceOrderStatusDemo`) to test kitchen status transitions live.
+       - Counter call (`tel:` linking), directions (`/map`), and order cancellation triggers.
+  3. **BasketContext Enhancements**:
+     - Added `diningOption: 'dine_in' | 'takeout'` and `setDiningOption`.
+     - Added `updateItemNote(id, note)` for per-dish customization.
+     - Added `advanceOrderStatusDemo(orderId)` for status lifecycle simulation.
 
 ### [2026-10-26] - Store Info Page Polish: Banner & Logo Slot, Bounded Dish Cards, Removed Tags
 - **User Request**:
@@ -242,14 +270,71 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
   6. **Food Info Page Action Button Polish**:
      - In [`food/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/food/%5Bid%5D.tsx), simplified logged CTA state from `Tasted (+60 XP Logged)` to `Tasted`.
 
-### [2026-10-26] - Safe Area Inset & Battery Overlap Fix
-- **Issue**: User reported content overlapping the top of their phone (battery percentage, clock, and camera notch).
-- **Root Cause**:
-  1. [`_layout.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/_layout.tsx) lacked `<SafeAreaProvider>`.
-  2. All 15 screen files imported core React Native's deprecated `SafeAreaView`, which renders as a 0-padding `View` on Android.
-  3. [`TrailHeroBanner.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailHeroBanner.tsx) had a 16px fallback which was smaller than device status bars.
+### [2026-10-26] - Food Basket Overhaul & Multi-Option Philippine Payment Flow
+- **User Requests**:
+  1. Fix bottom text overlap: `View in Profile` and `Culinary Passport & Badges` text were overlapping on narrow viewports.
+  2. Set default action when basket is empty to the Search page (`/search`) instead of Flavor Codex (`/explore`).
+  3. Create a dedicated payment page supporting Cash on Arrival (pay at counter when arriving), GCash (mobile e-wallet), and Maya / BSP QR Ph universal QR code payments.
+- **Architectural Changes & Fixes Applied**:
+  1. **Bottom Text Overlap Resolution**:
+     - In [`frontend/src/app/basket.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/basket.tsx), restructured `passportShortcutCard` with `gap: 10`, `paddingVertical: 12`, and `paddingHorizontal: 14`.
+     - Gave `passportShortcutLeft` strict `flex: 1` and `minWidth: 0`.
+     - Wrapped title and description in `passportShortcutTextCol` with `flex: 1`, `minWidth: 0`, and `numberOfLines={1}` with `ellipsizeMode="tail"`.
+     - Locked `passportShortcutBtn` to `flexShrink: 0` with padded terracotta button pill (`#FFF5F4`).
+  2. **Empty Basket Default Navigation**:
+     - Swapped primary empty state CTA from Flavor Codex (`/explore`) to Search Dishes & Spots ([`/search`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/search.tsx)) with `Ionicons name="search"`. Kept Flavor Codex as secondary exploratory button.
+  3. **Dedicated Payment & Checkout Flow**:
+     - Built [`frontend/src/app/payment.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/payment.tsx) with three Philippine payment methods:
+       - **Cash on Arrival**: Direct payment at the store counter upon arrival.
+       - **GCash E-Wallet**: Instant mobile number checkout with input validation and instant confirmation.
+       - **Maya / QR Ph**: National standard QR code merchant card compatible with Maya, BPI, BDO, UnionBank, etc.
+     - Linked Cart checkout CTA in `basket.tsx` to `Proceed to Payment (₱{total})` navigating to `/payment`.
+     - Added customer name and contact phone inputs.
+     - Added celebration modal on `/payment` with order reference and direct transition to `/basket` in the Passes tab.
+     - In `/basket`, rendered verified payment badges on digital pass tickets (`PAID · GCASH`, `PAID · MAYA / QR PH`, or `CASH ON ARRIVAL · ₱{total}`) with official transaction references.
+  4. **State & Context Updates**:
+     - Upgraded [`BasketContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/BasketContext.tsx) with `paymentMethod`, `paymentStatus`, and `paymentRefNumber`.
+     - Verified with `npx tsc --noEmit` (0 errors).
+
+### [2026-10-26] - Real QR Code Generator, GCash Demo Mode, & Dining Option Card Stabilization
+- **User Request**:
+  1. Install a real QR generator for dining passes and payment.
+  2. For GCash demo payment, remove the phone number entry requirement.
+  3. When QR payment is pressed, show an interactive QR code modal with tap-to-enlarge.
+  4. Fix dining option cards growing taller when switching between Dine-In and Takeout Box due to checkmark layout shift.
+- **Root Cause of Dining Option Height Jump**:
+  - The checkmark icon was conditionally mounted inside the selected card only.
+  - Mounting it squeezed the title/subtitle text container (`optionTextCol`) by 28px.
+  - On "Dine-In Pass", the longer subtitle ("Table meal, skip counter wait") was forced onto two lines, causing the card height to jump from 58px to 72px.
 - **Fix Applied**:
-  1. Wrapped root in `<SafeAreaProvider>` in [`_layout.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/_layout.tsx).
-  2. Switched all screens to `SafeAreaView` from `react-native-safe-area-context` with `edges={['top', 'left', 'right']}` (or full edges for auth screens).
-  3. Clamped `TrailHeroBanner` to `Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 20)`.
-- **Learning**: Always import `SafeAreaView` from `react-native-safe-area-context` and configure `edges` based on whether a floating bottom `NavBar` is present.
+  1. **Real QR Generator (`react-native-qrcode-svg`)**:
+     - Installed `react-native-qrcode-svg` leveraging existing `react-native-svg`.
+     - In [`payment.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/payment.tsx): replaced static placeholder with live scannable `QRCode` (standard EMVCo / QR Ph payload) and interactive modal (`showPaymentQrModal`) with 190×190 high-contrast QR display.
+     - In [`basket.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/basket.tsx): replaced static pass icon with live `QRCode` (`PINOYPASS:{id}:{orderNumber}:{establishmentName}:{total}`) and tap-to-enlarge modal (`enlargedQrPass`) for vendor counter scanning.
+  2. **GCash Demo Mode**:
+     - Removed `gcashPhone` state and phone number validation block.
+     - Replaced the text input with a verified "Instant Demo Account Ready" badge (`0917 ••• ••••`), streamlining 1-tap checkout.
+  3. **Dining Option Card Stabilization**:
+     - Both cards now permanently allocate an 18×18px indicator (`styles.optionIndicator`), switching between active red fill (`styles.optionIndicatorActive`) with a white checkmark and inactive border (`styles.optionIndicatorInactive`).
+     - Added `minHeight: 64`, `paddingVertical: 10`, `paddingHorizontal: 12`, `gap: 8`, and `alignItems: 'stretch'`.
+     - Added `numberOfLines={1}` on `optionTitle` and `optionSub`, guaranteeing zero layout shift or height popping.
+  4. **Verification**:
+     - `npx tsc --noEmit` verified with 0 errors.
+
+### [2026-10-26] - Official Brand SVG Logos (GCash, Maya, QR Ph) & Clean Selection
+- **User Request**:
+  1. Use the newly added `gcash.svg` inside `frontend/assets/icons/` for GCash.
+  2. Use the `maya.svg` and `qr-ph.svg` inside `frontend/assets/icons/` for Maya / QR Ph.
+  3. Remove the demo account box when selecting GCash.
+- **Changes Applied**:
+  - Registered `*.svg` in [`frontend/src/types/declarations.d.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/types/declarations.d.ts).
+  - Integrated `Image as ExpoImage` from `expo-image` into [`payment.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/payment.tsx).
+  - Replaced generic icons in GCash with the official `gcash.svg` brand logo.
+  - Replaced generic icons in Maya / QR Ph with official `maya.svg` and `qr-ph.svg` logos in both the selection card, the QR Ph preview section, and the enlarged QR Ph modal header.
+  - Completely removed the bulky demo account box and subfields under GCash for a sleek, instantaneous 1-tap checkout.
+  - Removed redundant "Accepts Maya, GCash..." subfield notice below QR Ph in [`payment.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/payment.tsx).
+  - Verified with `npx tsc --noEmit` (0 errors).
+
+
+
+

@@ -109,11 +109,12 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
       inactiveIcon: 'compass-outline',
     },
     {
-      tab: 'saved',
-      label: 'Saved',
-      route: '/saved',
-      activeIcon: 'heart',
-      inactiveIcon: 'heart-outline',
+      tab: 'basket',
+      label: 'Basket',
+      route: '/basket',
+      activeIcon: 'bag',
+      inactiveIcon: 'bag-outline',
+      badgeCount: basketCount,
     },
   ];
 
