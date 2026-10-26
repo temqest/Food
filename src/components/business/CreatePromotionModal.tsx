@@ -321,19 +321,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   backdrop: {
-    ...StyleSheet.absoluteFill,
+    flex: 1,
   },
   sheetContainer: {
+    width: '100%',
+    height: '88%',
+    maxHeight: '92%',
     backgroundColor: '#F2F2F7',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '92%',
+    overflow: 'hidden',
+    alignSelf: 'center',
+    maxWidth: 600,
+    elevation: 20,
+    zIndex: 10,
     paddingBottom: Platform.OS === 'ios' ? 34 : 20,
     ...Platform.select({
       web: {
-        maxWidth: 600,
-        width: '100%',
-        alignSelf: 'center',
         boxShadow: '0 -10px 40px rgba(0,0,0,0.2)',
       } as any,
     }),

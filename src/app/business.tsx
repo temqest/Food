@@ -297,18 +297,21 @@ export default function BusinessDashboardScreen() {
                         <Text style={styles.productName} numberOfLines={1}>
                           {prod.name}
                         </Text>
+                      </View>
+
+                      <View style={styles.productSubRow}>
                         {prod.isSignature && (
                           <View style={styles.signatureBadge}>
+                            <Ionicons name="sparkles" size={8} color="#FFFFFF" style={styles.signatureIcon} />
                             <Text style={styles.signatureBadgeText}>SIGNATURE</Text>
                           </View>
                         )}
+                        {prod.bikolName ? (
+                          <Text style={styles.productBikol} numberOfLines={1}>
+                            {prod.bikolName}
+                          </Text>
+                        ) : null}
                       </View>
-
-                      {prod.bikolName ? (
-                        <Text style={styles.productBikol} numberOfLines={1}>
-                          {prod.bikolName}
-                        </Text>
-                      ) : null}
 
                       <Text style={styles.productMeta} numberOfLines={1}>
                         {prod.categoryLabel} · {prod.prepTime}
@@ -850,40 +853,53 @@ const styles = StyleSheet.create({
   },
   productDetailsCol: {
     flex: 1,
-    paddingRight: 8,
+    paddingRight: 14,
+    justifyContent: 'center',
   },
   productTitleLine: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   productName: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#000000',
+    flexShrink: 1,
+  },
+  productSubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 3,
   },
   signatureBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: IOSTokens.colors.tint,
-    paddingHorizontal: 5,
+    paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
+  signatureIcon: {
+    marginRight: 3,
+  },
   signatureBadgeText: {
     fontSize: 8,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
   productBikol: {
     fontSize: 12,
     color: IOSTokens.colors.tint,
     fontStyle: 'italic',
-    marginBottom: 2,
   },
   productMeta: {
     fontSize: 11,
     color: 'rgba(60, 60, 67, 0.6)',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   productPrice: {
     fontSize: 14,
@@ -892,7 +908,10 @@ const styles = StyleSheet.create({
   },
   productActionsCol: {
     alignItems: 'flex-end',
+    justifyContent: 'center',
     gap: 3,
+    minWidth: 54,
+    paddingLeft: 4,
   },
   stockBadgeText: {
     fontSize: 11,
@@ -1089,19 +1108,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   modalBackdrop: {
-    ...StyleSheet.absoluteFill,
+    flex: 1,
   },
   modalSheet: {
+    width: '100%',
+    height: '88%',
+    maxHeight: '92%',
     backgroundColor: '#F2F2F7',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '90%',
+    overflow: 'hidden',
+    alignSelf: 'center',
+    maxWidth: 600,
+    elevation: 20,
+    zIndex: 10,
     paddingBottom: Platform.OS === 'ios' ? 34 : 20,
     ...Platform.select({
       web: {
-        maxWidth: 550,
-        width: '100%',
-        alignSelf: 'center',
+        boxShadow: '0 -10px 40px rgba(0,0,0,0.2)',
       } as any,
     }),
   },

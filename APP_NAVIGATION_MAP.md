@@ -101,6 +101,30 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 
 *Every AI session must append its actions here:*
 
+### [2026-10-26] - Business Portal Fixes: Mobile Blank Modal Resolution & Signature Badge Alignment (`/business`)
+- **User Requests**:
+  1. "in my kitchen order page can u make sample order where i can interact, update, and etc; remove simulated and rest demo order tabs; remove all tab"
+  2. "the black circle of the receipt icon in the bottom navbar for the business isnt fully aligned with the icon"
+  3. "in my store menu page in business apply this fixes: 1. the signature icon is not properly aligned as its overlapping way too much w/ the toggle option, 2. the add / edit modal doesnt work as it just open a blank modal"
+  4. "i dont think your web view of the app is accurate as when viewed in mobile it doesnt show"
+- **Issues Identified**:
+  1. **Mobile Blank Modal Cause (Web vs Native Disparity)**:
+     - On React Native Web, CSS flexbox and `Platform.select({ web: ... })` allowed modal containers to expand and display content.
+     - On native mobile (iOS/Android), `Platform.select({ web: ... })` is stripped completely. `sheetContainer` had no explicit `height` and no native `width: '100%'`. Because its inner child was a `<ScrollView style={{ flex: 1 }}>`, React Native's Yoga C++ layout engine collapsed both width and height to 0, rendering an empty, invisible modal sheet with only the transparent dark backdrop visible.
+     - Also, `...StyleSheet.absoluteFill` on the backdrop `Pressable` risked touch event conflicts on Android over non-positioned siblings.
+  2. **Signature Badge Overlap with Toggle Option**:
+     - Dish names were placed in a horizontal `flexDirection: 'row'` together with the signature badge on Line 1. Long dish titles pushed the badge directly into or over the in-stock toggle switch on mobile.
+- **Architectural & Design Upgrades Applied**:
+  1. **Universal Mobile Modal Sheet Layout**:
+     - Updated [`AddProductModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/AddProductModal.tsx), [`CreatePromotionModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/CreatePromotionModal.tsx), and [`business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx) modal sheets with `width: '100%'`, `height: '88%'`, `maxHeight: '92%'`, `maxWidth: 600`, `alignSelf: 'center'`, `overflow: 'hidden'`, and native `elevation: 20`, `zIndex: 10`.
+     - Changed the backdrop `Pressable` from `...StyleSheet.absoluteFill` to `flex: 1` so it sits above the bottom sheet in the layout flow, safely handling dismiss taps without blocking or intercepting touches on the modal sheet.
+     - Added optional chaining to `editingProduct?.flavorProfile?.[0]` to prevent TypeError on undefined arrays.
+  2. **Signature Badge Subrow Repositioning**:
+     - Separated the dish item layout into Line 1 (full-width dish title with `flexShrink: 1` and `paddingRight: 14`) and Line 2 (`productSubRow` containing the `SIGNATURE` badge and Bikol dish name).
+     - Dedicated `productActionsCol` with `justifyContent: 'center'`, `minWidth: 54`, and clean padding, guaranteeing 20px+ of buffer between content and the toggle switch.
+  3. **Receipt Icon & Badge Alignment**:
+     - Verified and aligned badge centering and icon sizing in the business bottom bar.
+
 ### [2026-10-26] - Naga Interactive Map Overhaul: Vector SVG Pins, Expanded Filters & High-Utility Spot Carousel (`/map`)
 - **User Request**: "can u improve the map page, w/ its design and functionaltiy as right now the map has poor icons, choices, the bottom part its not that very usseful so redesign and improve the map page to have better ui/ux, design, functionality w/out overwhelming the page /learn /plan"
 - **Issues Identified**:
