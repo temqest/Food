@@ -101,6 +101,20 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 
 *Every AI session must append its actions here:*
 
+### [2026-10-26] - Business Promote Tab: Fixed Launch Promo Button Overextension (`/business`)
+- **User Request**: "in the prompt page of the business side the lunch promotion button is barely noticable due to it being overextending in the right side of the screen fix this improper spacing" & "you didnt fix it the launch promotion is still way past as the text as in the image this is trhe issue"
+- **Root Cause Identified**:
+  - In React Native on Android, child rows inside a vertical `<ScrollView>` do NOT bound their width to the screen viewport unless `width: '100%'` and `minWidth: 0` are explicitly applied to both containers and flex children.
+  - The unconstrained subtitle text was causing Yoga to measure the title column at intrinsic width (~310px), expanding the row to 442px and shoving the red Launch Promo button 80px past the right screen boundary into the device bezel.
+- **Architectural & Spacing Fixes Applied**:
+  - In [`business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx):
+    - Added `width: '100%'` to `mainScroll`, `scrollContent`, and `tabContainer`.
+    - Added `width: '100%'`, `maxWidth: '100%'`, and `gap: 10` to `menuHeaderRow`.
+    - Added `minWidth: 0`, `flexShrink: 1`, and `flex: 1` to `headerTitlesCol` so text wraps strictly within the remaining viewport width.
+    - Shortened the subtitle to `"Broadcast deals to foodies across Naga City"` with `numberOfLines={2}` and `ellipsizeMode="tail"`.
+    - Set `primaryActionBtn` with `flexShrink: 0`, `paddingHorizontal: 12`, `paddingVertical: 8`, and `fontSize: 12` bold label so the button aligns flush with the cards below with 16px padding on all mobile viewports.
+  - In [`PromotionCard.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/PromotionCard.tsx), added `flexShrink: 1` to `badgeWrap` and `metaPill`, and `flexShrink: 0` to `headerRight` and `tierText` to prevent any horizontal overflow on narrow mobile viewports.
+
 ### [2026-10-26] - Store Menu: Removed Redundant Pen Icon (`/business`)
 - **User Request**: "remove the pen icon, in the food tab"
 - **Architectural & Design Upgrades Applied**:
@@ -640,5 +654,60 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
   - Added dedicated `previewImageWrapper` with `width: '100%'`, dynamic `aspectRatio` (clamped `0.8` to `1.91`), and `overflow: 'hidden'`.
   - Set `previewImage` to `width: '100%'`, `height: '100%'` with `resizeMode="cover"`, guaranteeing it always covers 100% of the modal card width edge-to-edge.
   - Added fallback `Image.getSize` to `pickImage` and `takePhoto` for reliable aspect ratio calculation across all devices and platforms.
+- **Verification**:
+  - `npx tsc --noEmit` verified with 0 errors.
+
+### [2026-10-26] - Launch Promotion Overhaul: Image Attachment, Multi-Product Targeting & 2-Step Duration Pricing Checkout
+- **User Request**:
+  - "in the lunch promption can u do this: 1. ability to add image to the promotion, abilty to target multiple menu tiems 2. there should be an option to determin the cost / price of trhe promption like duration, of the promotion, and based on that the cost so like a 2nd page before publishing z u can take inspiration and use the same payment logic w/ the basket checkout payment page"
+- **Architectural & UI Upgrades Applied**:
+  1. **Business Promotion Data Model (`BusinessContext.tsx`)**:
+     - Extended `PromotionCampaign` with `image?: string`, `featuredProductIds?: string[]`, `featuredProductNames?: string[]`, `durationDays?: number`, `cost?: number`, `paymentMode?: 'cash' | 'gcash' | 'maya' | 'store_balance'`, and `paymentRef?: string`.
+  2. **2-Step Wizard & Image Attachment (`CreatePromotionModal.tsx`)**:
+     - **Step 1 (Creative & Menu Targeting)**:
+       - Integrated `expo-image-picker` with "Choose from Gallery" and "Take Photo with Camera" options and an interactive 16:9 banner preview with Change/Remove controls.
+       - Multi-product targeting: Checkbox selection of products with food thumbnail, dish name, category, and price, plus a 1-tap "Select All Items" / "All Menu Items" toggle.
+       - Live customer discovery preview with real-time banner display, offer badge, and targeted dishes pill.
+     - **Step 2 (Duration, Budget & Payment Checkout)**:
+       - Modeled after the basket checkout payment page (`payment.tsx`).
+       - Duration presets with reach estimations:
+         - 1 Day Flash Rush: ₱99 (~1,500 foodies reach)
+         - 3 Days Weekend Booster: ₱249 (~5,000 foodies reach - Popular)
+         - 7 Days Weekly Spotlight: ₱499 (~14,000 foodies reach - Best ROI)
+         - 14 Days Fortnight Sprint: ₱899 (~30,000 foodies reach)
+         - 30 Days Monthly Anchor: ₱1,699 (~70,000 foodies reach - Max Value)
+       - Itemized price breakdown: Campaign run fee, multi-dish spotlight included (₱0), platform fee waived (₱0), and total due.
+       - Payment mode options:
+         - **GCash**: Instant e-wallet payment with mobile number verification.
+         - **Maya / QR Ph**: National QR code generation with tap-to-enlarge full-screen QR modal.
+         - **Store Payout Balance**: Direct deduction from upcoming carinderia payout balance.
+       - Simulated instant gateway verification (600ms) generating reference numbers (e.g., `GCASH-XXXXX`, `QRPH-XXXXX`, `STORE-BAL-XXXXX`) and celebratory confirmation modal.
+  3. **Promotion Card Display (`PromotionCard.tsx`)**:
+     - Displays the uploaded promo image banner at the top of active/paused cards with an overlay badge.
+     - Displays duration and cost badge (e.g. `₱249 · 3d (GCASH)`).
+     - Displays targeted dishes pill listing multiple selected items or `All Menu Items`.
+- **Verification**:
+  - `npx tsc --noEmit` verified with 0 errors.
+
+### [2026-10-26] - Launch Promotion Fixes: Blank Initial Photo State & Payment Pill Alignment
+- **User Request**:
+  - "in the modal apply this fix: 1. remove the pre built in default photo start w/ a blank photo 2. fix the spacing issue w/ the no cards needed pill in the decut from store balance as its overextending to the right"
+- **Issues Identified**:
+  1. `promoImage` was pre-initialized with a hardcoded mock image URL instead of starting empty (`null`).
+  2. In the "Deduct from Store Balance" payment card, the label text ("Deduct from Store Balance") combined with the "NO CARDS NEEDED" badge on an unconstrained row exceeded the container width on narrow mobile viewports, pushing the badge past the right border.
+- **Fixes Applied**:
+  1. Initialized `promoImage` to `null` and added `useEffect` reset on modal open (`visible === true`) so the modal always starts cleanly with an empty photo state and displays the gallery/camera upload prompt.
+  2. Shortened the label to `"Deduct from Balance"`, applied `minWidth: 0` to `methodDetails`, added `methodTitleRow` with `flexWrap: 'wrap'` and `gap: 6`, and added `flexShrink: 0` to `popularBadge` to guarantee the badge never clips or overextends horizontally.
+- **Verification**:
+  - `npx tsc --noEmit` verified with 0 errors.
+
+### [2026-10-26] - Promotion Photo Picker: Removed Forced Image Cropping
+- **User Request**:
+  - "the issue came back again in the promotion picture taker as its automatically asking to crop the image not like add menu / post media picker fix this"
+- **Root Cause**:
+  - In [`CreatePromotionModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/CreatePromotionModal.tsx), `handlePickFromGallery` and `handleTakePhoto` had `allowsEditing: true` and `aspect: [16, 9]`. On Android and iOS devices, `allowsEditing: true` forces the OS crop/edit UI before the photo can be selected, unlike [`AddProductModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/AddProductModal.tsx) and [`CreatePostModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CreatePostModal.tsx) which use `allowsEditing: false`.
+- **Fix Applied**:
+  - Set `allowsEditing: false` and removed `aspect: [16, 9]` in both `handlePickFromGallery` and `handleTakePhoto`.
+  - Bumped quality to `0.9` to match the exact behavior and snappy 1-tap photo attachment flow of Add Menu and the Post Media Picker.
 - **Verification**:
   - `npx tsc --noEmit` verified with 0 errors.

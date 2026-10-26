@@ -30,12 +30,19 @@ export interface PromotionCampaign {
   targetDistrict: string;
   featuredFoodId?: string;
   featuredFoodName?: string;
+  featuredProductIds?: string[];
+  featuredProductNames?: string[];
+  image?: string;
   active: boolean;
   startDate: string;
   impressions: number;
   clicks: number;
   ordersDriven: number;
   budgetTier: string;
+  durationDays?: number;
+  cost?: number;
+  paymentMode?: 'cash' | 'gcash' | 'maya' | 'store_balance';
+  paymentRef?: string;
 }
 
 export interface BusinessProfile {
@@ -189,12 +196,19 @@ const INITIAL_PROMOTIONS: PromotionCampaign[] = [
     targetDistrict: 'Centro & Barlin District',
     featuredFoodId: 'kinalas',
     featuredFoodName: 'Kinalas Special',
+    featuredProductIds: ['prod-kinalas-special', 'prod-kinalas-regular'],
+    featuredProductNames: ['Kinalas Special', 'Kinalas Regular'],
+    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
     active: true,
     startDate: 'Active today',
     impressions: 1420,
     clicks: 312,
     ordersDriven: 48,
-    budgetTier: 'Community Spotlight',
+    budgetTier: 'Community Booster (3 Days)',
+    durationDays: 3,
+    cost: 249,
+    paymentMode: 'gcash',
+    paymentRef: 'GCASH-78291044',
   },
 ];
 

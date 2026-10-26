@@ -258,7 +258,7 @@ export default function BusinessDashboardScreen() {
           <View style={styles.tabContainer}>
             {/* Top Action Row */}
             <View style={styles.menuHeaderRow}>
-              <View>
+              <View style={styles.headerTitlesCol}>
                 <Text style={styles.sectionHeading}>Dishes Offered</Text>
                 <Text style={styles.sectionSubheading}>
                   {products.length} item{products.length === 1 ? '' : 's'} on your counter menu
@@ -272,6 +272,8 @@ export default function BusinessDashboardScreen() {
                 }}
                 style={({ pressed }) => [styles.primaryActionBtn, pressed && styles.pressed]}
                 hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Add new dish to store menu"
               >
                 <Ionicons name="add" size={16} color="#FFFFFF" />
                 <Text style={styles.primaryActionBtnText}>Add Dish</Text>
@@ -367,10 +369,10 @@ export default function BusinessDashboardScreen() {
           <View style={styles.tabContainer}>
             {/* Header & Launch Button */}
             <View style={styles.menuHeaderRow}>
-              <View>
+              <View style={styles.headerTitlesCol}>
                 <Text style={styles.sectionHeading}>Promote in Naga</Text>
-                <Text style={styles.sectionSubheading}>
-                  Broadcast special deals to foodies browsing Naga Food
+                <Text style={styles.sectionSubheading} numberOfLines={2} ellipsizeMode="tail">
+                  Broadcast deals to foodies across Naga City
                 </Text>
               </View>
 
@@ -378,9 +380,11 @@ export default function BusinessDashboardScreen() {
                 onPress={() => setIsCreatePromoOpen(true)}
                 style={({ pressed }) => [styles.primaryActionBtn, pressed && styles.pressed]}
                 hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Launch promotion"
               >
                 <Ionicons name="megaphone" size={15} color="#FFFFFF" />
-                <Text style={styles.primaryActionBtnText}>Launch Ad</Text>
+                <Text style={styles.primaryActionBtnText}>Launch Promo</Text>
               </Pressable>
             </View>
 
@@ -399,14 +403,40 @@ export default function BusinessDashboardScreen() {
 
             {/* Active Campaigns List */}
             <Text style={styles.sectionDividerLabel}>YOUR CAMPAIGNS ({promotions.length})</Text>
-            {promotions.map((campaign) => (
-              <PromotionCard
-                key={campaign.id}
-                campaign={campaign}
-                onToggleActive={togglePromotionActive}
-                onDelete={deletePromotion}
-              />
-            ))}
+            {promotions.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <View style={styles.emptyIconBg}>
+                  <Ionicons name="megaphone-outline" size={30} color="#8E8E93" />
+                </View>
+                <Text style={styles.emptyTitle}>No Active Campaigns</Text>
+                <Text style={styles.emptySub}>
+                  Create your first promotional offer to attract hungry foodies across Naga City.
+                </Text>
+                <Pressable
+                  onPress={() => setIsCreatePromoOpen(true)}
+                  style={({ pressed }) => [
+                    styles.primaryActionBtn,
+                    { marginTop: 16 },
+                    pressed && styles.pressed,
+                  ]}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Launch promotion"
+                >
+                  <Ionicons name="megaphone" size={15} color="#FFFFFF" />
+                  <Text style={styles.primaryActionBtnText}>Launch Promo</Text>
+                </Pressable>
+              </View>
+            ) : (
+              promotions.map((campaign) => (
+                <PromotionCard
+                  key={campaign.id}
+                  campaign={campaign}
+                  onToggleActive={togglePromotionActive}
+                  onDelete={deletePromotion}
+                />
+              ))
+            )}
           </View>
         )}
 
@@ -728,12 +758,16 @@ const styles = StyleSheet.create({
   },
   mainScroll: {
     flex: 1,
+    width: '100%',
   },
   scrollContent: {
+    width: '100%',
     padding: 16,
     paddingBottom: 130, // Generous padding ensures content is never covered by floating bottom navbar
   },
   tabContainer: {
+    width: '100%',
+    maxWidth: '100%',
     gap: 12,
   },
   filterSegmentContainer: {
@@ -808,10 +842,19 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   menuHeaderRow: {
+    width: '100%',
+    maxWidth: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    gap: 10,
+    marginBottom: 6,
+  },
+  headerTitlesCol: {
+    flex: 1,
+    minWidth: 0,
+    flexShrink: 1,
+    paddingRight: 6,
   },
   sectionHeading: {
     fontSize: 18,
@@ -821,21 +864,37 @@ const styles = StyleSheet.create({
   sectionSubheading: {
     fontSize: 12,
     color: 'rgba(60, 60, 67, 0.6)',
-    marginTop: 1,
+    marginTop: 2,
+    lineHeight: 16,
   },
   primaryActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 5,
     backgroundColor: IOSTokens.colors.tint,
-    paddingHorizontal: 13,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
+    flexShrink: 0,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 8px rgba(212, 47, 19, 0.25)',
+      } as any,
+      default: {
+        shadowColor: '#D42F13',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3,
+        elevation: 2,
+      },
+    }),
   },
   primaryActionBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.2,
   },
   insetGroup: {
     backgroundColor: '#FFFFFF',
