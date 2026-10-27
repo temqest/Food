@@ -57,6 +57,7 @@ export const TrailStopDetailsSheet: React.FC<TrailStopDetailsSheetProps> = ({
       visible={visible}
       transparent
       animationType="slide"
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>

@@ -43,6 +43,8 @@ interface SocialFeedContextType {
   activeStory: NagaMomentStory | null;
   openStory: (story: NagaMomentStory) => void;
   closeStory: () => void;
+  voteOnPoll: (postId: string, optionId: string) => void;
+  claimVoucher: (postId: string) => void;
 }
 
 const SocialFeedContext = createContext<SocialFeedContextType | undefined>(undefined);
@@ -187,6 +189,67 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setActiveStory(null);
   };
 
+  const voteOnPoll = (postId: string, optionId: string) => {
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (post.id === postId && post.advertisement?.poll) {
+          const poll = post.advertisement.poll;
+          if (poll.userVotedOptionId === optionId) return post;
+
+          const prevVotedId = poll.userVotedOptionId;
+          const updatedOptions = poll.options.map((opt) => {
+            if (opt.id === optionId) {
+              return { ...opt, votes: opt.votes + 1 };
+            }
+            if (prevVotedId && opt.id === prevVotedId) {
+              return { ...opt, votes: Math.max(0, opt.votes - 1) };
+            }
+            return opt;
+          });
+
+          const totalVotes = updatedOptions.reduce((acc, curr) => acc + curr.votes, 0);
+
+          return {
+            ...post,
+            advertisement: {
+              ...post.advertisement,
+              poll: {
+                ...poll,
+                options: updatedOptions,
+                totalVotes,
+                userVotedOptionId: optionId,
+              },
+            },
+          };
+        }
+        return post;
+      })
+    );
+  };
+
+  const claimVoucher = (postId: string) => {
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (post.id === postId && post.advertisement) {
+          const currentCta = post.advertisement.callToAction;
+          if (currentCta.isClaimed) return post;
+          return {
+            ...post,
+            advertisement: {
+              ...post.advertisement,
+              callToAction: {
+                ...currentCta,
+                isClaimed: true,
+                claimedCount: (currentCta.claimedCount || 0) + 1,
+              },
+            },
+          };
+        }
+        return post;
+      })
+    );
+  };
+
   const filteredPosts = posts.filter((post) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'trips') return post.postType === 'trip';
@@ -211,6 +274,8 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         activeStory,
         openStory,
         closeStory,
+        voteOnPoll,
+        claimVoucher,
       }}
     >
       {children}

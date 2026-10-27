@@ -28,8 +28,9 @@ export const CommentsBottomSheet: React.FC<CommentsBottomSheetProps> = ({
   visible,
   onClose,
 }) => {
-  const { addComment } = useSocialFeed();
+  const { addComment, voteOnPoll, claimVoucher } = useSocialFeed();
   const [commentText, setCommentText] = useState('');
+  const [showVoucherToast, setShowVoucherToast] = useState(false);
 
   if (!post) return null;
 
@@ -37,6 +38,14 @@ export const CommentsBottomSheet: React.FC<CommentsBottomSheetProps> = ({
     if (!commentText.trim()) return;
     addComment(post.id, commentText);
     setCommentText('');
+  };
+
+  const handleClaimVoucher = () => {
+    claimVoucher(post.id);
+    setShowVoucherToast(true);
+    setTimeout(() => {
+      setShowVoucherToast(false);
+    }, 2500);
   };
 
   return (
@@ -83,6 +92,135 @@ export const CommentsBottomSheet: React.FC<CommentsBottomSheetProps> = ({
             contentContainerStyle={styles.commentsContent}
             showsVerticalScrollIndicator={false}
           >
+            {/* Pinned Business Craving Poll Widget */}
+            {post.advertisement?.poll && (
+              <View style={styles.pollPinnedContainer}>
+                <View style={styles.pollHeaderRow}>
+                  <View style={styles.pollBadge}>
+                    <Ionicons name="pin" size={11} color="#D42F13" />
+                    <Text style={styles.pollBadgeText}>PINNED STORE POLL</Text>
+                  </View>
+                  <View style={styles.pollLiveBadge}>
+                    <View style={styles.pollLiveDot} />
+                    <Text style={styles.pollLiveText}>Active</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.pollQuestion}>{post.advertisement.poll.question}</Text>
+
+                <View style={styles.pollOptionsList}>
+                  {post.advertisement.poll.options.map((option) => {
+                    const hasVoted = !!post.advertisement?.poll?.userVotedOptionId;
+                    const isUserPick = post.advertisement?.poll?.userVotedOptionId === option.id;
+                    const total = Math.max(1, post.advertisement?.poll?.totalVotes || 1);
+                    const percent = Math.round((option.votes / total) * 100);
+
+                    return (
+                      <Pressable
+                        key={option.id}
+                        onPress={() => voteOnPoll(post.id, option.id)}
+                        style={({ pressed }) => [
+                          styles.pollOptionBtn,
+                          isUserPick && styles.pollOptionBtnPicked,
+                          pressed && styles.pressed,
+                        ]}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${option.text}, ${percent}% of votes`}
+                      >
+                        {/* Progress Fill Bar */}
+                        {hasVoted && (
+                          <View
+                            style={[
+                              styles.pollProgressBar,
+                              { width: `${percent}%` },
+                              isUserPick && styles.pollProgressBarPicked,
+                            ]}
+                          />
+                        )}
+
+                        <View style={styles.pollOptionContentRow}>
+                          <View style={styles.pollOptionLeft}>
+                            <Ionicons
+                              name={
+                                isUserPick
+                                  ? 'checkmark-circle'
+                                  : hasVoted
+                                  ? 'ellipse-outline'
+                                  : 'radio-button-off'
+                              }
+                              size={16}
+                              color={isUserPick ? '#D42F13' : '#8E8E93'}
+                            />
+                            <Text
+                              style={[
+                                styles.pollOptionText,
+                                isUserPick && styles.pollOptionTextPicked,
+                              ]}
+                              numberOfLines={2}
+                            >
+                              {option.text}
+                            </Text>
+                          </View>
+
+                          {hasVoted && (
+                            <Text
+                              style={[
+                                styles.pollOptionPercent,
+                                isUserPick && styles.pollOptionPercentPicked,
+                              ]}
+                            >
+                              {percent}%
+                            </Text>
+                          )}
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                {/* Poll Footer & Reward Callout */}
+                <View style={styles.pollFooterRow}>
+                  <Text style={styles.pollVoteCount}>
+                    {post.advertisement.poll.totalVotes} foodies voted
+                  </Text>
+
+                  {post.advertisement.poll.userVotedOptionId ? (
+                    <Pressable
+                      onPress={handleClaimVoucher}
+                      style={styles.pollRewardBanner}
+                    >
+                      <Ionicons name="gift" size={12} color="#D42F13" />
+                      <Text style={styles.pollRewardText}>
+                        {post.advertisement.callToAction.isClaimed
+                          ? `Code: ${post.advertisement.callToAction.voucherCode || 'CLAIMED'}`
+                          : post.advertisement.poll.rewardDescription || 'Claim 20% Voucher'}
+                      </Text>
+                    </Pressable>
+                  ) : (
+                    <Text style={styles.pollHintText}>Vote to unlock 20% voucher</Text>
+                  )}
+                </View>
+              </View>
+            )}
+
+            {/* Toast when voucher is claimed inside comments */}
+            {showVoucherToast && (
+              <View style={styles.voucherToast}>
+                <Ionicons name="checkmark-circle" size={14} color="#D42F13" />
+                <Text style={styles.voucherToastText}>
+                  Voucher {post.advertisement?.callToAction.voucherCode || 'DEAL'} unlocked & copied!
+                </Text>
+              </View>
+            )}
+
+            {post.advertisement?.poll && (
+              <View style={styles.discussionDividerRow}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>COMMUNITY DISCUSSION</Text>
+                <View style={styles.dividerLine} />
+              </View>
+            )}
+
             {post.comments.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Ionicons name="chatbubble-ellipses-outline" size={36} color="#C7C7CC" />
@@ -295,5 +433,189 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.8,
+  },
+  pollPinnedContainer: {
+    backgroundColor: '#FFFBF9',
+    borderWidth: 1,
+    borderColor: '#FFE4DD',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 8,
+  },
+  pollHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  pollBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FFE9E4',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  pollBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#D42F13',
+    letterSpacing: 0.5,
+  },
+  pollLiveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  pollLiveDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#34C759',
+  },
+  pollLiveText: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#1E3A2B',
+  },
+  pollQuestion: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1C1C1E',
+    lineHeight: 19,
+    marginBottom: 10,
+  },
+  pollOptionsList: {
+    gap: 8,
+  },
+  pollOptionBtn: {
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  pollOptionBtnPicked: {
+    borderColor: '#D42F13',
+    backgroundColor: '#FFF8F6',
+  },
+  pollProgressBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    backgroundColor: '#F2F2F7',
+  },
+  pollProgressBarPicked: {
+    backgroundColor: '#FFE4DD',
+  },
+  pollOptionContentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    position: 'relative',
+    zIndex: 1,
+  },
+  pollOptionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    marginRight: 8,
+  },
+  pollOptionText: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    color: '#2C2C2E',
+    flex: 1,
+  },
+  pollOptionTextPicked: {
+    color: '#D42F13',
+    fontWeight: '700',
+  },
+  pollOptionPercent: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#8E8E93',
+    marginLeft: 4,
+  },
+  pollOptionPercentPicked: {
+    color: '#D42F13',
+  },
+  pollFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#FFE7E2',
+  },
+  pollVoteCount: {
+    fontSize: 11,
+    color: '#8E8E93',
+    fontWeight: '500',
+  },
+  pollRewardBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FFE9E4',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  pollRewardText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#D42F13',
+  },
+  pollHintText: {
+    fontSize: 11,
+    color: '#D42F13',
+    fontWeight: '600',
+  },
+  voucherToast: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FFF2EE',
+    marginVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#F8B4A6',
+  },
+  voucherToastText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#D42F13',
+    flex: 1,
+  },
+  discussionDividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginVertical: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#E5E5EA',
+  },
+  dividerText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#8E8E93',
+    letterSpacing: 0.8,
   },
 });

@@ -473,7 +473,7 @@ export interface TastingEntry {
   establishmentName: string;
   date: string;
   rating: number; // 1-5
-  spiceRating: number; // 1-5
+  spiceRating?: number; // 1-5 (optional)
   notes: string;
   image?: string;
 }

@@ -21,9 +21,10 @@ interface SocialFeedCardProps {
 }
 
 export const SocialFeedCard: React.FC<SocialFeedCardProps> = ({ post, onOpenComments }) => {
-  const { toggleLikePost, toggleBookmarkPost } = useSocialFeed();
+  const { toggleLikePost, toggleBookmarkPost, claimVoucher } = useSocialFeed();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
+  const [showVoucherToast, setShowVoucherToast] = useState(false);
 
   // Dynamic aspect ratio: clamp between 0.8 (4:5 portrait) and 1.91 (landscape)
   const [aspectRatio, setAspectRatio] = useState<number>(() => {
@@ -52,9 +53,56 @@ export const SocialFeedCard: React.FC<SocialFeedCardProps> = ({ post, onOpenComm
     }
   }, [post.image, post.aspectRatio]);
 
-  // Heart bounce animation
+  // Heart bounce animation for small action bar button
   const [scaleAnim] = useState(() => new Animated.Value(1));
   const [lastTap, setLastTap] = useState(0);
+
+  // Instagram-style center floating heart animation
+  const [centerHeartScale] = useState(() => new Animated.Value(0));
+  const [centerHeartOpacity] = useState(() => new Animated.Value(0));
+
+  const triggerCenterHeartAnimation = () => {
+    centerHeartScale.setValue(0);
+    centerHeartOpacity.setValue(0);
+
+    Animated.sequence([
+      // 1. Pop in with bouncy spring
+      Animated.parallel([
+        Animated.spring(centerHeartScale, {
+          toValue: 1.25,
+          friction: 4,
+          tension: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(centerHeartOpacity, {
+          toValue: 1,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+      ]),
+      // 2. Settle to natural size
+      Animated.timing(centerHeartScale, {
+        toValue: 1,
+        duration: 90,
+        useNativeDriver: true,
+      }),
+      // 3. Hold for visibility
+      Animated.delay(400),
+      // 4. Fade out while expanding slightly
+      Animated.parallel([
+        Animated.timing(centerHeartScale, {
+          toValue: 1.35,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+        Animated.timing(centerHeartOpacity, {
+          toValue: 0,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  };
 
   const triggerLikeAnimation = () => {
     Animated.sequence([
@@ -78,10 +126,12 @@ export const SocialFeedCard: React.FC<SocialFeedCardProps> = ({ post, onOpenComm
 
   const handleDoubleTap = () => {
     const now = Date.now();
-    const DOUBLE_TAP_DELAY = 300;
+    const DOUBLE_TAP_DELAY = 320;
     if (now - lastTap < DOUBLE_TAP_DELAY) {
+      triggerCenterHeartAnimation();
       if (!post.isLiked) {
-        handleLikePress();
+        triggerLikeAnimation();
+        toggleLikePost(post.id);
       } else {
         triggerLikeAnimation();
       }
@@ -96,8 +146,16 @@ export const SocialFeedCard: React.FC<SocialFeedCardProps> = ({ post, onOpenComm
     }, 2000);
   };
 
+  const handleClaimVoucher = () => {
+    claimVoucher(post.id);
+    setShowVoucherToast(true);
+    setTimeout(() => {
+      setShowVoucherToast(false);
+    }, 2500);
+  };
+
   return (
-    <View style={styles.cardContainer}>
+    <View style={[styles.cardContainer, post.isSponsored && styles.sponsoredCardContainer]}>
       {/* 1. Header Row */}
       <View style={styles.headerRow}>
         <UserAvatar uri={post.author.avatar} style={styles.authorAvatar} />
@@ -115,6 +173,14 @@ export const SocialFeedCard: React.FC<SocialFeedCardProps> = ({ post, onOpenComm
 
           {/* Location & Time Row */}
           <View style={styles.locationMetaRow}>
+            {post.isSponsored && (
+              <>
+                <View style={styles.sponsoredMetaPill}>
+                  <Text style={styles.sponsoredMetaText}>Sponsored Ad</Text>
+                </View>
+                <Text style={styles.dotSeparator}>•</Text>
+              </>
+            )}
             {post.establishmentName ? (
               <Pressable
                 onPress={() => {
@@ -135,23 +201,61 @@ export const SocialFeedCard: React.FC<SocialFeedCardProps> = ({ post, onOpenComm
                 {post.district || 'Naga City'}
               </Text>
             )}
-            <Text style={styles.dotSeparator}>•</Text>
-            <Text style={styles.timestampText}>{post.timestamp}</Text>
+            {!post.isSponsored && (
+              <>
+                <Text style={styles.dotSeparator}>•</Text>
+                <Text style={styles.timestampText}>{post.timestamp}</Text>
+              </>
+            )}
           </View>
         </View>
 
-        {/* Post Type Tag (Only for trips) */}
-        {post.postType === 'trip' && (
+        {/* Post Type Tag */}
+        {post.isSponsored ? (
+          <View style={styles.sponsoredTagBadge}>
+            <Ionicons name="sparkles" size={11} color="#D42F13" />
+            <Text style={styles.sponsoredTagText}>Promoted</Text>
+          </View>
+        ) : post.postType === 'trip' ? (
           <View style={styles.tripTagBadge}>
             <Ionicons name="compass" size={11} color="#1E3A2B" />
             <Text style={styles.tripTagText}>Trip</Text>
           </View>
-        )}
+        ) : null}
       </View>
 
       {/* 2. Media Section (Double-Tap to Like) */}
       <Pressable onPress={handleDoubleTap} style={[styles.mediaContainer, { aspectRatio }]}>
         <Image source={{ uri: post.image }} style={styles.foodImage} resizeMode="cover" />
+
+        {/* Instagram-Style Floating Center Heart */}
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.centerHeartContainer,
+            {
+              opacity: centerHeartOpacity,
+              transform: [{ scale: centerHeartScale }],
+            },
+          ]}
+        >
+          <Ionicons
+            name="heart"
+            size={96}
+            color="#FF3B30"
+            style={styles.centerHeartIcon}
+          />
+        </Animated.View>
+
+        {/* Discount Badge Overlay for Advertisements */}
+        {post.isSponsored && post.advertisement?.callToAction?.discountBadge && (
+          <View style={styles.discountFloatingPill}>
+            <Ionicons name="pricetag" size={11} color="#FFFFFF" />
+            <Text style={styles.discountFloatingText}>
+              {post.advertisement.callToAction.discountBadge}
+            </Text>
+          </View>
+        )}
 
         {/* Tappable Dish Tag Overlay (smart truncation) */}
         {post.foodName && (
@@ -179,6 +283,44 @@ export const SocialFeedCard: React.FC<SocialFeedCardProps> = ({ post, onOpenComm
           </Pressable>
         )}
       </Pressable>
+
+      {/* Sponsored Call-To-Action Ribbon */}
+      {post.isSponsored && post.advertisement && (
+        <View style={styles.adActionBanner}>
+          <View style={styles.adActionLeft}>
+            <View style={styles.adBadgeRow}>
+              <Text style={styles.adBadgeText}>{post.advertisement.badge}</Text>
+            </View>
+            <Text style={styles.adActionHeadline} numberOfLines={1}>
+              {post.advertisement.headline}
+            </Text>
+            <Text style={styles.adActionSub}>
+              {post.advertisement.expirationNote || 'Limited-time deal'}
+            </Text>
+          </View>
+          <Pressable
+            onPress={handleClaimVoucher}
+            style={({ pressed }) => [
+              styles.adCtaBtn,
+              post.advertisement?.callToAction.isClaimed && styles.adCtaBtnClaimed,
+              pressed && styles.pressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Claim discount voucher"
+          >
+            <Ionicons
+              name={post.advertisement.callToAction.isClaimed ? 'checkmark-circle' : 'ticket-outline'}
+              size={14}
+              color="#FFFFFF"
+            />
+            <Text style={styles.adCtaBtnText}>
+              {post.advertisement.callToAction.isClaimed
+                ? `Code: ${post.advertisement.callToAction.voucherCode || 'CLAIMED'}`
+                : post.advertisement.callToAction.label}
+            </Text>
+          </Pressable>
+        </View>
+      )}
 
       {/* 3. Action Bar */}
       <View style={styles.actionBar}>
@@ -243,6 +385,16 @@ export const SocialFeedCard: React.FC<SocialFeedCardProps> = ({ post, onOpenComm
         </Pressable>
       </View>
 
+      {/* Voucher Claim Toast */}
+      {showVoucherToast && (
+        <View style={styles.voucherToast}>
+          <Ionicons name="checkmark-circle" size={14} color="#D42F13" />
+          <Text style={styles.voucherToastText}>
+            Voucher {post.advertisement?.callToAction.voucherCode || 'DEAL'} unlocked & copied!
+          </Text>
+        </View>
+      )}
+
       {/* Share Toast Feedback */}
       {showShareToast && (
         <View style={styles.shareToast}>
@@ -275,34 +427,61 @@ export const SocialFeedCard: React.FC<SocialFeedCardProps> = ({ post, onOpenComm
           </View>
         )}
 
-        {/* Comments Preview Trigger */}
+        {/* Comments & Craving Poll Preview Trigger */}
         <Pressable
           onPress={() => onOpenComments(post)}
           style={styles.viewCommentsBtn}
           hitSlop={6}
         >
-          <Text style={styles.viewCommentsText}>
-            {post.commentsCount === 0
-              ? 'Be the first to comment...'
-              : `View all ${post.commentsCount} comments`}
-          </Text>
+          {post.advertisement?.poll ? (
+            <View style={styles.pollCommentsPromptRow}>
+              <View style={styles.pollCommentsIconWrap}>
+                <Ionicons name="stats-chart" size={11} color="#D42F13" />
+              </View>
+              <Text style={styles.pollCommentsPromptText}>
+                {post.advertisement.poll.userVotedOptionId
+                  ? `Craving Poll Voted · View comments (${post.commentsCount})`
+                  : `Vote in Craving Poll in Comments (${post.commentsCount}) ›`}
+              </Text>
+            </View>
+          ) : (
+            <Text style={styles.viewCommentsText}>
+              {post.commentsCount === 0
+                ? 'Be the first to comment...'
+                : `View all ${post.commentsCount} comments`}
+            </Text>
+          )}
         </Pressable>
 
         {/* Establishment Navigation CTA */}
         {post.establishmentId && (
           <Pressable
             onPress={() => router.push(`/establishment/${post.establishmentId}` as any)}
-            style={({ pressed }) => [styles.establishmentFooterLink, pressed && styles.pressed]}
+            style={({ pressed }) => [
+              styles.establishmentFooterLink,
+              post.isSponsored && styles.sponsoredFooterLink,
+              pressed && styles.pressed,
+            ]}
           >
             <View style={styles.estFooterLeft}>
-              <Ionicons name="storefront-outline" size={14} color={IOSTokens.colors.tint} />
-              <Text style={styles.estFooterName} numberOfLines={1} ellipsizeMode="tail">
+              <Ionicons
+                name="storefront-outline"
+                size={14}
+                color={post.isSponsored ? '#D42F13' : IOSTokens.colors.tint}
+              />
+              <Text style={[styles.estFooterName, post.isSponsored && styles.sponsoredFooterName]} numberOfLines={1} ellipsizeMode="tail">
                 {post.establishmentName}
               </Text>
             </View>
             <View style={styles.estFooterRight}>
-              <Text style={styles.estFooterAction}>Menu & Info</Text>
-              <Ionicons name="chevron-forward" size={12} color="#8E8E93" />
+              <Text style={[styles.estFooterAction, post.isSponsored && styles.sponsoredFooterAction]}>
+                {post.isSponsored ? 'Claim Pass & View Menu' : 'Menu & Info'}
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={12}
+                color={post.isSponsored ? '#D42F13' : '#8E8E93'}
+              />
             </View>
           </Pressable>
         )}
@@ -592,5 +771,206 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.8,
+  },
+  sponsoredCardContainer: {
+    borderWidth: 1.5,
+    borderColor: '#FCD5CE',
+  },
+  sponsoredMetaPill: {
+    backgroundColor: '#FFF2EE',
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: 5,
+  },
+  sponsoredMetaText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#D42F13',
+    letterSpacing: 0.2,
+  },
+  sponsoredTagBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#FFF0ED',
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F8B4A6',
+    flexShrink: 0,
+  },
+  sponsoredTagText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#D42F13',
+    letterSpacing: 0.2,
+  },
+  discountFloatingPill: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#D42F13',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 8px rgba(212, 47, 19, 0.4)',
+      } as any,
+      default: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 4,
+      },
+    }),
+  },
+  discountFloatingText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  adActionBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFF8F6',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFE5DF',
+    gap: 12,
+  },
+  adActionLeft: {
+    flex: 1,
+    minWidth: 0,
+  },
+  adBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  adBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#D42F13',
+    letterSpacing: 0.6,
+  },
+  adActionHeadline: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1C1C1E',
+  },
+  adActionSub: {
+    fontSize: 11,
+    color: '#8E8E93',
+    marginTop: 1,
+  },
+  adCtaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#D42F13',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 5,
+    flexShrink: 0,
+  },
+  adCtaBtnClaimed: {
+    backgroundColor: '#1E3A2B',
+  },
+  adCtaBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  voucherToast: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FFF2EE',
+    marginHorizontal: 14,
+    marginVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#F8B4A6',
+  },
+  voucherToastText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#D42F13',
+    flex: 1,
+  },
+  pollCommentsPromptRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FFF2EE',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFDDD4',
+    alignSelf: 'flex-start',
+  },
+  pollCommentsIconWrap: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#FFE5DF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pollCommentsPromptText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#D42F13',
+  },
+  sponsoredFooterLink: {
+    backgroundColor: '#FFF2EE',
+    borderWidth: 1,
+    borderColor: '#FFD9CF',
+  },
+  sponsoredFooterName: {
+    color: '#D42F13',
+    fontWeight: '700',
+  },
+  sponsoredFooterAction: {
+    color: '#D42F13',
+    fontWeight: '700',
+  },
+  centerHeartContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 20,
+  },
+  centerHeartIcon: {
+    ...Platform.select({
+      ios: {
+        shadowColor: 'rgba(0, 0, 0, 0.45)',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.6,
+        shadowRadius: 14,
+      },
+      android: {
+        elevation: 10,
+      },
+      web: {
+        filter: 'drop-shadow(0px 6px 16px rgba(0, 0, 0, 0.55))',
+      },
+    }),
   },
 });

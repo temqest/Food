@@ -19,6 +19,38 @@ export interface SocialComment {
   isVerified?: boolean;
 }
 
+export interface EngagementPollOption {
+  id: string;
+  text: string;
+  votes: number;
+}
+
+export interface EngagementPoll {
+  question: string;
+  options: EngagementPollOption[];
+  totalVotes: number;
+  userVotedOptionId?: string;
+  rewardCode?: string;
+  rewardDescription?: string;
+}
+
+export interface AdvertisementData {
+  badge: string; // e.g. "SPONSORED" or "PROMOTED DEAL"
+  headline: string;
+  targetDistrict?: string;
+  expirationNote?: string;
+  callToAction: {
+    label: string; // e.g. "Claim 20% OFF Voucher"
+    actionType: 'claim_voucher' | 'order_now' | 'view_establishment';
+    voucherCode?: string;
+    discountBadge?: string;
+    claimedCount?: number;
+    totalAvailable?: number;
+    isClaimed?: boolean;
+  };
+  poll?: EngagementPoll;
+}
+
 export interface SocialPost {
   id: string;
   author: PostAuthor;
@@ -43,6 +75,8 @@ export interface SocialPost {
   tripStopCount?: number;
   tags: string[];
   aspectRatio?: number;
+  isSponsored?: boolean;
+  advertisement?: AdvertisementData;
 }
 
 export interface NagaMomentStory {
@@ -188,6 +222,96 @@ export const INITIAL_POSTS: SocialPost[] = [
         isVerified: true,
       },
     ],
+  },
+  {
+    id: 'ad-chacha-merienda',
+    author: {
+      id: 'cha-chas-kinalas',
+      name: 'Cha Cha’s Kinalas & Sinanglay',
+      handle: '@chachaskinalas',
+      avatar: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=300&q=80',
+      isBusiness: true,
+      isVerified: true,
+      badge: 'Verified Partner Eatery',
+    },
+    isSponsored: true,
+    postType: 'business_announcement',
+    timestamp: 'Sponsored',
+    establishmentId: 'cha-chas-kinalas',
+    establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
+    district: 'Barlin St / Santa Cruz, Naga City',
+    foodId: 'kinalas',
+    foodName: 'Kinalas Special (with Egg & Extra Brain Gravy)',
+    foodPrice: '₱85',
+    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
+    caption:
+      '⚡ FLASH MERIENDA RUSH: Craving authentic Barlin Kinalas? Vote in our Merienda Taste Ritual poll in the comments to instantly unlock a 20% OFF voucher! Wood-fired beef bone broth and steaming puto ready right now.',
+    insiderTip: 'Claim your voucher code in the comments or promo ribbon and show it at the counter or apply it in your Food Basket!',
+    spiceLevel: 'fiery',
+    rating: 5,
+    likesCount: 342,
+    isLiked: false,
+    isBookmarked: false,
+    commentsCount: 38,
+    tags: ['#SponsoredDeal', '#NagaMerienda', '#ChaChasKinalas', '#TasteOfBarlin'],
+    comments: [
+      {
+        id: 'ad-c1',
+        authorName: 'Maria Santos',
+        authorAvatar: getDiceBearAvatar('Maria Santos'),
+        content: 'Just claimed my voucher! Dipping the puto directly into the gravy is the only true way!',
+        timestamp: '30m ago',
+      },
+      {
+        id: 'ad-c2',
+        authorName: 'Paolo Reyes',
+        authorAvatar: getDiceBearAvatar('Paolo Reyes'),
+        content: 'Is this valid for takeout orders too? The brain gravy today is calling my name 🤤',
+        timestamp: '15m ago',
+      },
+      {
+        id: 'ad-c3',
+        authorName: 'Cha Cha’s Kinalas',
+        authorAvatar: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=200&q=80',
+        content: '@paoloeats Yes po! Valid for both Dine-In and Takeout Passes until 6:00 PM today! 🙏',
+        timestamp: '8m ago',
+        isVerified: true,
+      },
+    ],
+    advertisement: {
+      badge: 'SPONSORED PROMOTION',
+      headline: '⚡ Afternoon Merienda Rush: 20% OFF Kinalas Pass',
+      targetDistrict: 'Barlin & Santa Cruz, Naga City',
+      expirationNote: 'Valid today until 6:00 PM · 82/100 claimed',
+      callToAction: {
+        label: 'Claim 20% Voucher',
+        actionType: 'claim_voucher',
+        voucherCode: 'CHACHA20',
+        discountBadge: '20% OFF',
+        claimedCount: 82,
+        totalAvailable: 100,
+        isClaimed: false,
+      },
+      poll: {
+        question: 'Which Kinalas ritual is your go-to afternoon merienda?',
+        totalVotes: 486,
+        userVotedOptionId: undefined,
+        rewardCode: 'CHACHA20',
+        rewardDescription: '20% OFF Merienda Voucher Unlocked!',
+        options: [
+          {
+            id: 'opt-gravy-mix',
+            text: 'Stir thick brain gravy directly into hot broth 🍲',
+            votes: 326,
+          },
+          {
+            id: 'opt-puto-dip',
+            text: 'Dip hot puto & chicharon straight into gravy 🥖',
+            votes: 160,
+          },
+        ],
+      },
+    },
   },
   {
     id: 'post-chacha-1',

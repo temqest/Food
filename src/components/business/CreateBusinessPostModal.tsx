@@ -313,17 +313,35 @@ export const CreateBusinessPostModal: React.FC<CreateBusinessPostModalProps> = (
                   <Pressable
                     onPress={pickImage}
                     style={({ pressed }) => [styles.uploadPrimaryBtn, pressed && styles.pressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Choose from Gallery"
                   >
-                    <Ionicons name="images" size={18} color="#FFFFFF" />
-                    <Text style={styles.uploadPrimaryBtnText}>Choose from Gallery</Text>
+                    <Ionicons name="images" size={16} color="#FFFFFF" />
+                    <Text
+                      style={styles.uploadPrimaryBtnText}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.85}
+                    >
+                      Choose from Gallery
+                    </Text>
                   </Pressable>
 
                   <Pressable
                     onPress={takePhoto}
                     style={({ pressed }) => [styles.uploadSecondaryBtn, pressed && styles.pressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Take Photo"
                   >
-                    <Ionicons name="camera" size={18} color="#1C1C1E" />
-                    <Text style={styles.uploadSecondaryBtnText}>Take Photo</Text>
+                    <Ionicons name="camera" size={16} color="#1C1C1E" />
+                    <Text
+                      style={styles.uploadSecondaryBtnText}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.85}
+                    >
+                      Take Photo
+                    </Text>
                   </Pressable>
                 </View>
               </View>
@@ -659,21 +677,21 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   uploadPrimaryBtn: {
-    flex: 1.25,
+    flex: 1.35,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#D42F13',
-    paddingVertical: 13,
+    paddingVertical: 11,
     paddingHorizontal: 8,
-    borderRadius: 14,
-    gap: 8,
+    borderRadius: 12,
+    gap: 6,
   },
   uploadPrimaryBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '600',
     color: '#FFFFFF',
-    letterSpacing: -0.2,
+    letterSpacing: -0.1,
   },
   uploadSecondaryBtn: {
     flex: 0.85,
@@ -683,16 +701,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#D1D1D6',
-    paddingVertical: 13,
+    paddingVertical: 11,
     paddingHorizontal: 8,
-    borderRadius: 14,
+    borderRadius: 12,
     gap: 6,
   },
   uploadSecondaryBtnText: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
     color: '#1C1C1E',
-    letterSpacing: -0.2,
+    letterSpacing: -0.1,
   },
   captionInputWrapper: {
     backgroundColor: '#F9F9FB',

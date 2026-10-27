@@ -263,7 +263,7 @@ export const QuestProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     let newlyAwarded: BadgeItem | undefined;
 
     // Check automatic badge unlock: e.g. sili-survivor
-    if (entry.spiceRating >= 4 && !unlockedBadgeIds.includes('sili-survivor')) {
+    if ((entry.spiceRating ?? 0) >= 4 && !unlockedBadgeIds.includes('sili-survivor')) {
       newlyAwarded = COLLECTIBLE_BADGES.find((b) => b.id === 'sili-survivor');
       if (newlyAwarded) {
         setUnlockedBadgeIds((prev) => [...prev, 'sili-survivor']);
