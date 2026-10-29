@@ -7,6 +7,12 @@ export interface ExplorerRank {
   description: string;
 }
 
+async function testing() {
+  console.log("testing")
+}
+
+//commet here
+
 export const EXPLORER_RANKS: ExplorerRank[] = [
   {
     level: 1,
