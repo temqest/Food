@@ -66,7 +66,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
 
   const determineTab = (): NavTab => {
     if (currentTab) return currentTab;
-    if (pathname === '/' || pathname === '/index') return 'home';
+    if (pathname === '/home') return 'home';
     if (pathname.startsWith('/search')) return 'search';
     if (pathname.startsWith('/map')) return 'map';
     if (pathname.startsWith('/saved')) return 'saved';
@@ -82,7 +82,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
     {
       tab: 'home',
       label: 'Home',
-      route: '/',
+      route: '/home',
       activeIcon: 'home',
       inactiveIcon: 'home-outline',
     },

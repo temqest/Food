@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { BusinessProduct } from '@/context/BusinessContext';
 import { MENU_FOOD_CATEGORIES, MenuFoodCategory } from '@/data/mockData';
+import { resolveFoodImage, FoodImageSource } from '@/utils/imageHelper';
 
 interface AddProductModalProps {
   visible: boolean;
@@ -55,7 +56,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [servingNote, setServingNote] = useState(
     editingProduct?.servingNote ?? ''
   );
-  const [image, setImage] = useState<string>(
+  const [image, setImage] = useState<FoodImageSource>(
     editingProduct?.image ?? ''
   );
   const [isSignature, setIsSignature] = useState(
@@ -141,7 +142,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       isSignature,
       inStock,
       prepTime: prepTime.trim() || '10â€“15 mins',
-      image: image.trim() || DEFAULT_DISH_FALLBACK,
+      image: (typeof image === 'string' ? image.trim() : image) || DEFAULT_DISH_FALLBACK,
       flavorProfile: [flavorTag.trim() || 'House Recipe', 'Authentic Taste'],
       servingNote: servingNote.trim() || undefined,
     });
@@ -184,7 +185,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         <View style={styles.photoSection}>
           {image ? (
             <View style={styles.previewCard}>
-              <Image source={{ uri: image }} style={styles.previewImage} resizeMode="cover" />
+              <Image source={resolveFoodImage(image)} style={styles.previewImage} resizeMode="cover" />
               <View style={styles.previewActionsBar}>
                 <Pressable
                   onPress={pickImage}

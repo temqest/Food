@@ -18,6 +18,7 @@ import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import { ESTABLISHMENTS, FOOD_ITEMS } from '@/data/mockData';
 import { useSaved } from '@/context/SavedContext';
 import { useBasket } from '@/context/BasketContext';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 export default function EstablishmentDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -266,9 +267,7 @@ export default function EstablishmentDetailScreen() {
                     {/* Fixed Proportional Food Thumbnail (Never over-extends) */}
                     <View style={styles.dishThumbnailContainer}>
                       <Image
-                        source={{
-                          uri: fullFoodObj?.image || establishment.heroImage,
-                        }}
+                        source={resolveFoodImage(fullFoodObj?.image || establishment.heroImage)}
                         style={styles.dishThumbnail}
                         resizeMode="cover"
                       />

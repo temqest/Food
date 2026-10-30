@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
 import { FoodItem, Establishment } from '@/data/types';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 interface RecommendationModalProps {
   visible: boolean;
@@ -85,7 +86,7 @@ export const RecommendationModal: React.FC<RecommendationModalProps> = ({
           >
             {/* Food Hero Image */}
             <View style={styles.imageCard}>
-              <Image source={{ uri: selectedFood.image }} style={styles.foodImage} />
+              <Image source={resolveFoodImage(selectedFood.image)} style={styles.foodImage} />
               <View style={styles.imageBadgeRow}>
                 <View style={styles.categoryBadge}>
                   <Text style={styles.categoryBadgeText}>{selectedFood.categoryLabel}</Text>

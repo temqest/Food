@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
+import { Image, ImageSourcePropType } from 'react-native';
 import { FoodCategory, EstablishmentType } from '@/data/types';
 import { ESTABLISHMENTS, FOOD_ITEMS } from '@/data/mockData';
 
@@ -14,7 +15,7 @@ export interface BusinessProduct {
   isSignature: boolean;
   inStock: boolean;
   prepTime: string;
-  image: string;
+  image: string | ImageSourcePropType;
   flavorProfile: string[];
   servingNote?: string;
   totalOrdersCount: number;
@@ -188,47 +189,59 @@ const DEFAULT_WALLET: StoreWallet = {
   ],
 };
 
+const localAssetUri = (source: ImageSourcePropType): string =>
+  Image.resolveAssetSource(source)?.uri ?? '';
+
+const LOCAL_BUSINESS_IMAGES = {
+  baduya: localAssetUri(require('../../Food Images/Baduya1.jpg')),
+  bicolExpress: localAssetUri(require('../../Food Images/BicolExpress1.webp')),
+  kinalas: localAssetUri(require('../../Food Images/kinalas1.webp')),
+  laing: localAssetUri(require('../../Food Images/Laing1.jpg')),
+  sinanglay: localAssetUri(require('../../Food Images/sinanglayTilapia1.jpg')),
+  toastedSiopao: localAssetUri(require('../../Food Images/toastedSiopao1.jpg')),
+};
+
 const DEFAULT_GALLERY: GalleryPhoto[] = [
   {
     id: 'gal-1',
-    url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80',
-    caption: 'Bustling Barlin Street open kitchen counter during lunch rush',
-    category: 'Kitchen & Prep',
+    url: LOCAL_BUSINESS_IMAGES.bicolExpress,
+    caption: 'Freshly prepared Bicol Express with coconut milk and native chilies',
+    category: 'Signature Food',
     createdAt: 'Oct 24, 2026',
   },
   {
     id: 'gal-2',
-    url: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
+    url: LOCAL_BUSINESS_IMAGES.kinalas,
     caption: 'Hot steaming bowl of special beef marrow kinalas with egg',
     category: 'Signature Food',
     createdAt: 'Oct 23, 2026',
   },
   {
     id: 'gal-3',
-    url: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
+    url: LOCAL_BUSINESS_IMAGES.sinanglay,
     caption: 'Freshly wrapped and simmered Sinanglay na Tilapia in coconut milk',
     category: 'Signature Food',
     createdAt: 'Oct 21, 2026',
   },
   {
     id: 'gal-4',
-    url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80',
-    caption: 'Cozy heritage wooden seating area for dine-in foodies',
-    category: 'Dining Area',
+    url: LOCAL_BUSINESS_IMAGES.laing,
+    caption: 'Slow-cooked Laing na Natong with rich coconut cream',
+    category: 'Signature Food',
     createdAt: 'Oct 19, 2026',
   },
   {
     id: 'gal-5',
-    url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
-    caption: 'Warm steamed puto pairs freshly prepared by our morning bakers',
-    category: 'Kitchen & Prep',
+    url: LOCAL_BUSINESS_IMAGES.toastedSiopao,
+    caption: 'Golden toasted siopao fresh from the bakery oven',
+    category: 'Signature Food',
     createdAt: 'Oct 18, 2026',
   },
   {
     id: 'gal-6',
-    url: 'https://images.unsplash.com/photo-1583860788934-c3e79a1e21a9?auto=format&fit=crop&w=900&q=80',
-    caption: 'Morning prep crew preparing homemade chili paste & garlic broth',
-    category: 'Atmosphere & Team',
+    url: LOCAL_BUSINESS_IMAGES.baduya,
+    caption: 'Crisp saba baduya ready for the afternoon merienda rush',
+    category: 'Signature Food',
     createdAt: 'Oct 15, 2026',
   },
 ];
@@ -246,8 +259,8 @@ const DEFAULT_PROFILE: BusinessProfile = {
   contactNumber: '+63 917 555 8291',
   openingHours: '7:00 AM – 8:30 PM',
   isOpenNow: true,
-  heroImage: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80',
-  logoImage: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
+  heroImage: LOCAL_BUSINESS_IMAGES.kinalas,
+  logoImage: LOCAL_BUSINESS_IMAGES.kinalas,
   atmosphereTags: ['Casual Dining', 'Open Air Kitchen', 'Heritage Recipe', 'Fast Service'],
   rating: 4.8,
   reviewCount: 384,
@@ -275,7 +288,7 @@ const INITIAL_PRODUCTS: BusinessProduct[] = [
     isSignature: true,
     inStock: true,
     prepTime: '5–10 mins',
-    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
+    image: LOCAL_BUSINESS_IMAGES.kinalas,
     flavorProfile: ['Rich & Savory', 'Umami Gravy', 'Spicy Kick'],
     servingNote: 'Served with crushed chili oil and calamansi',
     totalOrdersCount: 245,
@@ -292,7 +305,7 @@ const INITIAL_PRODUCTS: BusinessProduct[] = [
     isSignature: false,
     inStock: true,
     prepTime: '5–8 mins',
-    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
+    image: LOCAL_BUSINESS_IMAGES.kinalas,
     flavorProfile: ['Savory', 'Warm Broth', 'Tender Meat'],
     servingNote: 'Traditional recipe since 1994',
     totalOrdersCount: 182,
@@ -310,7 +323,7 @@ const INITIAL_PRODUCTS: BusinessProduct[] = [
     isSignature: true,
     inStock: true,
     prepTime: '15–20 mins',
-    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
+    image: LOCAL_BUSINESS_IMAGES.sinanglay,
     flavorProfile: ['Creamy Coconut', 'Fresh Ginger', 'Fiery Sili'],
     servingNote: 'Simmered fresh daily in clay pots',
     totalOrdersCount: 96,
@@ -327,7 +340,7 @@ const INITIAL_PRODUCTS: BusinessProduct[] = [
     isSignature: false,
     inStock: true,
     prepTime: 'Instant',
-    image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
+    image: LOCAL_BUSINESS_IMAGES.toastedSiopao,
     flavorProfile: ['Subtle Sweet', 'Pillowy Texture'],
     servingNote: 'Best dipped in kinalas gravy',
     totalOrdersCount: 140,
@@ -348,7 +361,7 @@ const INITIAL_PROMOTIONS: PromotionCampaign[] = [
     featuredFoodName: 'Kinalas Special',
     featuredProductIds: ['prod-kinalas-special', 'prod-kinalas-regular'],
     featuredProductNames: ['Kinalas Special', 'Kinalas Regular'],
-    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
+    image: LOCAL_BUSINESS_IMAGES.kinalas,
     active: true,
     startDate: 'Active today',
     impressions: 1420,

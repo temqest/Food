@@ -17,6 +17,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useSocialFeed } from '@/context/SocialFeedContext';
 import { useBusiness, BusinessProduct } from '@/context/BusinessContext';
 import { IOSTokens } from '@/constants/theme';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 interface CreateBusinessPostModalProps {
   visible: boolean;

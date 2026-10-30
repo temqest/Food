@@ -9,6 +9,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { getTrailById, FOOD_TRAILS } from '@/data/gamification';
 import { ESTABLISHMENTS, FOOD_ITEMS } from '@/data/mockData';
 import { useQuest } from '@/context/QuestContext';
+import { ImageSourcePropType } from 'react-native';
 import { TrailHeroBanner } from '@/components/trail/TrailHeroBanner';
 import { TrailProgressBar } from '@/components/trail/TrailProgressBar';
 import { TrailStopStation, TrailStopStatus } from '@/components/trail/TrailStopStation';
@@ -36,7 +37,7 @@ export default function TrailDetailScreen() {
     foodName: string;
     establishmentId: string;
     establishmentName: string;
-    image?: string;
+    image?: string | ImageSourcePropType;
   } | null>(null);
 
   // 1. Resolve Food Trail from param

@@ -14,6 +14,7 @@ import { useSocialFeed } from '@/context/SocialFeedContext';
 import { NagaMomentStory } from '@/data/socialFeedData';
 import { router } from 'expo-router';
 import { UserAvatar } from '@/components/common/UserAvatar';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 const { width, height } = Dimensions.get('window');
 
@@ -76,7 +77,7 @@ const StoryContent: React.FC<StoryContentProps> = ({ story, onClose }) => {
       </View>
 
       {/* Story Photo */}
-      <Image source={{ uri: story.image }} style={styles.storyImage} resizeMode="cover" />
+      <Image source={resolveFoodImage(story.image)} style={styles.storyImage} resizeMode="cover" />
 
       {/* Bottom Caption Overlay */}
       <View style={styles.bottomOverlay}>

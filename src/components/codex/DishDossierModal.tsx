@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { FoodItem, Establishment } from '@/data/types';
 import { DishInsiderTip } from '@/data/gamification';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 interface DishDossierModalProps {
   visible: boolean;
@@ -83,7 +84,7 @@ export const DishDossierModal: React.FC<DishDossierModalProps> = ({
           >
             {/* Hero Image with Overlays */}
             <View style={styles.imageContainer}>
-              <Image source={{ uri: food.image }} style={styles.heroImage} resizeMode="cover" />
+              <Image source={resolveFoodImage(food.image)} style={styles.heroImage} resizeMode="cover" />
 
               <View style={styles.imageOverlayTop}>
                 {isLogged ? (

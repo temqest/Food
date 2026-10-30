@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Establishment, FoodItem } from '@/data/types';
 import { TrailSide, getTrailAnchorX } from './TrailSteppingBridge';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 export type TrailStopStatus = 'completed' | 'active' | 'locked';
 
@@ -144,7 +145,7 @@ export const TrailStopStation: React.FC<TrailStopStationProps> = ({
           {/* ========================================================== */}
           <View style={styles.heroBannerContainer}>
             <Image
-              source={{ uri: displayImage }}
+              source={resolveFoodImage(displayImage)}
               style={[styles.heroBannerImage, isLocked && styles.heroBannerLocked]}
               resizeMode="cover"
             />

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { ImageSourcePropType } from 'react-native';
 import {
   SocialPost,
   NagaMomentStory,
@@ -24,7 +25,7 @@ interface SocialFeedContextType {
   createPost: (newPostData: {
     authorType: 'user' | 'business';
     caption: string;
-    image: string;
+    image: string | ImageSourcePropType;
     establishmentId?: string;
     establishmentName?: string;
     foodId?: string;
@@ -119,7 +120,7 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const createPost = (newPostData: {
     authorType: 'user' | 'business';
     caption: string;
-    image: string;
+    image: string | ImageSourcePropType;
     establishmentId?: string;
     establishmentName?: string;
     foodId?: string;

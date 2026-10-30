@@ -1,3 +1,5 @@
+import { ImageSourcePropType } from 'react-native';
+
 export type FoodCategory =
   | 'heritage-soups'
   | 'gata-sili'
@@ -25,7 +27,7 @@ export interface FoodItem {
   culturalContext: string;
   category: FoodCategory | string;
   categoryLabel: string;
-  image: string;
+  image: string | ImageSourcePropType;
   priceRange: string;
   priceLevel: PriceLevel;
   servingSpotsCount: number;

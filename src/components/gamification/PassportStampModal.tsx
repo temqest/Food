@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { ImageSourcePropType } from 'react-native';
 import { useQuest } from '@/context/QuestContext';
 
 interface PassportStampModalProps {
@@ -23,7 +24,7 @@ interface PassportStampModalProps {
   foodName: string;
   establishmentId: string;
   establishmentName: string;
-  image?: string;
+  image?: string | ImageSourcePropType;
 }
 
 export const PassportStampModal: React.FC<PassportStampModalProps> = ({

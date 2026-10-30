@@ -28,6 +28,7 @@ import { PromotionCard } from '@/components/business/PromotionCard';
 import { BusinessNavBar, BusinessTab } from '@/components/business/BusinessNavBar';
 import { EditPhotoModal } from '@/components/business/EditPhotoModal';
 import { StoreWalletCard } from '@/components/business/StoreWalletCard';
+import { resolveFoodImage } from '@/utils/imageHelper';
 import { CashOutModal } from '@/components/business/CashOutModal';
 import { StoreGallerySection } from '@/components/business/StoreGallerySection';
 import { StoreSubscriptionBanner } from '@/components/business/StoreSubscriptionBanner';
@@ -211,7 +212,7 @@ export default function BusinessDashboardScreen() {
       {/* Sleek Native iOS Mobile App Header */}
       <View style={styles.topHeader}>
         <Pressable
-          onPress={() => router.push('/')}
+          onPress={() => router.push('/home')}
           style={({ pressed }) => [styles.exitBtn, pressed && styles.pressed]}
           hitSlop={10}
           accessibilityRole="button"
@@ -388,7 +389,7 @@ export default function BusinessDashboardScreen() {
                       accessibilityLabel={`Edit dish details for ${prod.name}`}
                       accessibilityHint="Opens edit dish modal"
                     >
-                      <Image source={{ uri: prod.image }} style={styles.productThumb} />
+                      <Image source={resolveFoodImage(prod.image)} style={styles.productThumb} />
 
                       <View style={styles.productDetailsCol}>
                         <View style={styles.productTitleLine}>

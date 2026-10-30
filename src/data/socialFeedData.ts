@@ -1,4 +1,14 @@
 import { getDiceBearAvatar } from '@/utils/dicebearAvatar';
+import { ImageSourcePropType } from 'react-native';
+
+const FOOD_IMAGES = {
+  baduya: require('../../Food Images/Baduya1.jpg'),
+  bicolExpress: require('../../Food Images/BicolExpress1.webp'),
+  kinalas: require('../../Food Images/kinalas1.webp'),
+  laing: require('../../Food Images/Laing1.jpg'),
+  sinanglay: require('../../Food Images/sinanglayTilapia1.jpg'),
+  toastedSiopao: require('../../Food Images/toastedSiopao1.jpg'),
+} as const;
 
 export interface PostAuthor {
   id: string;
@@ -62,7 +72,7 @@ export interface SocialPost {
   foodId?: string;
   foodName?: string;
   foodPrice?: string;
-  image: string;
+  image: string | ImageSourcePropType;
   caption: string;
   insiderTip?: string;
   spiceLevel?: 'mild' | 'moderate' | 'fiery';
@@ -82,7 +92,7 @@ export interface SocialPost {
 export interface NagaMomentStory {
   id: string;
   author: PostAuthor;
-  image: string;
+  image: string | ImageSourcePropType;
   caption: string;
   timeAgo: string;
   isUnread: boolean;
@@ -101,7 +111,7 @@ export const INITIAL_STORIES: NagaMomentStory[] = [
       isVerified: true,
       badge: 'Heritage Eatery',
     },
-    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
+    image: FOOD_IMAGES.kinalas,
     caption: 'Fresh morning broth simmering right now! Bone brain gravy is thick today. Come by before 1 PM! 🍲',
     timeAgo: '20m ago',
     isUnread: true,
@@ -117,7 +127,7 @@ export const INITIAL_STORIES: NagaMomentStory[] = [
       isBusiness: false,
       badge: 'Expedition Guide',
     },
-    image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80',
+    image: FOOD_IMAGES.baduya,
     caption: 'Stop #3 on our Centro Afternoon Food Crawl. Who knew Pan Bonete paired so well with native tsokolate? ☕',
     timeAgo: '45m ago',
     isUnread: true,
@@ -133,7 +143,7 @@ export const INITIAL_STORIES: NagaMomentStory[] = [
       isVerified: true,
       badge: 'Verified Restaurant',
     },
-    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80',
+    image: FOOD_IMAGES.bicolExpress,
     caption: 'Crispy Pata & creamy Bicol Express ready for tonight’s live acoustic session on Magsaysay! 🎸',
     timeAgo: '1h ago',
     isUnread: true,
@@ -149,7 +159,7 @@ export const INITIAL_STORIES: NagaMomentStory[] = [
       isBusiness: false,
       badge: 'Foodie Lv. 4',
     },
-    image: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=900&q=80',
+    image: FOOD_IMAGES.toastedSiopao,
     caption: 'Toasted Siopao fresh from the brick oven at Baker’s Plaza. That crunchy crust is unmatched! 🔥',
     timeAgo: '2h ago',
     isUnread: false,
@@ -166,7 +176,7 @@ export const INITIAL_STORIES: NagaMomentStory[] = [
       isVerified: true,
       badge: 'Iconic Kitchen',
     },
-    image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=900&q=80',
+    image: FOOD_IMAGES.laing,
     caption: 'Special Laing na may Bagis (toasted coconut crab) available for lunch today. Very limited pots!',
     timeAgo: '3h ago',
     isUnread: false,
@@ -190,21 +200,21 @@ export const INITIAL_POSTS: SocialPost[] = [
     establishmentId: 'cha-chas-kinalas',
     establishmentName: "Cha Cha's Kinalas",
     district: 'Barlin St., Santa Cruz, Naga City',
-    foodId: 'kinalas',
-    foodName: 'Kinalas na Baka Especial',
+    foodId: 'baduya',
+    foodName: 'Fresh Hot Baduya Fritters',
     foodPrice: '₱85',
-    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
+    image: FOOD_IMAGES.baduya,
     caption:
-      'Day 1 of our Naga Food Expedition! Nothing prepares you for the sheer umami intensity of genuine Kinalas until you watch the broth ladled straight from the wood-fired cauldron. The gravy coating every strand of miki is pure heaven.',
-    insiderTip: 'Drizzle 3 drops of calamansi and half a spoon of toasted chili paste BEFORE stirring the gravy into the broth!',
-    spiceLevel: 'fiery',
+      'Day 1 of our Naga Food Expedition! These fresh banana fritters are crisp at the edges, tender in the center, and exactly the kind of warm merienda that disappears before the next stop.',
+    insiderTip: 'Ask for a fresh batch and enjoy the fritters while they are still hot with a cup of native coffee.',
+    spiceLevel: 'mild',
     rating: 5,
     likesCount: 148,
     isLiked: false,
     isBookmarked: false,
     commentsCount: 19,
     tripStopCount: 4,
-    tags: ['#NagaFoodCrawl', '#KinalasRitual', '#BicolStreetEats', '#Bagumbayan'],
+    tags: ['#NagaFoodCrawl', '#Baduya', '#BicolStreetEats', '#MeriendaTime'],
     comments: [
       {
         id: 'c1',
@@ -215,9 +225,9 @@ export const INITIAL_POSTS: SocialPost[] = [
       },
       {
         id: 'c2',
-        authorName: 'Cha Cha’s Kinalas',
+        authorName: 'Cha Cha’s Kitchen',
         authorAvatar: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=200&q=80',
-        content: 'Mabalos for visiting our humble carinderia! Hope you enjoyed the bone brain gravy! 🙏',
+        content: 'Mabalos for visiting our humble carinderia! Hope you enjoyed the fresh baduya! 🙏',
         timestamp: '45m ago',
         isVerified: true,
       },
@@ -243,7 +253,7 @@ export const INITIAL_POSTS: SocialPost[] = [
     foodId: 'kinalas',
     foodName: 'Kinalas Special (with Egg & Extra Brain Gravy)',
     foodPrice: '₱85',
-    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
+    image: FOOD_IMAGES.kinalas,
     caption:
       '⚡ FLASH MERIENDA RUSH: Craving authentic Barlin Kinalas? Vote in our Merienda Taste Ritual poll in the comments to instantly unlock a 20% OFF voucher! Wood-fired beef bone broth and steaming puto ready right now.',
     insiderTip: 'Claim your voucher code in the comments or promo ribbon and show it at the counter or apply it in your Food Basket!',
@@ -329,33 +339,33 @@ export const INITIAL_POSTS: SocialPost[] = [
     establishmentId: 'cha-chas-kinalas',
     establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
     district: 'Barlin St / Santa Cruz, Naga City',
-    foodId: 'kinalas',
-    foodName: 'Kinalas Special (with Egg & Extra Brain Gravy)',
-    foodPrice: '₱85',
-    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
+    foodId: 'sinanglay',
+    foodName: 'Sinanglay na Tilapia sa Gata',
+    foodPrice: '₱185',
+    image: FOOD_IMAGES.sinanglay,
     caption:
-      'Good morning Naga! Our slow-simmered beef broth has been brewing since 4:30 AM over mahogany firewood. Fresh batches of tender cow brain gravy and steamed puto ready for early breakfast cravings! 🍲',
-    insiderTip: 'Pair your bowl with our freshly pounded toasted sili paste for that authentic Santa Cruz kick!',
-    spiceLevel: 'fiery',
+      'Good morning Naga! Our sinanglay is ready: whole tilapia wrapped in tender leaves, stuffed with aromatics, and simmered in rich coconut milk until every bite is silky and fragrant. 🐟',
+    insiderTip: 'Spoon the coconut sauce over warm garlic rice and add a little fresh sili for the full Bicolano experience.',
+    spiceLevel: 'moderate',
     rating: 5,
     likesCount: 189,
     isLiked: false,
     isBookmarked: false,
     commentsCount: 2,
-    tags: ['#FreshBatch', '#KinalasRitual', '#BarlinStreet', '#ChaChasKinalas'],
+    tags: ['#FreshBatch', '#Sinanglay', '#GataAndSili', '#ChaChasKinalas'],
     comments: [
       {
         id: 'cc-1',
         authorName: 'Paolo Reyes',
         authorAvatar: getDiceBearAvatar('Paolo Reyes'),
-        content: 'On my way! Save me a bowl with extra miki noodles please!',
+        content: 'On my way! Save me a serving with extra coconut sauce and sili please!',
         timestamp: '2h ago',
       },
       {
         id: 'cc-2',
         authorName: 'Maria Santos',
         authorAvatar: getDiceBearAvatar('Maria Santos'),
-        content: 'The brain gravy today looks exceptionally rich! Best breakfast in Centro.',
+        content: 'The coconut sauce looks so rich! That fish and leaf wrap are perfect together.',
         timestamp: '1h ago',
       },
     ],
@@ -379,7 +389,7 @@ export const INITIAL_POSTS: SocialPost[] = [
     foodId: 'bicol-express',
     foodName: 'Signature Bicol Express & Pata Combo',
     foodPrice: '₱380',
-    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80',
+    image: FOOD_IMAGES.bicolExpress,
     caption:
       'Chef’s weekend batch of slow-braised Bicol Express is ready! Cooked with double-pressed coconut milk (kakang gata) and authentic balaw (salted shrimp paste) harvested fresh from San Miguel Bay. Pairs best with our award-winning Crispy Pata.',
     insiderTip: 'Ask your server for our spice adjustment — we can serve it Mild, Bicolano Classic, or Sili Firecracker!',
@@ -418,7 +428,7 @@ export const INITIAL_POSTS: SocialPost[] = [
     foodId: 'sinanglay',
     foodName: 'Sinanglay na Tilapia sa Gata',
     foodPrice: '₱185',
-    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
+    image: FOOD_IMAGES.sinanglay,
     caption:
       'Look at that silky coconut broth! Whole freshwater tilapia stuffed with tomatoes, ginger, and wild bird’s eye chilies, then bundled in pechay leaves. The smoky sweetness of fresh kakang gata cuts through the fiery pepper kick flawlessly.',
     insiderTip: 'Spoon the leaf wrap and stuff a forkful of warm steaming garlic rice inside for the ultimate bite.',
@@ -457,7 +467,7 @@ export const INITIAL_POSTS: SocialPost[] = [
     foodId: 'toasted-siopao',
     foodName: 'Original Crispy Toasted Siopao',
     foodPrice: '₱25 / pc',
-    image: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=900&q=80',
+    image: FOOD_IMAGES.toastedSiopao,
     caption:
       'Grabbed a dozen fresh out of the morning oven at Panganiban Drive! Unlike regular steamed buns, the Naga toasted siopao has this delicate, golden biscuit-like exterior with savory pork asado and salted egg filling.',
     insiderTip: 'Buy an extra box because they disappear in the car ride home before you even cross the river bridge.',
@@ -492,28 +502,28 @@ export const INITIAL_POSTS: SocialPost[] = [
     postType: 'business_announcement',
     timestamp: '1 day ago',
     establishmentId: 'aling-celys-kinalasan',
-    establishmentName: "Aling Cely's Kinalas",
+    establishmentName: "Aling Cely's Kitchen",
     district: 'Barlin St., Santa Cruz, Naga City',
-    foodId: 'kinalas',
-    foodName: 'Special Noodle Soup w/ Toasted Garlic',
-    foodPrice: '₱75',
-    image: 'https://images.unsplash.com/photo-1547928576-a4a33237cbc3?auto=format&fit=crop&w=900&q=80',
+    foodId: 'laing',
+    foodName: 'Laing na Natong',
+    foodPrice: '₱95',
+    image: FOOD_IMAGES.laing,
     caption:
-      '40 years on Barlin Street and our broth recipe remains untouched. Simmered overnight with beef knuckles and marrow bones. We open at 7:00 AM sharp every morning!',
-    insiderTip: 'Pair it with crunchy pork baduya (banana fritters) on the side — true old-school Naga breakfast!',
+      'A bowl of slow-cooked laing with tender taro leaves, creamy coconut milk, and a gentle chili warmth. Simple, rich, and made for a plate of steaming rice.',
+    insiderTip: 'Let the laing sit for a few minutes before serving so the coconut cream settles into the leaves.',
     spiceLevel: 'moderate',
     rating: 5,
     likesCount: 489,
     isLiked: true,
     isBookmarked: false,
     commentsCount: 57,
-    tags: ['#AlingCely', '#BarlinStreet', '#OldSchoolNaga', '#OriginalKinalas'],
+    tags: ['#AlingCely', '#Laing', '#GataAndSili', '#OldSchoolNaga'],
     comments: [
       {
         id: 'c6',
         authorName: 'Carlo Mendoza',
         authorAvatar: getDiceBearAvatar('Carlo Mendoza'),
-        content: 'My grandfather brought me here in the 80s and the taste is exactly the same today!',
+        content: 'My grandmother used to make laing just like this. The coconut flavor is so comforting!',
         timestamp: '22h ago',
       },
     ],

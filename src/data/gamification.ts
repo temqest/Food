@@ -1,3 +1,5 @@
+import { ImageSourcePropType } from 'react-native';
+
 export interface ExplorerRank {
   level: number;
   title: string;
@@ -336,7 +338,7 @@ export interface MysteryDrop {
   establishmentId: string;
   establishmentName: string;
   neighborhood: string;
-  image: string;
+  image: ImageSourcePropType | string;
   rarity: 'Common Gem' | 'Secret Local Hack' | 'Legendary Heritage';
   xpReward: number;
   insiderSecret: string;
@@ -352,7 +354,7 @@ export const MYSTERY_DROPS: MysteryDrop[] = [
     establishmentId: 'cha-chas-kinalas',
     establishmentName: "Cha-Cha's Kinalas Station",
     neighborhood: 'Barlin & Bagumbayan',
-    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
+    image: require('../../assets/images/dishes/kinalas.webp'),
     rarity: 'Legendary Heritage',
     xpReward: 75,
     insiderSecret:
@@ -367,7 +369,7 @@ export const MYSTERY_DROPS: MysteryDrop[] = [
     establishmentId: 'pan-de-naga-heritage',
     establishmentName: 'Pan De Naga Heritage Bakery',
     neighborhood: 'Centro District',
-    image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
+    image: require('../../assets/images/dishes/toasted-siopao.jpg'),
     rarity: 'Secret Local Hack',
     xpReward: 50,
     insiderSecret:
@@ -382,7 +384,7 @@ export const MYSTERY_DROPS: MysteryDrop[] = [
     establishmentId: 'bob-marlin-restaurant',
     establishmentName: 'Bob Marlin Bicolano Cuisine',
     neighborhood: 'Magsaysay Avenue',
-    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
+    image: require('../../assets/images/dishes/sinanglay.jpg'),
     rarity: 'Legendary Heritage',
     xpReward: 80,
     insiderSecret:
@@ -397,7 +399,7 @@ export const MYSTERY_DROPS: MysteryDrop[] = [
     establishmentId: 'geewan-bicolano-eatery',
     establishmentName: 'Geewan Bicolano Heritage Eatery',
     neighborhood: 'Centro District',
-    image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=900&q=80',
+    image: require('../../assets/images/dishes/pinangat.webp'),
     rarity: 'Secret Local Hack',
     xpReward: 60,
     insiderSecret:
@@ -412,7 +414,7 @@ export const MYSTERY_DROPS: MysteryDrop[] = [
     establishmentId: 'bob-marlin-restaurant',
     establishmentName: 'Bob Marlin Bicolano Cuisine',
     neighborhood: 'Magsaysay Avenue',
-    image: 'https://images.unsplash.com/photo-1547496502-affa22d38842?auto=format&fit=crop&w=900&q=80',
+    image: require('../../assets/images/dishes/bicol-express.jpg'),
     rarity: 'Legendary Heritage',
     xpReward: 70,
     insiderSecret:
@@ -427,7 +429,7 @@ export const MYSTERY_DROPS: MysteryDrop[] = [
     establishmentId: 'j-emanuel-pili',
     establishmentName: 'J. Emanuel Pastries',
     neighborhood: 'Diversion / Magsaysay',
-    image: 'https://images.unsplash.com/photo-1536591375315-1b836814d60a?auto=format&fit=crop&w=900&q=80',
+    image: require('../../assets/images/dishes/crispy-pili.jpg'),
     rarity: 'Common Gem',
     xpReward: 45,
     insiderSecret:

@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useQuest } from '@/context/QuestContext';
 import { MysteryDrop } from '@/data/gamification';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 interface SilitoMysteryBoxProps {
   compact?: boolean;
@@ -196,7 +197,7 @@ export const SilitoMysteryBox: React.FC<SilitoMysteryBoxProps> = ({ compact = fa
             onPress={() => setModalVisible(true)}
             style={({ pressed }) => [styles.openedBody, pressed && styles.pressed]}
           >
-            <Image source={{ uri: currentDisplayDrop.image }} style={styles.openedThumb} />
+            <Image source={resolveFoodImage(currentDisplayDrop.image)} style={styles.openedThumb} />
             <View style={styles.openedInfo}>
               <Text style={styles.openedDishName} numberOfLines={1}>
                 {currentDisplayDrop.foodName}
@@ -344,7 +345,7 @@ export const SilitoMysteryBox: React.FC<SilitoMysteryBoxProps> = ({ compact = fa
               {/* Dish Visual */}
               <View style={styles.dishImageWrap}>
                 <Image
-                  source={{ uri: currentDisplayDrop.image }}
+                  source={resolveFoodImage(currentDisplayDrop.image)}
                   style={styles.dishImage}
                   resizeMode="cover"
                 />

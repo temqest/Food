@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { FOOD_ITEMS, ESTABLISHMENTS } from '@/data/mockData';
 import { DISH_INSIDER_TIPS } from '@/data/gamification';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 export const NagaCompassWidget: React.FC = () => {
   const [selectedMood, setSelectedMood] = useState<'any' | 'sabaw' | 'spicy' | 'merienda'>('any');
@@ -110,7 +111,7 @@ export const NagaCompassWidget: React.FC = () => {
       {spinResult && (
         <View style={styles.resultBox}>
           <View style={styles.resultContentRow}>
-            <Image source={{ uri: spinResult.food.image }} style={styles.resultThumb} />
+            <Image source={resolveFoodImage(spinResult.food.image)} style={styles.resultThumb} />
             <View style={styles.resultInfo}>
               <View style={styles.resultBadge}>
                 <Text style={styles.resultBadgeText}>YOUR DESTINATION</Text>

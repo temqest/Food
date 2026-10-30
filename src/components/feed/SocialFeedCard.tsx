@@ -14,6 +14,7 @@ import { SocialPost } from '@/data/socialFeedData';
 import { useSocialFeed } from '@/context/SocialFeedContext';
 import { IOSTokens } from '@/constants/theme';
 import { UserAvatar } from '@/components/common/UserAvatar';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 interface SocialFeedCardProps {
   post: SocialPost;
@@ -40,16 +41,18 @@ export const SocialFeedCard: React.FC<SocialFeedCardProps> = ({ post, onOpenComm
       return;
     }
     if (post.image) {
-      Image.getSize(
-        post.image,
-        (w, h) => {
-          if (w > 0 && h > 0) {
-            const ratio = w / h;
-            setAspectRatio(Math.min(Math.max(ratio, 0.8), 1.91));
-          }
-        },
-        () => {}
-      );
+      if (typeof post.image === 'string') {
+        Image.getSize(
+          post.image,
+          (w, h) => {
+            if (w > 0 && h > 0) {
+              const ratio = w / h;
+              setAspectRatio(Math.min(Math.max(ratio, 0.8), 1.91));
+            }
+          },
+          () => {}
+        );
+      }
     }
   }, [post.image, post.aspectRatio]);
 
@@ -226,7 +229,7 @@ export const SocialFeedCard: React.FC<SocialFeedCardProps> = ({ post, onOpenComm
 
       {/* 2. Media Section (Double-Tap to Like) */}
       <Pressable onPress={handleDoubleTap} style={[styles.mediaContainer, { aspectRatio }]}>
-        <Image source={{ uri: post.image }} style={styles.foodImage} resizeMode="cover" />
+        <Image source={resolveFoodImage(post.image)} style={styles.foodImage} resizeMode="cover" />
 
         {/* Instagram-Style Floating Center Heart */}
         <Animated.View

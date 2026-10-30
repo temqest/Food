@@ -113,7 +113,7 @@ export default function SavedScreen() {
                   Tap the bookmark icon on any dish to save it to your personalized Naga tasting list.
                 </Text>
                 <Pressable
-                  onPress={() => router.push('/')}
+                  onPress={() => router.push('/home')}
                   style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.primaryPressed]}
                 >
                   <Text style={styles.emptyActionText}>Explore Dishes</Text>
@@ -146,7 +146,7 @@ export default function SavedScreen() {
                 Bookmark carinderias, heritage dining spots, and bakeries in Naga to plan your food trip.
               </Text>
               <Pressable
-                onPress={() => router.push('/')}
+                onPress={() => router.push('/home')}
                 style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.primaryPressed]}
               >
                 <Text style={styles.emptyActionText}>Discover Places</Text>

@@ -20,6 +20,7 @@ import { NavBar } from '@/components/common/NavBar';
 import { useBasket, PreOrder, BasketItem } from '@/context/BasketContext';
 import { IOSTokens } from '@/constants/theme';
 import QRCode from 'react-native-qrcode-svg';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 export default function BasketScreen() {
   const {
@@ -296,7 +297,7 @@ export default function BasketScreen() {
                           style={[styles.itemRow, isLast && styles.itemRowLast]}
                         >
                           <Image
-                            source={{ uri: item.image }}
+                            source={resolveFoodImage(item.image)}
                             style={styles.itemThumb}
                           />
 

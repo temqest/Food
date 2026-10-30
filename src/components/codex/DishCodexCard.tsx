@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { FoodItem, Establishment } from '@/data/types';
 import { DishInsiderTip } from '@/data/gamification';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 interface DishCodexCardProps {
   food: FoodItem;
@@ -41,7 +42,7 @@ export const DishCodexCard: React.FC<DishCodexCardProps> = ({
     >
       {/* 160px Hero Food Photo */}
       <View style={styles.imageContainer}>
-        <Image source={{ uri: food.image }} style={styles.image} resizeMode="cover" />
+        <Image source={resolveFoodImage(food.image)} style={styles.image} resizeMode="cover" />
 
         {isLogged && (
           <View style={styles.tastedBadge}>

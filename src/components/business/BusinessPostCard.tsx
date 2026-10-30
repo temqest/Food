@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { SocialPost } from '@/data/socialFeedData';
 import { useSocialFeed } from '@/context/SocialFeedContext';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 interface BusinessPostCardProps {
   post: SocialPost;
@@ -39,7 +40,7 @@ export const BusinessPostCard: React.FC<BusinessPostCardProps> = ({
       setAspectRatio(Math.min(Math.max(post.aspectRatio, 0.8), 1.91));
       return;
     }
-    if (post.image) {
+    if (post.image && typeof post.image === 'string') {
       Image.getSize(
         post.image,
         (w, h) => {
@@ -140,7 +141,7 @@ export const BusinessPostCard: React.FC<BusinessPostCardProps> = ({
 
       {/* Main Image with Optional Tagged Dish Glass Pill */}
       <View style={[styles.imageContainer, { aspectRatio }]}>
-        <Image source={{ uri: post.image }} style={styles.postImage} resizeMode="cover" />
+        <Image source={resolveFoodImage(post.image)} style={styles.postImage} resizeMode="cover" />
 
         {/* Tagged Dish Floating Badge */}
         {post.foodName && (

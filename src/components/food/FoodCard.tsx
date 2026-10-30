@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { FoodItem } from '@/data/types';
 import { IOSTokens } from '@/constants/theme';
 import { useSaved } from '@/context/SavedContext';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 interface FoodCardProps {
   food: FoodItem;
@@ -38,7 +39,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({ food, layout = 'carousel' })
       >
         <View style={styles.carouselImageWrapper}>
           <Image
-            source={{ uri: food.image }}
+            source={resolveFoodImage(food.image)}
             style={styles.carouselImage}
             resizeMode="cover"
           />
@@ -63,7 +64,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({ food, layout = 'carousel' })
         style={({ pressed }) => [styles.rowContainer, pressed && styles.rowPressed]}
       >
         <Image
-          source={{ uri: food.image }}
+          source={resolveFoodImage(food.image)}
           style={styles.rowThumbnail}
           resizeMode="cover"
         />
@@ -98,7 +99,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({ food, layout = 'carousel' })
     >
       <View style={styles.standardImageWrapper}>
         <Image
-          source={{ uri: food.image }}
+          source={resolveFoodImage(food.image)}
           style={styles.standardImage}
           resizeMode="cover"
         />

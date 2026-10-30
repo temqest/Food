@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { FOOD_ITEMS } from '@/data/mockData';
 import { FoodItem } from '@/data/types';
 import { STICKER_ICONS } from './CravingDialWidget';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 export interface FoodShowcaseBoxProps {
   activeCravingId?: string;
@@ -382,7 +383,7 @@ export const FoodShowcaseBox: React.FC<FoodShowcaseBoxProps> = ({
             {/* Photo Container */}
             <View style={styles.photoContainer}>
               <Image
-                source={{ uri: card1.image }}
+                source={resolveFoodImage(card1.image)}
                 style={styles.foodImage}
                 resizeMode="cover"
               />

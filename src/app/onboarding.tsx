@@ -103,7 +103,7 @@ export default function OnboardingScreen() {
       favoriteDistrict: selectedDistrict,
       location: `${selectedDistrict}, Naga City`,
     });
-    router.replace('/');
+    router.replace('/home');
   };
 
   return (

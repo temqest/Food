@@ -1,4 +1,5 @@
-﻿import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
+import { ImageSourcePropType } from 'react-native';
 
 export interface BasketItem {
   id: string; // unique item instance id in cart
@@ -8,7 +9,7 @@ export interface BasketItem {
   establishmentId: string;
   establishmentName: string;
   establishmentAddress: string;
-  image: string;
+  image: string | ImageSourcePropType;
   quantity: number;
   selectedNote?: string;
 }
@@ -35,6 +36,24 @@ export interface PreOrder {
   createdAt: string;
   estimatedMinutesRemaining: number;
 }
+
+const BASKET_FOOD_IMAGES: Record<string, ImageSourcePropType> = {
+  kinalas: require('../../Food Images/kinalas1.webp'),
+  sinanglay: require('../../Food Images/sinanglayTilapia1.jpg'),
+  baduya: require('../../Food Images/Baduya1.jpg'),
+  toastedSiopao: require('../../Food Images/toastedSiopao1.jpg'),
+};
+
+const getBasketFoodImage = (foodId: string): ImageSourcePropType | undefined =>
+  BASKET_FOOD_IMAGES[foodId === 'toasted-siopao' ? 'toastedSiopao' : foodId];
+
+const normalizeOrderImages = (order: PreOrder): PreOrder => ({
+  ...order,
+  items: order.items.map((item) => ({
+    ...item,
+    image: getBasketFoodImage(item.foodId) || item.image,
+  })),
+});
 
 interface BasketContextType {
   items: BasketItem[];
@@ -321,8 +340,15 @@ const INITIAL_PRE_ORDERS: PreOrder[] = [
 ];
 
 export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<BasketItem[]>(INITIAL_BASKET_ITEMS);
-  const [activePreOrders, setActivePreOrders] = useState<PreOrder[]>(INITIAL_PRE_ORDERS);
+  const [items, setItems] = useState<BasketItem[]>(
+    INITIAL_BASKET_ITEMS.map((item) => ({
+      ...item,
+      image: getBasketFoodImage(item.foodId) || item.image,
+    }))
+  );
+  const [activePreOrders, setActivePreOrders] = useState<PreOrder[]>(
+    INITIAL_PRE_ORDERS.map(normalizeOrderImages)
+  );
   const [diningOption, setDiningOption] = useState<'dine_in' | 'takeout'>('dine_in');
   const [pickupTimeSlot, setPickupTimeSlot] = useState<string>('ASAP (15–20 mins)');
   const [specialInstructions, setSpecialInstructions] = useState<string>('');
@@ -552,7 +578,10 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       ],
     ];
 
-    const selectedItems = menuPresets[Math.floor(Math.random() * menuPresets.length)];
+    const selectedItems = menuPresets[Math.floor(Math.random() * menuPresets.length)].map((item) => ({
+      ...item,
+      image: getBasketFoodImage(item.foodId) || item.image,
+    }));
     const subtotal = selectedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const orderNumber = `#NG-${Math.floor(9100 + Math.random() * 800)}`;
     const diningOpt: 'dine_in' | 'takeout' = Math.random() > 0.5 ? 'dine_in' : 'takeout';
@@ -593,7 +622,7 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const resetDemoOrders = () => {
-    setActivePreOrders(INITIAL_PRE_ORDERS);
+    setActivePreOrders(INITIAL_PRE_ORDERS.map(normalizeOrderImages));
   };
 
   return (

@@ -20,6 +20,7 @@ import { useBasket } from '@/context/BasketContext';
 import { useQuest } from '@/context/QuestContext';
 import { DISH_INSIDER_TIPS } from '@/data/gamification';
 import { PassportStampModal } from '@/components/gamification/PassportStampModal';
+import { resolveFoodImage } from '@/utils/imageHelper';
 
 export default function FoodDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -124,7 +125,7 @@ export default function FoodDetailScreen() {
         {/* Full-Bleed Hero Section */}
         <View style={styles.heroWrapper}>
           <Image
-            source={{ uri: food.image }}
+            source={resolveFoodImage(food.image)}
             style={styles.heroImage}
             resizeMode="cover"
           />

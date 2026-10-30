@@ -32,7 +32,7 @@ export default function LoginScreen() {
 
     const result = await login(email, password);
     if (result.success) {
-      router.replace('/');
+      router.replace('/home');
     } else if (result.error) {
       setErrorMessage(result.error);
     }
@@ -41,7 +41,7 @@ export default function LoginScreen() {
   const handleGoogleSignIn = async () => {
     const result = await login('maria.santos@gmail.com', 'google-auth');
     if (result.success) {
-      router.replace('/');
+      router.replace('/home');
     }
   };
 
