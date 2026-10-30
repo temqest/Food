@@ -226,7 +226,7 @@ const DEFAULT_GALLERY: GalleryPhoto[] = [
   },
   {
     id: 'gal-6',
-    url: 'https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&w=900&q=80',
+    url: 'https://images.unsplash.com/photo-1583860788934-c3e79a1e21a9?auto=format&fit=crop&w=900&q=80',
     caption: 'Morning prep crew preparing homemade chili paste & garlic broth',
     category: 'Atmosphere & Team',
     createdAt: 'Oct 15, 2026',
@@ -317,7 +317,7 @@ const INITIAL_PRODUCTS: BusinessProduct[] = [
   },
   {
     id: 'prod-puto-seko',
-    foodId: 'bakery-merienda',
+    foodId: 'toasted-siopao',
     name: 'Fresh Steamed Puto (Pair of 2)',
     bikolName: 'Puto Biko',
     description: 'Fluffy white rice cakes gently steamed to pair perfectly with your hot bowl of Kinalas broth.',

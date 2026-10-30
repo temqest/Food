@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+﻿import React, { createContext, useContext, useState } from 'react';
 
 export interface BasketItem {
   id: string; // unique item instance id in cart
@@ -118,8 +118,8 @@ const INITIAL_PRE_ORDERS: PreOrder[] = [
       },
       {
         id: 'po-cha-2',
-        foodId: 'puto',
-        foodName: 'Steamed Puto Pair',
+        foodId: 'baduya',
+        foodName: 'Crispy Saba Baduya (Pair)',
         price: 25,
         establishmentId: 'cha-chas-kinalas',
         establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
@@ -175,8 +175,8 @@ const INITIAL_PRE_ORDERS: PreOrder[] = [
       },
       {
         id: 'po-cha-5',
-        foodId: 'gravy',
-        foodName: 'Signature Brown Gravy Cup',
+        foodId: 'kinalas',
+        foodName: 'Kinalas Brain Gravy (Side Cup)',
         price: 20,
         establishmentId: 'cha-chas-kinalas',
         establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
@@ -220,8 +220,8 @@ const INITIAL_PRE_ORDERS: PreOrder[] = [
       },
       {
         id: 'po-cha-7',
-        foodId: 'puto',
-        foodName: 'Steamed Puto Pair',
+        foodId: 'baduya',
+        foodName: 'Crispy Saba Baduya (Pair)',
         price: 25,
         establishmentId: 'cha-chas-kinalas',
         establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
@@ -501,8 +501,8 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         },
         {
           id: `po-gen-${Date.now()}-2`,
-          foodId: 'puto',
-          foodName: 'Steamed Puto Pair',
+          foodId: 'baduya',
+          foodName: 'Crispy Saba Baduya (Pair)',
           price: 25,
           establishmentId: 'cha-chas-kinalas',
           establishmentName: 'Cha Cha’s Kinalas & Sinanglay',

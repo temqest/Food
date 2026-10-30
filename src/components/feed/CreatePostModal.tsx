@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -35,7 +35,7 @@ const SUGGESTED_PEOPLE = [
 ];
 
 const DEFAULT_POST_FALLBACK =
-  'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80';
+  'https://images.unsplash.com/photo-1594998893017-3f7a3d6f0e2c?auto=format&fit=crop&w=900&q=80';
 
 export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClose }) => {
   const { createPost } = useSocialFeed();
@@ -156,7 +156,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
       establishmentName: taggedPlace || undefined,
       foodId: matchedFood?.id,
       foodName: taggedFood || undefined,
-      foodPrice: matchedFood?.priceRange ? matchedFood.priceRange.split('–')[0].trim() : undefined,
+      foodPrice: matchedFood?.priceRange ? matchedFood.priceRange.split('â€“')[0].trim() : undefined,
       district: matchedEst ? `${matchedEst.neighborhood}, Naga City` : 'Naga City',
       tags: [
         '#NagaFood',

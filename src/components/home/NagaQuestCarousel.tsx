@@ -28,8 +28,9 @@ import { Establishment } from '@/data/types';
 export const banner1 = require('@/assets/maskot/carousel-1.jpg');
 export const banner2 = require('@/assets/maskot/carousel-2.jpg');
 export const banner3 = require('@/assets/maskot/carousel-3.jpg');
+export const banner4 = { uri: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80' };
 
-export const DEFAULT_BANNER_IMAGES = [banner1, banner2, banner3];
+export const DEFAULT_BANNER_IMAGES = [banner1, banner2, banner3, banner4];
 
 // Authentic die-cut sticker icons for scrapbook card overlays
 export const BROTH_STICKER = require('@/assets/icons/kinalas_bowl.png');
@@ -132,6 +133,17 @@ export const QUEST_DATA: QuestItemData[] = [
     status: 'not-started',
     tagline: 'River tilapia & tender pork in spiced kakang gata.',
     xpBonus: 180,
+  },
+  {
+    id: 'trail-penafrancia-pilgrimage',
+    title: 'Peñafrancia Pilgrim Trail',
+    category: 'Heritage Quest',
+    badgeLabel: 'SHRINE ROAD',
+    progress: { current: 0, total: 4 },
+    image: banner4,
+    status: 'not-started',
+    tagline: 'Sacred street food along the river procession route.',
+    xpBonus: 200,
   },
 ];
 

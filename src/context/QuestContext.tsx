@@ -76,7 +76,7 @@ const INITIAL_TASTINGS: TastingEntry[] = [
     rating: 5,
     spiceRating: 4,
     notes: 'Incredible brain gravy with crunchy toasted garlic and spicy sili kick!',
-    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1594998893017-3f7a3d6f0e2c?auto=format&fit=crop&w=600&q=80',
   },
   {
     id: 'taste-002',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -31,7 +31,7 @@ interface ProductFormProps {
 }
 
 const DEFAULT_DISH_FALLBACK =
-  'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80';
+  'https://images.unsplash.com/photo-1594998893017-3f7a3d6f0e2c?auto=format&fit=crop&w=900&q=80';
 
 const ProductForm: React.FC<ProductFormProps> = ({
   editingProduct,
@@ -47,7 +47,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     editingProduct ? String(editingProduct.price) : '85'
   );
   const [prepTime, setPrepTime] = useState(
-    editingProduct?.prepTime ?? '5–10 mins'
+    editingProduct?.prepTime ?? '5â€“10 mins'
   );
   const [description, setDescription] = useState(
     editingProduct?.description ?? ''
@@ -121,7 +121,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
     const numPrice = parseFloat(price);
     if (isNaN(numPrice) || numPrice <= 0) {
-      Alert.alert('Invalid Price', 'Please enter a valid price in Philippine Pesos (₱).');
+      Alert.alert('Invalid Price', 'Please enter a valid price in Philippine Pesos (â‚±).');
       return;
     }
 
@@ -140,7 +140,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       price: numPrice,
       isSignature,
       inStock,
-      prepTime: prepTime.trim() || '10–15 mins',
+      prepTime: prepTime.trim() || '10â€“15 mins',
       image: image.trim() || DEFAULT_DISH_FALLBACK,
       flavorProfile: [flavorTag.trim() || 'House Recipe', 'Authentic Taste'],
       servingNote: servingNote.trim() || undefined,
@@ -264,7 +264,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           </View>
 
           <View style={styles.inputRow}>
-            <Text style={styles.rowLabel}>Price (₱)</Text>
+            <Text style={styles.rowLabel}>Price (â‚±)</Text>
             <TextInput
               style={styles.textInput}
               value={price}
@@ -281,7 +281,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               style={styles.textInput}
               value={prepTime}
               onChangeText={setPrepTime}
-              placeholder="e.g. 5–10 mins"
+              placeholder="e.g. 5â€“10 mins"
               placeholderTextColor="rgba(60, 60, 67, 0.3)"
             />
           </View>

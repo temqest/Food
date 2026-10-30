@@ -167,51 +167,67 @@ export interface FoodTrail {
 export const FOOD_TRAILS: FoodTrail[] = [
   {
     id: 'trail-barlin-kinalas',
-    title: 'The Legendary Barlin Kinalas Crawl',
-    tagline: 'Compare the legendary brain gravy broths of historic Barlin & Bagumbayan',
+    title: 'The Legendary Barlin & Dayangdang Kinalas Crawl',
+    tagline: 'Slurp through the historic alleyways where Naga’s brain gravy noodle culture was born',
     description:
-      'Walk the storied noodle alleyways where kinalas was born. Taste the rich difference in bone reduction broths and homemade sili paste across top heritage stalls.',
+      'Walk the storied noodle alleyways of Santa Cruz and Dayangdang. Taste the rich difference in bone reduction broths, homemade sili paste, and crispy baduya pairings across top heritage stalls.',
     badgeId: 'kinalas-initiate',
-    district: 'Bagumbayan / Barlin',
-    estimatedMinutes: 60,
+    district: 'Santa Cruz & Dayangdang',
+    estimatedMinutes: 65,
     difficulty: 'Flavor Sprint',
     icon: 'restaurant',
-    heroImage: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
-    establishmentIds: ['cha-chas-kinalas', 'aling-celys-kinalasan', 'naga-peoples-mall-stalls'],
-    foodIds: ['kinalas', 'toasted-siopao'],
+    heroImage: 'https://images.unsplash.com/photo-1594998893017-36147cbcae05?auto=format&fit=crop&w=900&q=80',
+    establishmentIds: ['aling-celys-kinalasan', 'cha-chas-kinalas', 'cha-kamot-kinalas'],
+    foodIds: ['kinalas', 'baduya', 'sinanglay'],
     xpBonus: 150,
   },
   {
     id: 'trail-gata-sili-trial',
-    title: 'The Fiery Gata & Sili Trial',
-    tagline: 'Rich coconut cream infused with authentic wild siling labuyo',
+    title: 'Magsaysay Food Strip — Modern Bicolano Feast',
+    tagline: 'Premier dining boulevard from gourmet heirloom viands to sizzling regional grills',
     description:
-      'A true initiation into the heart of Bikol cooking. Experience tender tilapia wrapped in river greens and slow-simmered pork belly in fresh kakang gata.',
+      'A culinary walk down Naga’s premier dining boulevard. Experience elevated crispy liempo Bicol express, gourmet pechay-wrapped sinanglay, and cold pili milkshakes.',
     badgeId: 'sili-survivor',
-    district: 'Centro & Magsaysay',
+    district: 'Magsaysay Avenue Corridor',
     estimatedMinutes: 90,
     difficulty: 'Fiery Gauntlet',
     icon: 'flame',
-    heroImage: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
-    establishmentIds: ['geewan-bicolano-eatery', 'cha-chas-kinalas', 'bob-marlin-restaurant'],
-    foodIds: ['sinanglay', 'pinangat', 'bicol-express'],
+    heroImage: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=900&q=80',
+    establishmentIds: ['biggs-diner-magsaysay', 'red-platter', 'chef-doys-restaurant', 'bob-marlin-restaurant', 'j-emanuel-pili'],
+    foodIds: ['pili-shake', 'bicol-express', 'sinanglay', 'crispy-pili'],
     xpBonus: 180,
   },
   {
     id: 'trail-heritage-merienda',
-    title: 'Old Naga 4 PM Merienda Run',
-    tagline: 'Golden toasted buns, pan bonete, and hot native tablea chocolate',
+    title: 'Centro & Downtown Heritage Food Trail',
+    tagline: 'Trace old Nueva Caceres through public market woks, carinderias, and heritage bakeries',
     description:
-      'Follow the classic afternoon ritual of Nagueños. Crisp oven-baked siopao with savory pork asado paired with creamy pili nut coolers.',
+      'Follow the classic afternoon and morning culinary circuits of Centro Nagueños: market-style Pancit Bato, slow-simmered Pinangat, and oven-fresh Toasted Siopao.',
     badgeId: 'toasted-siopao-run',
-    district: 'Centro District',
-    estimatedMinutes: 45,
+    district: 'Downtown Centro District',
+    estimatedMinutes: 60,
     difficulty: 'Easy Stroll',
     icon: 'cafe',
-    heroImage: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
-    establishmentIds: ['pan-de-naga-heritage', 'bakers-plaza-naga', 'j-emanuel-pili'],
-    foodIds: ['toasted-siopao', 'crispy-pili', 'mazapan-de-pili'],
+    heroImage: 'https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?auto=format&fit=crop&w=900&q=80',
+    establishmentIds: ['naga-peoples-mall-stalls', 'geewan-bicolano-eatery', 'biggs-diner-centro', 'pan-de-naga-heritage'],
+    foodIds: ['pancit-bato', 'pinangat', 'toasted-siopao', 'mazapan-de-pili'],
     xpBonus: 120,
+  },
+  {
+    id: 'trail-penafrancia-pilgrimage',
+    title: 'The Peñafrancia Pilgrimage & Riverside Flavors Trail',
+    tagline: 'Sacred pilgrimage landmarks, riverbank dining, and traditional festival delicacies',
+    description:
+      'Trace the sacred route of the world-famous Peñafrancia Festival. Experience riverbank delicacies, crispy pili nuts, and freshly baked toasted siopao across historic sanctuaries.',
+    badgeId: 'kinalas-initiate',
+    district: 'Peñafrancia & Balatas',
+    estimatedMinutes: 120,
+    difficulty: 'Easy Stroll',
+    icon: 'water',
+    heroImage: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=900&q=80',
+    establishmentIds: ['pan-de-naga-heritage', 'geewan-bicolano-eatery', 'bakers-plaza-naga', 'j-emanuel-pili'],
+    foodIds: ['baduya', 'tilmok', 'crispy-pili', 'toasted-siopao'],
+    xpBonus: 200,
   },
 ];
 
@@ -227,14 +243,17 @@ export function getTrailById(idOrSlug?: string): FoodTrail | undefined {
   if (direct) return direct;
 
   // Quest ID to Trail ID alias mapping
-  if (normalized.includes('kinalas')) {
+  if (normalized.includes('kinalas') || normalized.includes('barlin')) {
     return FOOD_TRAILS.find((t) => t.id === 'trail-barlin-kinalas');
   }
   if (normalized.includes('centro') || normalized.includes('merienda') || normalized.includes('siopao')) {
     return FOOD_TRAILS.find((t) => t.id === 'trail-heritage-merienda');
   }
-  if (normalized.includes('spice') || normalized.includes('gata') || normalized.includes('sili')) {
+  if (normalized.includes('magsaysay') || normalized.includes('spice') || normalized.includes('gata') || normalized.includes('sili')) {
     return FOOD_TRAILS.find((t) => t.id === 'trail-gata-sili-trial');
+  }
+  if (normalized.includes('penafrancia') || normalized.includes('pilgrim') || normalized.includes('river')) {
+    return FOOD_TRAILS.find((t) => t.id === 'trail-penafrancia-pilgrimage');
   }
 
   return FOOD_TRAILS[0];
@@ -434,20 +453,20 @@ export const NAGA_DISTRICTS_DATA: DistrictProgressData[] = [
     name: 'Bagumbayan / Barlin',
     title: 'Bagumbayan & Barlin',
     tagline: 'Broth & Kinalas Heartland',
-    spotsCount: 4,
+    spotsCount: 3,
     icon: 'restaurant-outline',
     accentColor: '#D42F13',
-    specialtyDishes: ['Kinalas', 'Toasted Siopao'],
+    specialtyDishes: ['Kinalas', 'Baduya', 'Sinanglay'],
   },
   {
     id: 'district-centro',
     name: 'Centro',
     title: 'Centro & Plaza Quezon',
     tagline: 'Heritage Bakeries & Grills',
-    spotsCount: 6,
+    spotsCount: 4,
     icon: 'storefront-outline',
     accentColor: '#FF9500',
-    specialtyDishes: ['Toasted Siopao', 'Pinangat', 'Night Grills'],
+    specialtyDishes: ['Toasted Siopao', 'Pinangat', 'Pancit Bato', 'Mazapan de Pili'],
   },
   {
     id: 'district-magsaysay',
@@ -457,17 +476,17 @@ export const NAGA_DISTRICTS_DATA: DistrictProgressData[] = [
     spotsCount: 5,
     icon: 'cafe-outline',
     accentColor: '#FF2D55',
-    specialtyDishes: ['Bicol Express', 'Sinanglay', 'Crispy Pili'],
+    specialtyDishes: ['Bicol Express', 'Kinunot', 'Crispy Pili', 'Pili Shake'],
   },
   {
     id: 'district-penafrancia',
     name: 'Peñafrancia',
     title: 'Peñafrancia Riverside',
     tagline: 'Pilgrimage Merienda & Lore',
-    spotsCount: 3,
+    spotsCount: 2,
     icon: 'water-outline',
     accentColor: '#5856D6',
-    specialtyDishes: ['Tablea Tsokolate', 'Native Kakanin'],
+    specialtyDishes: ['Tilmok', 'Sinantol', 'Toasted Siopao', 'Native Pili'],
   },
 ];
 
@@ -546,6 +565,87 @@ export const DISH_INSIDER_TIPS: Record<string, DishInsiderTip> = {
     funFact:
       'Camarines Sur produces over 80% of the world’s edible pili nut harvest thanks to Mt. Isarog’s mineral-rich volcanic soil.',
     siliLevel: 1,
+  },
+  'mazapan-de-pili': {
+    dishId: 'mazapan-de-pili',
+    secretHack:
+      'Keep refrigerated for a firmer fudge texture, or let it sit at room temperature for the traditional melt-in-your-mouth marzipan softness.',
+    orderingLingo: '"Gusto ko katong presko buda mahamis-hamis." (I want the freshest sweet bars)',
+    funFact:
+      'A colonial Spanish marzipan adaptation that Bicolano confectioners transformed into an indigenous luxury using pulverized pili kernels.',
+    siliLevel: 1,
+  },
+  'pancit-bato': {
+    dishId: 'pancit-bato',
+    secretHack:
+      'Always squeeze fresh calamansi and ask for a spoonful of dinuguan gravy or chili vinegar over the smoky noodles for peak market flavor.',
+    orderingLingo: '"Sinabawan tabi buda pasobrahan chicharon!" (Broth-style with extra cracklings)',
+    funFact:
+      'Noodles from Lake Bato are sun-dried and wood-roasted in ovens, giving them a distinct smoky aroma that never turns soggy.',
+    siliLevel: 2,
+  },
+  'pili-shake': {
+    dishId: 'pili-shake',
+    secretHack:
+      'Ask the barista to blend native roasted tablea cacao shavings into the shake for a decadent Bicolano chocolate-nut cooler.',
+    orderingLingo: '"Pili shake tabi, daing asukar sobra." (Pili shake, not too sweet)',
+    funFact:
+      'Pure pili nut butter creates an unctuous, velvety emulsion without needing synthetic dairy cream.',
+    siliLevel: 1,
+  },
+  baduya: {
+    dishId: 'baduya',
+    secretHack:
+      'Dunk a freshly fried, sugar-crusted saba banana fritter straight into hot, savory Kinalas brain broth for the holy grail sweet-savory crunch.',
+    orderingLingo: '"Mainit-init pa tabi na baduya!" (Fresh from the frying wok)',
+    funFact:
+      'In Naga carinderias, baduya is the inseparable street-side companion to kinalas, ordered alongside nearly every bowl.',
+    siliLevel: 1,
+  },
+  kinunot: {
+    dishId: 'kinunot',
+    secretHack:
+      'Spoon generously over steamed mountain red rice so the ginger-scented coconut cream soaks every grain.',
+    orderingLingo: '"Padugangi nin malunggay buda sili." (Extra moringa and chili)',
+    funFact:
+      'Traditionally made with flaked stingray, it is one of the oldest recorded indigenous Bicolano preparations.',
+    siliLevel: 4,
+  },
+  sinantol: {
+    dishId: 'sinantol',
+    secretHack:
+      'Incredible as a savory spread on warm pandesal or as a zesty condiment alongside fried tilapia or pork chop.',
+    orderingLingo: '"Katong nagmamantika tabi." (Give me the portion with glistening coconut oil)',
+    funFact:
+      'Grating and squeezing wild sour santol fruit produces a texture remarkably indistinguishable from minced pork.',
+    siliLevel: 4,
+  },
+  tilmok: {
+    dishId: 'tilmok',
+    secretHack:
+      'Unfold the steaming banana leaf package and mix the sweet young coconut shreds directly with the crab flakes before taking your first bite.',
+    orderingLingo: '"Tilmok na bag-ong bangot tabi." (Freshly wrapped and steamed tilmok)',
+    funFact:
+      'Steaming inside young banana leaves seals the natural ocean sweetness of crab meat and buko water.',
+    siliLevel: 3,
+  },
+  laing: {
+    dishId: 'laing',
+    secretHack:
+      'Top with crispy fried chicharon or pork belly cracklings for an addictive texture contrast against the velvety taro greens.',
+    orderingLingo: '"An natong na luto sa kakang gata." (Taro leaves cooked down in pure first-press coconut cream)',
+    funFact:
+      'Authentic Bicolano cooks strictly forbid stirring the pot until the coconut oil naturally separates, preventing the leaves from irritating the tongue.',
+    siliLevel: 4,
+  },
+  'naga-night-skewers': {
+    dishId: 'naga-night-skewers',
+    secretHack:
+      'Double-dip your sizzling hot skewer into the jar of garlic-heavy sinamak chili vinegar to cut through the caramelized sweet pork glaze.',
+    orderingLingo: '"Tolong barbecue buda duwang isaw, maharang na suka!" (Three pork BBQs and two isaw with spicy vinegar)',
+    funFact:
+      'The plaza night barbecues along Centro and Magsaysay have been the heartbeat of late-night Nagueño youth culture for generations.',
+    siliLevel: 3,
   },
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -36,7 +36,7 @@ const FILTER_OPTIONS: FilterOption[] = [
 
 export default function MapScreen() {
   const mapRef = useRef<MapboxMapViewRef>(null);
-  const params = useLocalSearchParams<{ trailId?: string }>();
+  const params = useLocalSearchParams<{ trailId?: string; selectedPlaceId?: string; highlightId?: string }>();
   const [selectedType, setSelectedType] = useState<string>('all');
   const [openOnly, setOpenOnly] = useState<boolean>(false);
   const [selectedEstablishmentId, setSelectedEstablishmentId] = useState<string>(
@@ -44,6 +44,18 @@ export default function MapScreen() {
   );
 
   const activeTrail = FOOD_TRAILS.find((t) => t.id === params.trailId);
+
+  // Auto-select and pan to a place when navigating from another screen
+  useEffect(() => {
+    const targetId = params.selectedPlaceId || params.highlightId;
+    if (targetId) {
+      const target = ESTABLISHMENTS.find((e) => e.id === targetId);
+      if (target) {
+        // Setting selectedEstablishmentId triggers the map's internal flyTo via selectedId sync
+        setSelectedEstablishmentId(target.id);
+      }
+    }
+  }, [params.selectedPlaceId, params.highlightId]);
 
   // Filter establishments by active trail, category, and open status
   const filteredEstablishments = useMemo(() => {
