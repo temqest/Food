@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import { ESTABLISHMENTS, FOOD_ITEMS } from '@/data/mockData';
 import { IOSTokens } from '@/constants/theme';
 import { UserAvatar } from '@/components/common/UserAvatar';
 import { getDiceBearAvatar } from '@/utils/dicebearAvatar';
+import { StorageService } from '@/services/storageService';
 
 interface CreatePostModalProps {
   visible: boolean;
@@ -47,6 +48,8 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
   const [taggedPlace, setTaggedPlace] = useState<string | null>(null);
   const [taggedFood, setTaggedFood] = useState<string | null>(null);
   const [taggedPerson, setTaggedPerson] = useState<string | null>(null);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const pickImage = async () => {
     try {
@@ -130,42 +133,61 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
     onClose();
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!caption.trim()) {
       Alert.alert('Caption Required', 'Please share what you enjoyed about this food trip.');
       return;
     }
 
-    const matchedEst = ESTABLISHMENTS.find(
-      (e) => e.name.toLowerCase() === (taggedPlace || '').toLowerCase()
-    );
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
-    const matchedFood = FOOD_ITEMS.find(
-      (f) => f.name.toLowerCase() === (taggedFood || '').toLowerCase()
-    );
+    try {
+      const matchedEst = ESTABLISHMENTS.find(
+        (e) => e.name.toLowerCase() === (taggedPlace || '').toLowerCase()
+      );
 
-    // Image priority: user's custom photo -> matched dish photo -> fallback
-    const postImage = selectedPhoto || matchedFood?.image || DEFAULT_POST_FALLBACK;
+      const matchedFood = FOOD_ITEMS.find(
+        (f) => f.name.toLowerCase() === (taggedFood || '').toLowerCase()
+      );
 
-    createPost({
-      authorType: 'user',
-      caption: caption.trim(),
-      image: postImage,
-      aspectRatio: selectedPhoto ? photoAspectRatio : undefined,
-      establishmentId: matchedEst?.id,
-      establishmentName: taggedPlace || undefined,
-      foodId: matchedFood?.id,
-      foodName: taggedFood || undefined,
-      foodPrice: matchedFood?.priceRange ? matchedFood.priceRange.split('â€“')[0].trim() : undefined,
-      district: matchedEst ? `${matchedEst.neighborhood}, Naga City` : 'Naga City',
-      tags: [
-        '#NagaFood',
-        ...(taggedFood ? [`#${taggedFood.replace(/[^a-zA-Z0-9]/g, '')}`] : []),
-        ...(taggedPerson ? [taggedPerson] : ['#TasteOfBicol']),
-      ],
-    });
+      // Upload local photo to Supabase storage bucket 'food' if a device photo was selected
+      let finalImageUrl = selectedPhoto;
+      if (selectedPhoto && (selectedPhoto.startsWith('file://') || selectedPhoto.startsWith('data:') || selectedPhoto.startsWith('blob:') || !selectedPhoto.startsWith('http'))) {
+        const uploadedUrl = await StorageService.uploadImage(selectedPhoto, 'posts');
+        if (uploadedUrl) {
+          finalImageUrl = uploadedUrl;
+        }
+      }
 
-    handleClose();
+      // Image priority: uploaded photo -> matched dish photo -> fallback
+      const postImage = finalImageUrl || matchedFood?.image || DEFAULT_POST_FALLBACK;
+
+      createPost({
+        authorType: 'user',
+        caption: caption.trim(),
+        image: postImage,
+        aspectRatio: selectedPhoto ? photoAspectRatio : undefined,
+        establishmentId: matchedEst?.id,
+        establishmentName: taggedPlace || undefined,
+        foodId: matchedFood?.id,
+        foodName: taggedFood || undefined,
+        foodPrice: matchedFood?.priceRange ? matchedFood.priceRange.split('â€“')[0].trim() : undefined,
+        district: matchedEst ? `${matchedEst.neighborhood}, Naga City` : 'Naga City',
+        tags: [
+          '#NagaFood',
+          ...(taggedFood ? [`#${taggedFood.replace(/[^a-zA-Z0-9]/g, '')}`] : []),
+          ...(taggedPerson ? [taggedPerson] : ['#TasteOfBicol']),
+        ],
+      });
+
+      handleClose();
+    } catch (err) {
+      console.warn('Error submitting post:', err);
+      Alert.alert('Post Error', 'Failed to publish post. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const authorName = user?.name || 'Local Foodie';
@@ -199,16 +221,16 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
 
             <Pressable
               onPress={handleSubmit}
-              disabled={!caption.trim()}
+              disabled={!caption.trim() || isSubmitting}
               style={({ pressed }) => [
                 styles.headerBtn,
-                !caption.trim() && styles.btnDisabled,
+                (!caption.trim() || isSubmitting) && styles.btnDisabled,
                 pressed && styles.pressed,
               ]}
               hitSlop={8}
             >
-              <Text style={[styles.postBtnText, !caption.trim() && styles.postBtnTextDisabled]}>
-                Post
+              <Text style={[styles.postBtnText, (!caption.trim() || isSubmitting) && styles.postBtnTextDisabled]}>
+                {isSubmitting ? 'Posting...' : 'Post'}
               </Text>
             </Pressable>
           </View>

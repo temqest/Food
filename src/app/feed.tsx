@@ -20,16 +20,18 @@ import { SocialPost } from '@/data/socialFeedData';
 import { IOSTokens } from '@/constants/theme';
 
 export default function FeedScreen() {
-  const { filteredPosts } = useSocialFeed();
+  const { filteredPosts, refreshPosts } = useSocialFeed();
   const [refreshing, setRefreshing] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [selectedPostForComments, setSelectedPostForComments] = useState<SocialPost | null>(null);
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => {
+    try {
+      await refreshPosts();
+    } finally {
       setRefreshing(false);
-    }, 600);
+    }
   };
 
   return (

@@ -47,6 +47,7 @@ interface SocialFeedContextType {
   closeStory: () => void;
   voteOnPoll: (postId: string, optionId: string) => void;
   claimVoucher: (postId: string) => void;
+  refreshPosts: () => Promise<void>;
 }
 
 const SocialFeedContext = createContext<SocialFeedContextType | undefined>(undefined);
@@ -59,16 +60,15 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [activeStory, setActiveStory] = useState<NagaMomentStory | null>(null);
 
   // Fetch posts from Supabase on mount
-  useEffect(() => {
-    let isMounted = true;
-    async function fetchSupabasePosts() {
-      try {
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*')
-          .order('created_at', { ascending: false });
+  const refreshPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-        if (!error && data && data.length > 0 && isMounted) {
+      if (!error && data) {
+        if (data.length > 0) {
           const mappedPosts: SocialPost[] = data.map((row) => ({
             id: row.id,
             author: {
@@ -81,7 +81,7 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               badge: 'Foodie Explorer',
             },
             postType: 'food_review',
-            timestamp: 'Recently',
+            timestamp: row.created_at ? new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently',
             establishmentId: row.eatery_id,
             establishmentName: row.eatery_name,
             district: row.location_name || 'Centro, Naga City',
@@ -99,18 +99,17 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             tags: row.dish_tags || ['#NagaFood'],
           }));
 
-          // Merge user-created DB posts on top of initial rich mock posts
-          setPosts([...mappedPosts, ...INITIAL_POSTS]);
+          // Show database posts prioritized first, merged with initial community posts
+          setPosts([...mappedPosts, ...INITIAL_POSTS.filter((ip) => !mappedPosts.some((mp) => mp.id === ip.id))]);
         }
-      } catch (err) {
-        console.warn('Could not load remote posts:', err);
       }
+    } catch (err) {
+      console.warn('Could not load remote posts:', err);
     }
+  };
 
-    fetchSupabasePosts();
-    return () => {
-      isMounted = false;
-    };
+  useEffect(() => {
+    refreshPosts();
   }, []);
 
   const toggleLikePost = async (postId: string) => {
@@ -384,6 +383,7 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         closeStory,
         voteOnPoll,
         claimVoucher,
+        refreshPosts,
       }}
     >
       {children}
