@@ -11,8 +11,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { FOOD_ITEMS } from '@/data/mockData';
+import { FOOD_ITEMS as FALLBACK_FOOD_ITEMS } from '@/data/mockData';
 import { FoodItem } from '@/data/types';
+import { CatalogService } from '@/services/catalogService';
 import { STICKER_ICONS } from './CravingDialWidget';
 import { resolveFoodImage } from '@/utils/imageHelper';
 
@@ -79,8 +80,26 @@ const THEME = {
 export const FoodShowcaseBox: React.FC<FoodShowcaseBoxProps> = ({
   activeCravingId = 'heritage-noodles',
 }) => {
+  const [foodItems, setFoodItems] = useState<FoodItem[]>(FALLBACK_FOOD_ITEMS);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  // Fetch food items dynamically from database
+  useEffect(() => {
+    let isMounted = true;
+    CatalogService.getFoodItems()
+      .then((items) => {
+        if (isMounted && items && items.length > 0) {
+          setFoodItems(items);
+        }
+      })
+      .catch((err) => {
+        console.warn('Error fetching food items for showcase box:', err);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Animation values for top card
   const topCardTranslateY = useRef(new Animated.Value(0)).current;
@@ -91,9 +110,9 @@ export const FoodShowcaseBox: React.FC<FoodShowcaseBoxProps> = ({
   });
 
   // Layered cards in the deck
-  const card1: FoodItem = FOOD_ITEMS[currentIndex] || FOOD_ITEMS[0];
-  const card2: FoodItem = FOOD_ITEMS[(currentIndex + 1) % FOOD_ITEMS.length] || FOOD_ITEMS[0];
-  const card3: FoodItem = FOOD_ITEMS[(currentIndex + 2) % FOOD_ITEMS.length] || FOOD_ITEMS[0];
+  const card1: FoodItem = foodItems[currentIndex] || foodItems[0] || FALLBACK_FOOD_ITEMS[0];
+  const card2: FoodItem = foodItems[(currentIndex + 1) % foodItems.length] || foodItems[0] || FALLBACK_FOOD_ITEMS[0];
+  const card3: FoodItem = foodItems[(currentIndex + 2) % foodItems.length] || foodItems[0] || FALLBACK_FOOD_ITEMS[0];
 
   const handleOpenDish = useCallback((dishId: string) => {
     router.push(`/food/${dishId}` as any);
@@ -116,12 +135,12 @@ export const FoodShowcaseBox: React.FC<FoodShowcaseBoxProps> = ({
         useNativeDriver: true,
       }),
     ]).start(() => {
-      setCurrentIndex((prev) => (prev + 1) % FOOD_ITEMS.length);
+      setCurrentIndex((prev) => (prev + 1) % foodItems.length);
       topCardTranslateY.setValue(0);
       topCardOpacity.setValue(1);
       setIsAnimating(false);
     });
-  }, [isAnimating, topCardTranslateY, topCardOpacity]);
+  }, [isAnimating, topCardTranslateY, topCardOpacity, foodItems.length]);
 
   const goToPrev = useCallback(() => {
     if (isAnimating) return;
@@ -139,17 +158,17 @@ export const FoodShowcaseBox: React.FC<FoodShowcaseBoxProps> = ({
         useNativeDriver: true,
       }),
     ]).start(() => {
-      setCurrentIndex((prev) => (prev - 1 + FOOD_ITEMS.length) % FOOD_ITEMS.length);
+      setCurrentIndex((prev) => (prev - 1 + foodItems.length) % foodItems.length);
       topCardTranslateY.setValue(0);
       topCardOpacity.setValue(1);
       setIsAnimating(false);
     });
-  }, [isAnimating, topCardTranslateY, topCardOpacity]);
+  }, [isAnimating, topCardTranslateY, topCardOpacity, foodItems.length]);
 
   // Sync with Craving Carousel above
   useEffect(() => {
     const targetFoodId = CRAVING_TO_FOOD_MAP[activeCravingId] || 'kinalas';
-    const targetIdx = FOOD_ITEMS.findIndex((f) => f.id === targetFoodId);
+    const targetIdx = foodItems.findIndex((f) => f.id === targetFoodId);
     if (targetIdx !== -1 && targetIdx !== currentIndex) {
       Animated.timing(topCardOpacity, {
         toValue: 0,
@@ -165,7 +184,7 @@ export const FoodShowcaseBox: React.FC<FoodShowcaseBoxProps> = ({
         }).start();
       });
     }
-  }, [activeCravingId]);
+  }, [activeCravingId, foodItems]);
 
   // Interpolations for interactive movement of the underlying cards
   const card2TranslateY = topCardTranslateY.interpolate({
@@ -270,7 +289,7 @@ export const FoodShowcaseBox: React.FC<FoodShowcaseBoxProps> = ({
         {/* Counter Badge */}
         <View style={styles.counterBadge}>
           <Text style={styles.counterText}>
-            {currentIndex + 1} / {FOOD_ITEMS.length}
+            {foodItems.length > 0 ? `${currentIndex + 1} / ${foodItems.length}` : '0 / 0'}
           </Text>
         </View>
 

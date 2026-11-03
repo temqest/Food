@@ -106,9 +106,9 @@ export const QUEST_DATA: QuestItemData[] = [
     title: 'The Kinalas Crawler Trail',
     category: 'Food Quest',
     badgeLabel: 'HOT NOODLES',
-    progress: { current: 1, total: 3 },
+    progress: { current: 0, total: 3 },
     image: banner1,
-    status: 'in-progress',
+    status: 'not-started',
     tagline: 'Savor rich bone broth & brain gravy along Barlin St.',
     xpBonus: 150,
   },
@@ -117,9 +117,9 @@ export const QUEST_DATA: QuestItemData[] = [
     title: 'Old Centro Heritage Trail',
     category: 'Heritage Quest',
     badgeLabel: '4 PM MERIENDA',
-    progress: { current: 1, total: 3 },
+    progress: { current: 0, total: 3 },
     image: banner2,
-    status: 'in-progress',
+    status: 'not-started',
     tagline: 'Golden toasted siopao & hot native tablea chocolate.',
     xpBonus: 120,
   },
@@ -128,7 +128,7 @@ export const QUEST_DATA: QuestItemData[] = [
     title: 'Spice & Gata Trail',
     category: 'Fiery Quest',
     badgeLabel: 'SILI LEVEL 4',
-    progress: { current: 1, total: 3 },
+    progress: { current: 0, total: 3 },
     image: banner3,
     status: 'not-started',
     tagline: 'River tilapia & tender pork in spiced kakang gata.',
@@ -487,17 +487,36 @@ CardItem.displayName = 'CardItem';
 // MAIN CAROUSEL COMPONENT (`NagaQuestCarousel`) - INFINITE SCROLL & 3D ANIMATION
 // ============================================================================
 export const NagaQuestCarousel: React.FC<NagaQuestCarouselProps> = ({
-  quests = QUEST_DATA,
+  quests,
   onJoinQuest,
 }) => {
-  const { tastingLog } = useQuest();
+  const { tastingLog, trails } = useQuest();
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef<FlatList<VirtualQuestItem>>(null);
 
+  // Derive base quest data either from passed props or from live trails in QuestContext
+  const baseQuests = useMemo<QuestItemData[]>(() => {
+    if (quests && quests.length > 0) return quests;
+    if (trails && trails.length > 0) {
+      return trails.map((t, idx) => ({
+        id: t.id,
+        title: t.title,
+        category: 'Food Quest',
+        badgeLabel: t.difficulty.toUpperCase(),
+        progress: { current: 0, total: t.establishmentIds.length || 3 },
+        image: DEFAULT_BANNER_IMAGES[idx % DEFAULT_BANNER_IMAGES.length],
+        status: 'not-started',
+        tagline: t.tagline,
+        xpBonus: t.xpBonus,
+      }));
+    }
+    return QUEST_DATA;
+  }, [quests, trails]);
+
   // Dynamically synchronize quest progress with user's live tasting log and actual trail establishment count
   const dynamicQuests = useMemo(() => {
-    return quests.map((q) => {
-      const trail = getTrailById(q.id);
+    return baseQuests.map((q) => {
+      const trail = getTrailById(q.id) || trails.find((t) => t.id === q.id);
       if (!trail) return q;
 
       const trailEsts = trail.establishmentIds

@@ -22,7 +22,7 @@ export const MascotHero: React.FC<MascotHeroProps> = ({ children }) => {
   const { streakCount } = useQuest();
   const { unreadCount } = useNotifications();
 
-  const displayName = user?.name ? user.name.split(' ')[0] : 'Bryl';
+  const displayName = user?.name ? user.name.split(' ')[0] : 'Explorer';
 
   // Time-of-day greeting (Good morning, Good afternoon, Good evening)
   const greetingTimeOfDay = useMemo(() => {

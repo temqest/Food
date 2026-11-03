@@ -62,39 +62,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeResetCode, setActiveResetCode] = useState<string | null>(null);
 
-  // Initialize and listen to active Supabase Session
-  useEffect(() => {
-    let mounted = true;
-
-    async function initSession() {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (session?.user && mounted) {
-          await loadUserProfile(session.user.id, session.user.email || '');
-        }
-      } catch (err) {
-        console.warn('Supabase session load error:', err);
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    }
-
-    initSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        await loadUserProfile(session.user.id, session.user.email || '');
-      } else if (event === 'SIGNED_OUT') {
-        if (!isGuest) setUser(null);
-      }
-    });
-
-    return () => {
-      mounted = false;
-      authListener.subscription.unsubscribe();
-    };
-  }, [isGuest]);
-
   /**
    * Fetch user profile from public.food_profiles or construct from metadata
    */
@@ -142,6 +109,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('Error loading food profile:', err);
     }
   };
+
+  // Initialize and listen to active Supabase Session
+  useEffect(() => {
+    let mounted = true;
+
+    async function initSession() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user && mounted) {
+          await loadUserProfile(session.user.id, session.user.email || '');
+        }
+      } catch (err) {
+        console.warn('Supabase session load error:', err);
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    }
+
+    initSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await loadUserProfile(session.user.id, session.user.email || '');
+      } else if (event === 'SIGNED_OUT') {
+        if (!isGuest) setUser(null);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, [isGuest]);
 
   /**
    * Real Supabase Authentication: Log in

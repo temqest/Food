@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
+import { CatalogService } from '@/services/catalogService';
 import {
   ExplorerRank,
   EXPLORER_RANKS,
@@ -64,51 +67,95 @@ interface QuestContextType {
 
 const QuestContext = createContext<QuestContextType | undefined>(undefined);
 
-// Initial seeds for a lively user starting experience
-const INITIAL_TASTINGS: TastingEntry[] = [
-  {
-    id: 'taste-001',
-    foodId: 'kinalas',
-    foodName: 'Kinalas',
-    establishmentId: 'cha-chas-kinalas',
-    establishmentName: "Cha-Cha's Kinalas Station",
-    date: 'Yesterday, 1:15 PM',
-    rating: 5,
-    spiceRating: 4,
-    notes: 'Incredible brain gravy with crunchy toasted garlic and spicy sili kick!',
-    image: 'https://images.unsplash.com/photo-1594998893017-3f7a3d6f0e2c?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: 'taste-002',
-    foodId: 'toasted-siopao',
-    foodName: 'Naga Toasted Siopao',
-    establishmentId: 'pan-de-naga-heritage',
-    establishmentName: 'Pan De Naga Heritage Bakery',
-    date: '3 days ago, 4:00 PM',
-    rating: 5,
-    spiceRating: 1,
-    notes: 'Flaky crust hot from the oven with savory asado & salted egg yolk.',
-    image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80',
-  },
-];
+// Initial empty tasting log for new users
+const INITIAL_TASTINGS: TastingEntry[] = [];
 
 export const QuestProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [xp, setXp] = useState<number>(420); // Broth Seeker level initial
-  const [unlockedBadgeIds, setUnlockedBadgeIds] = useState<string[]>([
-    'kinalas-initiate',
-    'toasted-siopao-run',
-  ]);
+  const { user } = useAuth();
+  const [xp, setXp] = useState<number>(0); // Clean initial XP for new user (Foodie Bagito Level 1)
+  const [unlockedBadgeIds, setUnlockedBadgeIds] = useState<string[]>([]);
   const [completedQuestIds, setCompletedQuestIds] = useState<string[]>([]);
   const [tastingLog, setTastingLog] = useState<TastingEntry[]>(INITIAL_TASTINGS);
+  const [trails, setTrails] = useState<FoodTrail[]>(FOOD_TRAILS);
   const [recentUnlockedBadge, setRecentUnlockedBadge] = useState<BadgeItem | null>(null);
+
+  // Fetch food trails from backend database
+  useEffect(() => {
+    let isMounted = true;
+    CatalogService.getFoodTrails().then((fetchedTrails) => {
+      if (isMounted && fetchedTrails && fetchedTrails.length > 0) {
+        setTrails(fetchedTrails);
+      }
+    }).catch((err) => {
+      console.warn('Error fetching food trails:', err);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Fetch user tastings and persisted XP when authenticated
+  useEffect(() => {
+    let isMounted = true;
+    if (!user?.id || user.id === 'usr_guest') {
+      // Keep state clean for new / guest user
+      return;
+    }
+
+    async function loadUserGamification() {
+      try {
+        // Load XP from food_profiles
+        const { data: profile } = await supabase
+          .from('food_profiles')
+          .select('xp')
+          .eq('id', user!.id)
+          .maybeSingle();
+
+        if (profile?.xp !== undefined && profile.xp !== null && isMounted) {
+          setXp(profile.xp);
+        }
+
+        // Load tastings from user_tastings
+        const { data: tastings, error } = await supabase
+          .from('user_tastings')
+          .select('*')
+          .eq('user_id', user!.id)
+          .order('tasted_at', { ascending: false });
+
+        if (!error && tastings && isMounted) {
+          const mappedTastings: TastingEntry[] = tastings.map((t) => ({
+            id: t.id,
+            foodId: t.food_id,
+            foodName: t.dish_name,
+            establishmentId: t.establishment_id || '',
+            establishmentName: t.establishment_name || '',
+            date: t.tasted_at ? new Date(t.tasted_at).toLocaleDateString() : 'Recent',
+            rating: 5,
+            spiceRating: t.spice_level || 1,
+            notes: t.notes || '',
+            image: t.photo_url || undefined,
+          }));
+          setTastingLog(mappedTastings);
+        }
+      } catch (err) {
+        console.warn('Error loading user tastings:', err);
+      }
+    }
+
+    loadUserGamification();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   // Mystery Box State
   const [isMysteryBoxOpenedToday, setIsMysteryBoxOpenedToday] = useState<boolean>(false);
   const [mysteryDrop, setMysteryDrop] = useState<MysteryDrop | null>(null);
 
-  // Streak & Habit State
-  const [streakCount, setStreakCount] = useState<number>(5);
-  const [streakFreezeCount, setStreakFreezeCount] = useState<number>(2);
+  // Streak & Habit State (Starts at 0 for a new user)
+  const [streakCount, setStreakCount] = useState<number>(0);
+  const [streakFreezeCount, setStreakFreezeCount] = useState<number>(0);
   const [todayCheckInDone, setTodayCheckInDone] = useState<boolean>(false);
   const [reminderTime, setReminderTime] = useState<'11:45 AM' | '3:45 PM' | '6:30 PM' | 'off'>('3:45 PM');
   const [trophies, setTrophies] = useState<StreakTrophy[]>(STREAK_TROPHIES);
@@ -311,7 +358,7 @@ export const QuestProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         unlockedBadges,
         completedQuestIds,
         tastingLog,
-        trails: FOOD_TRAILS,
+        trails,
         dailyQuests: DAILY_QUESTS,
         recentUnlockedBadge,
         isMysteryBoxOpenedToday,

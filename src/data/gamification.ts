@@ -674,8 +674,7 @@ export const STREAK_TROPHIES: StreakTrophy[] = [
     color: '#CD7F32',
     badgeTag: '🥉 Bronze Tier',
     xpReward: 100,
-    unlocked: true,
-    unlockedDate: 'Oct 24',
+    unlocked: false,
   },
   {
     id: 'trophy-silver-7',
