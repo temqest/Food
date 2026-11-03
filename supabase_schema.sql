@@ -189,36 +189,66 @@ ALTER TABLE public.user_orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_tastings ENABLE ROW LEVEL SECURITY;
 
 -- Catalog tables: Public read
+DROP POLICY IF EXISTS "Public read categories" ON public.categories;
 CREATE POLICY "Public read categories" ON public.categories FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read food_items" ON public.food_items;
 CREATE POLICY "Public read food_items" ON public.food_items FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read establishments" ON public.establishments;
 CREATE POLICY "Public read establishments" ON public.establishments FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read food_trails" ON public.food_trails;
 CREATE POLICY "Public read food_trails" ON public.food_trails FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read posts" ON public.posts;
 CREATE POLICY "Public read posts" ON public.posts FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read post_comments" ON public.post_comments;
 CREATE POLICY "Public read post_comments" ON public.post_comments FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read post_likes" ON public.post_likes;
 CREATE POLICY "Public read post_likes" ON public.post_likes FOR SELECT USING (true);
 
 -- Profiles: Public read, user can update their own
+DROP POLICY IF EXISTS "Public read profiles" ON public.food_profiles;
 CREATE POLICY "Public read profiles" ON public.food_profiles FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Users can update own profile" ON public.food_profiles;
 CREATE POLICY "Users can update own profile" ON public.food_profiles FOR UPDATE USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.food_profiles;
 CREATE POLICY "Users can insert own profile" ON public.food_profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- Posts & Comments: Authenticated users can insert, update/delete their own
+DROP POLICY IF EXISTS "Users can insert posts" ON public.posts;
 CREATE POLICY "Users can insert posts" ON public.posts FOR INSERT WITH CHECK (auth.uid() = author_id);
+
+DROP POLICY IF EXISTS "Users can update own posts" ON public.posts;
 CREATE POLICY "Users can update own posts" ON public.posts FOR UPDATE USING (auth.uid() = author_id);
+
+DROP POLICY IF EXISTS "Users can delete own posts" ON public.posts;
 CREATE POLICY "Users can delete own posts" ON public.posts FOR DELETE USING (auth.uid() = author_id);
 
+DROP POLICY IF EXISTS "Users can insert comments" ON public.post_comments;
 CREATE POLICY "Users can insert comments" ON public.post_comments FOR INSERT WITH CHECK (auth.uid() = author_id);
+
+DROP POLICY IF EXISTS "Users can delete own comments" ON public.post_comments;
 CREATE POLICY "Users can delete own comments" ON public.post_comments FOR DELETE USING (auth.uid() = author_id);
 
+DROP POLICY IF EXISTS "Users can toggle likes" ON public.post_likes;
 CREATE POLICY "Users can toggle likes" ON public.post_likes FOR ALL USING (auth.uid() = user_id);
 
 -- User Saved / Bookmarks: Private to user
+DROP POLICY IF EXISTS "Users manage own saved items" ON public.user_saved;
 CREATE POLICY "Users manage own saved items" ON public.user_saved FOR ALL USING (auth.uid() = user_id);
 
 -- Orders: Users view and manage their own orders
+DROP POLICY IF EXISTS "Users manage own orders" ON public.user_orders;
 CREATE POLICY "Users manage own orders" ON public.user_orders FOR ALL USING (auth.uid() = user_id);
 
--- Tasting Log: Users manage their own tasting logs
+-- Tasting Log: Users manage their own tastings" ON public.user_tastings;
+DROP POLICY IF EXISTS "Users manage own tastings" ON public.user_tastings;
 CREATE POLICY "Users manage own tastings" ON public.user_tastings FOR ALL USING (auth.uid() = user_id);
 
 -- ==============================================================================
@@ -257,4 +287,48 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- ==============================================================================
+-- 13. STORAGE BUCKET: 'food' & POLICIES
+-- ==============================================================================
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'food',
+  'food',
+  true,
+  10485760, -- 10MB limit
+  ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+)
+ON CONFLICT (id) DO UPDATE SET
+  public = true,
+  file_size_limit = 10485760,
+  allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+-- Storage bucket access policies:
+-- Public can view/read any photo in the 'food' bucket
+DROP POLICY IF EXISTS "Public Read Food Bucket" ON storage.objects;
+CREATE POLICY "Public Read Food Bucket"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'food');
+
+-- Authenticated users can upload photos into the 'food' bucket
+DROP POLICY IF EXISTS "Authenticated Upload Food Bucket" ON storage.objects;
+CREATE POLICY "Authenticated Upload Food Bucket"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'food');
+
+-- Users can update or delete their own uploads
+DROP POLICY IF EXISTS "Users Update Own Uploads Food Bucket" ON storage.objects;
+CREATE POLICY "Users Update Own Uploads Food Bucket"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (bucket_id = 'food' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+DROP POLICY IF EXISTS "Users Delete Own Uploads Food Bucket" ON storage.objects;
+CREATE POLICY "Users Delete Own Uploads Food Bucket"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id = 'food' AND auth.uid()::text = (storage.foldername(name))[1]);
+
 
