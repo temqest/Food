@@ -55,20 +55,6 @@ export default function SignUpScreen() {
     }
   };
 
-  const handleGoogleSignUp = async () => {
-    const result = await signup({
-      name: 'Maria Santos',
-      email: 'maria.santos@gmail.com',
-      phone: '+63 917 555 1928',
-      spicePreference: 'fiery',
-      favoriteDistrict: 'Centro',
-    });
-
-    if (result.success) {
-      router.replace('/onboarding');
-    }
-  };
-
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom', 'left', 'right']}>
       {/* Minimal Icon-Only Back Button */}
@@ -205,25 +191,6 @@ export default function SignUpScreen() {
               ) : (
                 <Text style={styles.primaryButtonText}>Create Account</Text>
               )}
-            </Pressable>
-
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Google 1-Tap Sign Up */}
-            <Pressable
-              onPress={handleGoogleSignUp}
-              disabled={isLoading}
-              style={({ pressed }) => [styles.googleButton, pressed && styles.googlePressed]}
-              accessibilityRole="button"
-              accessibilityLabel="Sign up with Google"
-            >
-              <Ionicons name="logo-google" size={17} color="#EA4335" style={styles.googleIcon} />
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
             </Pressable>
 
             {/* Legal Notice */}

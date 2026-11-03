@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ImageSourcePropType } from 'react-native';
+import { supabase } from '@/lib/supabase';
 import {
   SocialPost,
   NagaMomentStory,
@@ -57,7 +58,62 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [activeFilter, setActiveFilter] = useState<FeedFilterType>('all');
   const [activeStory, setActiveStory] = useState<NagaMomentStory | null>(null);
 
-  const toggleLikePost = (postId: string) => {
+  // Fetch posts from Supabase on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchSupabasePosts() {
+      try {
+        const { data, error } = await supabase
+          .from('posts')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0 && isMounted) {
+          const mappedPosts: SocialPost[] = data.map((row) => ({
+            id: row.id,
+            author: {
+              id: row.author_id,
+              name: row.author_name,
+              handle: row.author_handle || `@${row.author_name.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
+              avatar: row.author_avatar || getDiceBearAvatar(row.author_name),
+              isBusiness: false,
+              isVerified: false,
+              badge: 'Foodie Explorer',
+            },
+            postType: 'food_review',
+            timestamp: 'Recently',
+            establishmentId: row.eatery_id,
+            establishmentName: row.eatery_name,
+            district: row.location_name || 'Centro, Naga City',
+            foodName: row.dish_tags?.[0],
+            foodPrice: '₱90',
+            image: row.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c',
+            caption: row.content,
+            spiceLevel: 'moderate',
+            rating: 5,
+            likesCount: row.likes_count || 0,
+            isLiked: false,
+            isBookmarked: false,
+            commentsCount: row.comments_count || 0,
+            comments: [],
+            tags: row.dish_tags || ['#NagaFood'],
+          }));
+
+          // Merge user-created DB posts on top of initial rich mock posts
+          setPosts([...mappedPosts, ...INITIAL_POSTS]);
+        }
+      } catch (err) {
+        console.warn('Could not load remote posts:', err);
+      }
+    }
+
+    fetchSupabasePosts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const toggleLikePost = async (postId: string) => {
     setPosts((prev) =>
       prev.map((post) => {
         if (post.id === postId) {
@@ -71,6 +127,19 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return post;
       })
     );
+
+    if (user?.id) {
+      try {
+        const post = posts.find((p) => p.id === postId);
+        if (post?.isLiked) {
+          await supabase.from('post_likes').delete().match({ post_id: postId, user_id: user.id });
+        } else {
+          await supabase.from('post_likes').upsert({ post_id: postId, user_id: user.id });
+        }
+      } catch (err) {
+        console.warn('Like sync error:', err);
+      }
+    }
   };
 
   const toggleBookmarkPost = (postId: string) => {
@@ -87,14 +156,13 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     );
   };
 
-  const addComment = (postId: string, text: string) => {
+  const addComment = async (postId: string, text: string) => {
     if (!text.trim()) return;
 
     const newComment: SocialComment = {
       id: `comm_${Date.now()}`,
       authorName: user?.name || 'Local Foodie',
-      authorAvatar:
-        user?.avatar || getDiceBearAvatar(user?.name || 'Local Foodie'),
+      authorAvatar: user?.avatar || getDiceBearAvatar(user?.name || 'Local Foodie'),
       content: text.trim(),
       timestamp: 'Just now',
     };
@@ -111,13 +179,34 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return post;
       })
     );
+
+    if (user?.id) {
+      try {
+        await supabase.from('post_comments').insert({
+          post_id: postId,
+          author_id: user.id,
+          author_name: user.name || 'Local Foodie',
+          author_avatar: user.avatar || '',
+          text: text.trim(),
+        });
+      } catch (err) {
+        console.warn('Comment sync error:', err);
+      }
+    }
   };
 
-  const deletePost = (postId: string) => {
+  const deletePost = async (postId: string) => {
     setPosts((prev) => prev.filter((p) => p.id !== postId));
+    if (user?.id) {
+      try {
+        await supabase.from('posts').delete().eq('id', postId);
+      } catch (err) {
+        console.warn('Post delete sync error:', err);
+      }
+    }
   };
 
-  const createPost = (newPostData: {
+  const createPost = async (newPostData: {
     authorType: 'user' | 'business';
     caption: string;
     image: string | ImageSourcePropType;
@@ -137,18 +226,21 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     authorHandle?: string;
   }) => {
     const isBiz = newPostData.authorType === 'business';
+    const postImageUri = typeof newPostData.image === 'string'
+      ? newPostData.image
+      : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c';
 
     const newPost: SocialPost = {
       id: `post_${Date.now()}`,
       author: {
         id: isBiz ? (newPostData.establishmentId || 'biz_custom') : (user?.id || 'usr_current'),
-        name: isBiz ? (newPostData.establishmentName || 'Local Carinderia') : (user?.name || 'Maria Santos'),
+        name: isBiz ? (newPostData.establishmentName || 'Local Carinderia') : (user?.name || 'Local Foodie'),
         handle: isBiz
           ? (newPostData.authorHandle || `@${(newPostData.establishmentName || 'eatery').toLowerCase().replace(/[^a-z0-9]/g, '')}`)
-          : '@mariasantos',
+          : `@${(user?.name || 'foodie').toLowerCase().replace(/[^a-z0-9]/g, '')}`,
         avatar: isBiz
           ? (newPostData.authorAvatar || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=300&q=80')
-          : (user?.avatar || getDiceBearAvatar(user?.name || 'Maria Santos')),
+          : (user?.avatar || getDiceBearAvatar(user?.name || 'Local Foodie')),
         isBusiness: isBiz,
         isVerified: isBiz,
         badge: isBiz ? 'Verified Local Eatery' : (user?.badge || 'Foodie Lv. 4'),
@@ -176,11 +268,33 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
 
     setPosts((prev) => [newPost, ...prev]);
+
+    // Persist to Supabase if logged in
+    if (user?.id) {
+      try {
+        await supabase.from('posts').insert({
+          author_id: user.id,
+          author_name: user.name,
+          author_handle: `@${user.name.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
+          author_avatar: user.avatar,
+          location_name: newPostData.district || 'Centro, Naga City',
+          content: newPostData.caption,
+          image_url: postImageUri,
+          category: 'Street Food Crawl',
+          dish_tags: newPostData.tags || [],
+          eatery_id: newPostData.establishmentId || null,
+          eatery_name: newPostData.establishmentName || null,
+          likes_count: 1,
+          comments_count: 0,
+        });
+      } catch (err) {
+        console.warn('Post creation sync error:', err);
+      }
+    }
   };
 
   const openStory = (story: NagaMomentStory) => {
     setActiveStory(story);
-    // Mark as read
     setStories((prev) =>
       prev.map((s) => (s.id === story.id ? { ...s, isUnread: false } : s))
     );
@@ -199,16 +313,12 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
           const prevVotedId = poll.userVotedOptionId;
           const updatedOptions = poll.options.map((opt) => {
-            if (opt.id === optionId) {
-              return { ...opt, votes: opt.votes + 1 };
-            }
-            if (prevVotedId && opt.id === prevVotedId) {
-              return { ...opt, votes: Math.max(0, opt.votes - 1) };
-            }
+            if (opt.id === optionId) return { ...opt, votes: opt.votes + 1 };
+            if (opt.id === prevVotedId) return { ...opt, votes: Math.max(0, opt.votes - 1) };
             return opt;
           });
 
-          const totalVotes = updatedOptions.reduce((acc, curr) => acc + curr.votes, 0);
+          const newTotalVotes = prevVotedId ? poll.totalVotes : poll.totalVotes + 1;
 
           return {
             ...post,
@@ -216,9 +326,9 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               ...post.advertisement,
               poll: {
                 ...poll,
-                options: updatedOptions,
-                totalVotes,
+                totalVotes: newTotalVotes,
                 userVotedOptionId: optionId,
+                options: updatedOptions,
               },
             },
           };
@@ -231,17 +341,14 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const claimVoucher = (postId: string) => {
     setPosts((prev) =>
       prev.map((post) => {
-        if (post.id === postId && post.advertisement) {
-          const currentCta = post.advertisement.callToAction;
-          if (currentCta.isClaimed) return post;
+        if (post.id === postId && post.advertisement?.callToAction) {
           return {
             ...post,
             advertisement: {
               ...post.advertisement,
               callToAction: {
-                ...currentCta,
+                ...post.advertisement.callToAction,
                 isClaimed: true,
-                claimedCount: (currentCta.claimedCount || 0) + 1,
               },
             },
           };
@@ -255,7 +362,7 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (activeFilter === 'all') return true;
     if (activeFilter === 'trips') return post.postType === 'trip';
     if (activeFilter === 'businesses') return post.author.isBusiness;
-    if (activeFilter === 'trending') return post.likesCount > 100;
+    if (activeFilter === 'trending') return post.likesCount > 10;
     return true;
   });
 
@@ -284,7 +391,7 @@ export const SocialFeedProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   );
 };
 
-export const useSocialFeed = () => {
+export const useSocialFeed = (): SocialFeedContextType => {
   const context = useContext(SocialFeedContext);
   if (!context) {
     throw new Error('useSocialFeed must be used within a SocialFeedProvider');

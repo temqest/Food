@@ -18,8 +18,8 @@ import { useAuth } from '@/context/AuthContext';
 export default function LoginScreen() {
   const { login, isLoading } = useAuth();
 
-  const [email, setEmail] = useState('maria.santos@gmail.com');
-  const [password, setPassword] = useState('••••••••');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -35,13 +35,6 @@ export default function LoginScreen() {
       router.replace('/home');
     } else if (result.error) {
       setErrorMessage(result.error);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    const result = await login('maria.santos@gmail.com', 'google-auth');
-    if (result.success) {
-      router.replace('/home');
     }
   };
 
@@ -173,25 +166,6 @@ export default function LoginScreen() {
               ) : (
                 <Text style={styles.primaryButtonText}>Sign In</Text>
               )}
-            </Pressable>
-
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Google Sign In Button (Placed below email input in accessible thumb zone) */}
-            <Pressable
-              onPress={handleGoogleSignIn}
-              disabled={isLoading}
-              style={({ pressed }) => [styles.googleButton, pressed && styles.googlePressed]}
-              accessibilityRole="button"
-              accessibilityLabel="Continue with Google"
-            >
-              <Ionicons name="logo-google" size={18} color="#EA4335" style={styles.googleIcon} />
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
             </Pressable>
 
             {/* Bottom Switch to Sign Up */}
