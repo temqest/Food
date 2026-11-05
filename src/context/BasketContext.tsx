@@ -1,5 +1,8 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ImageSourcePropType } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '@/context/AuthContext';
+import { OrderService } from '@/services/orderService';
 
 export interface BasketItem {
   id: string; // unique item instance id in cart
@@ -44,10 +47,10 @@ const BASKET_FOOD_IMAGES: Record<string, ImageSourcePropType> = {
   toastedSiopao: require('../../Food Images/toastedSiopao1.jpg'),
 };
 
-const getBasketFoodImage = (foodId: string): ImageSourcePropType | undefined =>
+export const getBasketFoodImage = (foodId: string): ImageSourcePropType | undefined =>
   BASKET_FOOD_IMAGES[foodId === 'toasted-siopao' ? 'toastedSiopao' : foodId];
 
-const normalizeOrderImages = (order: PreOrder): PreOrder => ({
+export const normalizeOrderImages = (order: PreOrder): PreOrder => ({
   ...order,
   items: order.items.map((item) => ({
     ...item,
@@ -81,304 +84,114 @@ interface BasketContextType {
   getBasketSubtotal: () => number;
   activeTabSection: 'current' | 'history';
   setActiveTabSection: (tab: 'current' | 'history') => void;
+  isLoading: boolean;
+  refreshOrders: () => Promise<void>;
 }
 
 const BasketContext = createContext<BasketContextType | undefined>(undefined);
 
-// Default initial basket item for smooth demo experience
-const INITIAL_BASKET_ITEMS: BasketItem[] = [
-  {
-    id: 'b-init-1',
-    foodId: 'kinalas',
-    foodName: 'Kinalas Special (with Egg & Extra Brain Gravy)',
-    price: 85,
-    establishmentId: 'cha-chas-kinalas',
-    establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-    establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
-    quantity: 1,
-    selectedNote: 'Extra spicy chili paste, broth on the side',
-  },
-  {
-    id: 'b-init-2',
-    foodId: 'sinanglay',
-    foodName: 'Sinanglay na Tilapia',
-    price: 150,
-    establishmentId: 'cha-chas-kinalas',
-    establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-    establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
-    quantity: 1,
-  },
-];
-
-// Default initial active pre-order tickets for demo testing
-const INITIAL_PRE_ORDERS: PreOrder[] = [
-  {
-    id: 'ord-cha-9104',
-    orderNumber: '#NG-9104',
-    establishmentId: 'cha-chas-kinalas',
-    establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-    establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-    customerName: 'Maria Santos',
-    customerPhone: '+63 917 555 1204',
-    items: [
-      {
-        id: 'po-cha-1',
-        foodId: 'kinalas',
-        foodName: 'Kinalas Special (with Egg & Extra Brain Gravy)',
-        price: 85,
-        establishmentId: 'cha-chas-kinalas',
-        establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-        establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-        image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
-        quantity: 2,
-        selectedNote: 'Extra spicy chili paste, broth on the side',
-      },
-      {
-        id: 'po-cha-2',
-        foodId: 'baduya',
-        foodName: 'Crispy Saba Baduya (Pair)',
-        price: 25,
-        establishmentId: 'cha-chas-kinalas',
-        establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-        establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-        image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
-        quantity: 2,
-        selectedNote: 'Warm fresh batch',
-      },
-    ],
-    subtotal: 220,
-    fee: 0,
-    total: 220,
-    diningOption: 'dine_in',
-    pickupTimeSlot: 'Table 4 • Dine-In',
-    specialInstructions: 'Extra chili paste on the side please',
-    paymentMethod: 'cash',
-    paymentStatus: 'pending_counter',
-    status: 'received',
-    createdAt: '3 minutes ago',
-    estimatedMinutesRemaining: 15,
-  },
-  {
-    id: 'ord-cha-9088',
-    orderNumber: '#NG-9088',
-    establishmentId: 'cha-chas-kinalas',
-    establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-    establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-    customerName: 'Ramon Rivera',
-    customerPhone: '+63 928 441 9088',
-    items: [
-      {
-        id: 'po-cha-3',
-        foodId: 'sinanglay',
-        foodName: 'Sinanglay na Tilapia',
-        price: 150,
-        establishmentId: 'cha-chas-kinalas',
-        establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-        establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-        image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
-        quantity: 1,
-        selectedNote: 'Heavy on coconut cream gravy',
-      },
-      {
-        id: 'po-cha-4',
-        foodId: 'kinalas',
-        foodName: 'Kinalas Special (with Egg & Extra Brain Gravy)',
-        price: 85,
-        establishmentId: 'cha-chas-kinalas',
-        establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-        establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-        image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
-        quantity: 1,
-      },
-      {
-        id: 'po-cha-5',
-        foodId: 'kinalas',
-        foodName: 'Kinalas Brain Gravy (Side Cup)',
-        price: 20,
-        establishmentId: 'cha-chas-kinalas',
-        establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-        establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-        image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
-        quantity: 1,
-      },
-    ],
-    subtotal: 255,
-    fee: 0,
-    total: 255,
-    diningOption: 'takeout',
-    pickupTimeSlot: 'ASAP (10–15 mins)',
-    specialInstructions: 'Pack gravy separately in tight container',
-    paymentMethod: 'gcash',
-    paymentStatus: 'paid',
-    paymentRefNumber: 'GC-98234812',
-    status: 'preparing',
-    createdAt: '9 minutes ago',
-    estimatedMinutesRemaining: 8,
-  },
-  {
-    id: 'ord-cha-9071',
-    orderNumber: '#NG-9071',
-    establishmentId: 'cha-chas-kinalas',
-    establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-    establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-    customerName: 'Camille Dy',
-    customerPhone: '+63 908 772 9071',
-    items: [
-      {
-        id: 'po-cha-6',
-        foodId: 'kinalas',
-        foodName: 'Kinalas Special (with Egg & Extra Brain Gravy)',
-        price: 85,
-        establishmentId: 'cha-chas-kinalas',
-        establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-        establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-        image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
-        quantity: 3,
-      },
-      {
-        id: 'po-cha-7',
-        foodId: 'baduya',
-        foodName: 'Crispy Saba Baduya (Pair)',
-        price: 25,
-        establishmentId: 'cha-chas-kinalas',
-        establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-        establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-        image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
-        quantity: 4,
-      },
-    ],
-    subtotal: 355,
-    fee: 0,
-    total: 355,
-    diningOption: 'takeout',
-    pickupTimeSlot: 'Waiting at Counter',
-    specialInstructions: 'Include plastic utensils and napkins',
-    paymentMethod: 'maya',
-    paymentStatus: 'paid',
-    paymentRefNumber: 'MY-58291041',
-    status: 'ready',
-    createdAt: '18 minutes ago',
-    estimatedMinutesRemaining: 0,
-  },
-  {
-    id: 'ord-cha-9055',
-    orderNumber: '#NG-9055',
-    establishmentId: 'cha-chas-kinalas',
-    establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-    establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-    customerName: 'Marco Alcantara',
-    customerPhone: '+63 999 123 9055',
-    items: [
-      {
-        id: 'po-cha-8',
-        foodId: 'sinanglay',
-        foodName: 'Sinanglay na Tilapia',
-        price: 150,
-        establishmentId: 'cha-chas-kinalas',
-        establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-        establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-        image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
-        quantity: 1,
-      },
-      {
-        id: 'po-cha-9',
-        foodId: 'kinalas',
-        foodName: 'Kinalas Special (with Egg & Extra Brain Gravy)',
-        price: 85,
-        establishmentId: 'cha-chas-kinalas',
-        establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-        establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-        image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
-        quantity: 1,
-      },
-    ],
-    subtotal: 235,
-    fee: 0,
-    total: 235,
-    diningOption: 'dine_in',
-    pickupTimeSlot: 'Table 1 • Completed',
-    paymentMethod: 'cash',
-    paymentStatus: 'paid',
-    status: 'completed',
-    createdAt: '42 minutes ago',
-    estimatedMinutesRemaining: 0,
-  },
-  {
-    id: 'ord-8492',
-    orderNumber: '#NG-8492',
-    establishmentId: 'bakers-plaza-naga',
-    establishmentName: 'Baker’s Plaza Bakery & Cafe',
-    establishmentAddress: 'Panganiban Drive corner Balintawak St., Naga City',
-    items: [
-      {
-        id: 'po-1',
-        foodId: 'toasted-siopao',
-        foodName: 'Fresh Baked Toasted Siopao (Box of 10)',
-        price: 280,
-        establishmentId: 'bakers-plaza-naga',
-        establishmentName: 'Baker’s Plaza Bakery & Cafe',
-        establishmentAddress: 'Panganiban Drive corner Balintawak St., Naga City',
-        image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
-        quantity: 1,
-        selectedNote: 'Oven fresh, hot batch',
-      },
-    ],
-    subtotal: 280,
-    fee: 0,
-    total: 280,
-    diningOption: 'takeout',
-    pickupTimeSlot: 'ASAP (15–20 mins)',
-    specialInstructions: 'Please pack in insulated box for travel',
-    paymentMethod: 'cash',
-    paymentStatus: 'pending_counter',
-    status: 'preparing',
-    createdAt: '12 minutes ago',
-    estimatedMinutesRemaining: 8,
-  },
-];
+const BASKET_STORAGE_KEY = '@naga_food_basket_items_v1';
 
 export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<BasketItem[]>(
-    INITIAL_BASKET_ITEMS.map((item) => ({
-      ...item,
-      image: getBasketFoodImage(item.foodId) || item.image,
-    }))
-  );
-  const [activePreOrders, setActivePreOrders] = useState<PreOrder[]>(
-    INITIAL_PRE_ORDERS.map(normalizeOrderImages)
-  );
+  const { user, isGuest } = useAuth();
+  const [items, setItems] = useState<BasketItem[]>([]);
+  const [activePreOrders, setActivePreOrders] = useState<PreOrder[]>([]);
   const [diningOption, setDiningOption] = useState<'dine_in' | 'takeout'>('dine_in');
   const [pickupTimeSlot, setPickupTimeSlot] = useState<string>('ASAP (15–20 mins)');
   const [specialInstructions, setSpecialInstructions] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'gcash' | 'maya'>('cash');
   const [activeTabSection, setActiveTabSection] = useState<'current' | 'history'>('current');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // 1. Load persisted cart items from local storage on launch
+  useEffect(() => {
+    let isMounted = true;
+    async function loadStoredCart() {
+      try {
+        const stored = await AsyncStorage.getItem(BASKET_STORAGE_KEY);
+        if (stored && isMounted) {
+          const parsed: BasketItem[] = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            setItems(
+              parsed.map((item) => ({
+                ...item,
+                image: getBasketFoodImage(item.foodId) || item.image,
+              }))
+            );
+          }
+        }
+      } catch (err) {
+        console.warn('[BasketContext] Error loading cached basket items:', err);
+      }
+    }
+    loadStoredCart();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Persist cart changes to AsyncStorage
+  const saveCartToStorage = useCallback(async (newItems: BasketItem[]) => {
+    try {
+      // Store string images only to avoid circular reference or crash on local requires
+      const serialized = newItems.map((item) => ({
+        ...item,
+        image: typeof item.image === 'string' ? item.image : '',
+      }));
+      await AsyncStorage.setItem(BASKET_STORAGE_KEY, JSON.stringify(serialized));
+    } catch (err) {
+      console.warn('[BasketContext] Error saving basket items:', err);
+    }
+  }, []);
+
+  // 2. Fetch active orders from Supabase user_orders whenever user logs in or changes
+  const fetchOrders = useCallback(async () => {
+    if (!user?.id || isGuest) {
+      setActivePreOrders([]);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const orders = await OrderService.getUserOrders(user.id);
+      setActivePreOrders(orders.map(normalizeOrderImages));
+    } catch (err) {
+      console.warn('[BasketContext] Error fetching user orders:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.id, isGuest]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const addToBasket = (newItem: Omit<BasketItem, 'id'>) => {
     setItems((prev) => {
-      // Check if item from same establishment and same foodId exists
       const existingIndex = prev.findIndex(
         (i) => i.foodId === newItem.foodId && i.establishmentId === newItem.establishmentId
       );
 
+      let updated: BasketItem[];
       if (existingIndex > -1) {
-        const updated = [...prev];
+        updated = [...prev];
         updated[existingIndex] = {
           ...updated[existingIndex],
           quantity: updated[existingIndex].quantity + (newItem.quantity || 1),
         };
-        return updated;
+      } else {
+        const id = `b-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+        updated = [...prev, { ...newItem, id }];
       }
 
-      const id = `b-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
-      return [...prev, { ...newItem, id }];
+      saveCartToStorage(updated);
+      return updated;
     });
   };
 
   const updateQuantity = (id: string, delta: number) => {
-    setItems((prev) =>
-      prev
+    setItems((prev) => {
+      const updated = prev
         .map((item) => {
           if (item.id === id) {
             const newQty = item.quantity + delta;
@@ -386,22 +199,32 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           }
           return item;
         })
-        .filter((item): item is BasketItem => item !== null)
-    );
+        .filter((item): item is BasketItem => item !== null);
+
+      saveCartToStorage(updated);
+      return updated;
+    });
   };
 
   const updateItemNote = (id: string, note: string) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, selectedNote: note } : item))
-    );
+    setItems((prev) => {
+      const updated = prev.map((item) => (item.id === id ? { ...item, selectedNote: note } : item));
+      saveCartToStorage(updated);
+      return updated;
+    });
   };
 
   const removeFromBasket = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+    setItems((prev) => {
+      const updated = prev.filter((item) => item.id !== id);
+      saveCartToStorage(updated);
+      return updated;
+    });
   };
 
   const clearBasket = () => {
     setItems([]);
+    saveCartToStorage([]);
   };
 
   const getBasketSubtotal = () => {
@@ -433,6 +256,8 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       establishmentId: firstItem.establishmentId,
       establishmentName: firstItem.establishmentName,
       establishmentAddress: firstItem.establishmentAddress,
+      customerName: user?.name,
+      customerPhone: user?.phone,
       items: [...items],
       subtotal,
       fee,
@@ -449,9 +274,17 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
 
     setActivePreOrders((prev) => [newOrder, ...prev]);
-    setItems([]);
+    clearBasket();
     setSpecialInstructions('');
     setActiveTabSection('history'); // auto switch to order status view
+
+    // Persist to Supabase if authenticated
+    if (user?.id && !isGuest) {
+      OrderService.createOrder(user.id, newOrder).catch((err) => {
+        console.warn('[BasketContext] Failed to save order to database:', err);
+      });
+    }
+
     return newOrder;
   };
 
@@ -470,6 +303,10 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return order;
       })
     );
+
+    OrderService.updateOrderStatus(orderId, status).catch((err) => {
+      console.warn('[BasketContext] Failed to update order status in DB:', err);
+    });
   };
 
   const advanceOrderStatusDemo = (orderId: string) => {
@@ -485,6 +322,11 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           const nextStatus = cycle[order.status];
           const estimatedMinutesRemaining =
             nextStatus === 'received' ? 20 : nextStatus === 'preparing' ? 10 : 0;
+
+          OrderService.updateOrderStatus(orderId, nextStatus).catch((err) => {
+            console.warn('[BasketContext] Failed to advance order status in DB:', err);
+          });
+
           return {
             ...order,
             status: nextStatus,
@@ -498,119 +340,29 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const cancelOrder = (orderId: string) => {
     setActivePreOrders((prev) => prev.filter((order) => order.id !== orderId));
+    OrderService.cancelOrder(orderId).catch((err) => {
+      console.warn('[BasketContext] Failed to cancel order in DB:', err);
+    });
   };
 
   const addDemoOrder = (customOrder?: Partial<PreOrder>): PreOrder => {
-    const customerProfiles = [
-      { name: 'Ana Mendoza', phone: '+63 917 882 1432' },
-      { name: 'Jose Villafuerte', phone: '+63 920 334 5519' },
-      { name: 'Bianca Cruz', phone: '+63 908 619 4480' },
-      { name: 'Dexter Bicol', phone: '+63 995 129 8831' },
-      { name: 'Patricia Imperial', phone: '+63 918 554 2209' },
-      { name: 'Rico De Jesus', phone: '+63 927 499 3012' },
-    ];
-    const randomCustomer = customerProfiles[Math.floor(Math.random() * customerProfiles.length)];
-
-    const menuPresets = [
-      [
-        {
-          id: `po-gen-${Date.now()}-1`,
-          foodId: 'kinalas',
-          foodName: 'Kinalas Special (with Egg & Extra Brain Gravy)',
-          price: 85,
-          establishmentId: 'cha-chas-kinalas',
-          establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-          establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-          image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
-          quantity: 2,
-          selectedNote: 'Extra spicy chili paste',
-        },
-        {
-          id: `po-gen-${Date.now()}-2`,
-          foodId: 'baduya',
-          foodName: 'Crispy Saba Baduya (Pair)',
-          price: 25,
-          establishmentId: 'cha-chas-kinalas',
-          establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-          establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-          image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
-          quantity: 2,
-        },
-      ],
-      [
-        {
-          id: `po-gen-${Date.now()}-3`,
-          foodId: 'sinanglay',
-          foodName: 'Sinanglay na Tilapia',
-          price: 150,
-          establishmentId: 'cha-chas-kinalas',
-          establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-          establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-          image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
-          quantity: 1,
-          selectedNote: 'Extra coconut cream',
-        },
-        {
-          id: `po-gen-${Date.now()}-4`,
-          foodId: 'kinalas',
-          foodName: 'Kinalas Special (with Egg & Extra Brain Gravy)',
-          price: 85,
-          establishmentId: 'cha-chas-kinalas',
-          establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-          establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-          image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
-          quantity: 1,
-        },
-      ],
-      [
-        {
-          id: `po-gen-${Date.now()}-5`,
-          foodId: 'kinalas',
-          foodName: 'Kinalas Special (with Egg & Extra Brain Gravy)',
-          price: 85,
-          establishmentId: 'cha-chas-kinalas',
-          establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
-          establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-          image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=80',
-          quantity: 1,
-          selectedNote: 'Less gravy, separate chili',
-        },
-      ],
-    ];
-
-    const selectedItems = menuPresets[Math.floor(Math.random() * menuPresets.length)].map((item) => ({
-      ...item,
-      image: getBasketFoodImage(item.foodId) || item.image,
-    }));
-    const subtotal = selectedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const orderNumber = `#NG-${Math.floor(9100 + Math.random() * 800)}`;
-    const diningOpt: 'dine_in' | 'takeout' = Math.random() > 0.5 ? 'dine_in' : 'takeout';
-    const paymentM: 'cash' | 'gcash' | 'maya' = Math.random() > 0.4 ? 'gcash' : 'cash';
-
     const newOrder: PreOrder = {
       id: `ord-gen-${Date.now()}`,
       orderNumber,
       establishmentId: 'cha-chas-kinalas',
       establishmentName: 'Cha Cha’s Kinalas & Sinanglay',
       establishmentAddress: 'Barlin Street, Barangay Santa Cruz, Naga City',
-      customerName: randomCustomer.name,
-      customerPhone: randomCustomer.phone,
-      items: selectedItems,
-      subtotal,
+      customerName: user?.name || 'Explorer',
+      customerPhone: user?.phone || '+63 917 000 0000',
+      items: [],
+      subtotal: 0,
       fee: 0,
-      total: subtotal,
-      diningOption: diningOpt,
-      pickupTimeSlot:
-        diningOpt === 'dine_in'
-          ? `Table ${Math.floor(1 + Math.random() * 8)} • Dine-In`
-          : 'ASAP (10–15 mins)',
-      specialInstructions: Math.random() > 0.5 ? 'Broth extra hot please' : undefined,
-      paymentMethod: paymentM,
-      paymentStatus: paymentM === 'cash' ? 'pending_counter' : 'paid',
-      paymentRefNumber:
-        paymentM === 'gcash'
-          ? `GC-${Math.floor(10000000 + Math.random() * 90000000)}`
-          : undefined,
+      total: 0,
+      diningOption: 'dine_in',
+      pickupTimeSlot: 'ASAP (10–15 mins)',
+      paymentMethod: 'cash',
+      paymentStatus: 'pending_counter',
       status: 'received',
       createdAt: 'Just now',
       estimatedMinutesRemaining: 15,
@@ -622,7 +374,7 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const resetDemoOrders = () => {
-    setActivePreOrders(INITIAL_PRE_ORDERS.map(normalizeOrderImages));
+    fetchOrders();
   };
 
   return (
@@ -653,6 +405,8 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         getBasketSubtotal,
         activeTabSection,
         setActiveTabSection,
+        isLoading,
+        refreshOrders: fetchOrders,
       }}
     >
       {children}

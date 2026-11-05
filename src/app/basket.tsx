@@ -12,6 +12,7 @@ import {
   Alert,
   Linking,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -41,6 +42,7 @@ export default function BasketScreen() {
     getBasketSubtotal,
     activeTabSection,
     setActiveTabSection,
+    isLoading,
   } = useBasket();
 
   // Active tab state: 'cart' | 'passes'
@@ -520,7 +522,13 @@ export default function BasketScreen() {
           {/* ======================================================== */}
           {activeTab === 'passes' && (
             <View style={styles.tabContent}>
-              {activePreOrders.length === 0 ? (
+              {isLoading ? (
+                <View style={styles.emptyCard}>
+                  <ActivityIndicator size="large" color="#D42F13" style={{ marginBottom: 12 }} />
+                  <Text style={styles.emptyTitle}>Loading Dining Passes...</Text>
+                  <Text style={styles.emptyDesc}>Retrieving your latest orders and table reservations.</Text>
+                </View>
+              ) : activePreOrders.length === 0 ? (
                 <View style={styles.emptyCard}>
                   <View style={styles.emptyIconCircle}>
                     <Ionicons name="ticket-outline" size={38} color="#007AFF" />
