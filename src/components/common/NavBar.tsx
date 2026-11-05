@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform, Keyboard } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
 import { IOSTokens } from '@/constants/theme';
@@ -22,10 +23,15 @@ interface NavItem {
 }
 
 export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
+  const insets = useSafeAreaInsets();
   const pathname = usePathname();
   const { getBasketCount } = useBasket();
   const basketCount = getBasketCount();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  // Safe bottom offset ensuring the floating pill floats comfortably above
+  // Android's 3-button in-display navigation bar (~48dp), gesture bar (~16-24dp), or iOS home indicator (~34dp)
+  const bottomOffset = Math.max(insets.bottom, Platform.OS === 'android' ? 14 : 10) + (Platform.OS === 'ios' ? 6 : 10);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -119,7 +125,7 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
   ];
 
   return (
-    <View style={styles.outerContainer} pointerEvents="box-none">
+    <View style={[styles.outerContainer, { bottom: bottomOffset }]} pointerEvents="box-none">
       <View style={styles.pillContainer}>
         {navItems.map((item) => {
           const isFocused = active === item.tab;
@@ -189,7 +195,6 @@ export const NavBar: React.FC<NavBarProps> = ({ currentTab }) => {
 const styles = StyleSheet.create({
   outerContainer: {
     position: Platform.OS === 'web' ? ('fixed' as any) : 'absolute',
-    bottom: Platform.OS === 'ios' ? 24 : 18,
     left: 0,
     right: 0,
     alignItems: 'center',

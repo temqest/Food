@@ -28,6 +28,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `/search` | [`frontend/src/app/search.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/search.tsx) | `['top', 'left', 'right']` | **Search Screen**: Live filter by dish, ingredient, district, or open status; category tags; empty state suggestions. |
 | `/profile` | [`frontend/src/app/profile.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/profile.tsx) | `['top', 'left', 'right']` | **Profile & Settings**: User preferences, spice tolerance setting, favorite district, security settings, business portal switch. |
 | `/business` | [`frontend/src/app/business.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business.tsx) | `['top', 'left', 'right']` | **Merchant Portal**: Dashboard for restaurant owners to update menu items, toggle open/closed status, manage pre-orders, create promotions, and broadcast store updates with the 5-tab bottom navigation (`orders`, `menu`, `posts`, `promote`, `store`). Redesigned Store Profile features Facebook-style profile cover & avatar with instant pen editing ([`EditPhotoModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/EditPhotoModal.tsx)), merchant earnings wallet & cashout flow ([`StoreWalletCard.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/StoreWalletCard.tsx), [`CashOutModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/CashOutModal.tsx)), live operating hours & hotline details, and interactive business photo gallery ([`StoreGallerySection.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/StoreGallerySection.tsx)). |
+| `/business-register` | [`frontend/src/app/business-register.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/business-register.tsx) | `['top', 'bottom', 'left', 'right']` | **Business Registration & Onboarding Wizard**: 4-step wizard for food establishment owners to register their business (Basic details & category, cover/logo branding & atmosphere tags, first signature menu item, review & live launch to Supabase). |
 | `/welcome` | [`frontend/src/app/welcome.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/welcome.tsx) | `['top', 'bottom', 'left', 'right']` | **Splash / Onboarding Entry**: High-impact editorial headline, 3-row moving pill marquee, "Get Started" and "Sign In" buttons. |
 | `/login` | [`frontend/src/app/login.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/login.tsx) | `['top', 'bottom', 'left', 'right']` | **Login Screen**: Email/password form, quick demo sign-in shortcuts, password recovery link. |
 | `/signup` | [`frontend/src/app/signup.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/signup.tsx) | `['top', 'bottom', 'left', 'right']` | **Registration**: New user account registration form with instant login transition. |
@@ -71,12 +72,13 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `SavedContext` | [`frontend/src/context/SavedContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/SavedContext.tsx) | Bookmarked dishes & eateries, toggle saved status, clear-all helpers. |
 | `QuestContext` | [`frontend/src/context/QuestContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/QuestContext.tsx) | Tasting log, gamification XP, level calculation, passport stamp collection. |
 | `BasketContext` | [`frontend/src/context/BasketContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/BasketContext.tsx) | Pre-orders, quantity management, scheduled pickup time, active vouchers. |
-| `BusinessContext` | [`frontend/src/context/BusinessContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/BusinessContext.tsx) | Restaurant owner profile, cover & logo editing, store subscription management (status, plan, subscribe, cancel), earnings wallet balance & cashout flow, photo gallery, menu management, live order queue, open/closed toggle. |
+| `BusinessContext` | [`frontend/src/context/BusinessContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/BusinessContext.tsx) | Dynamic restaurant owner profile, Supabase sync via `BusinessService`, user business ownership tracking (`hasBusiness`, `isLoadingBusiness`), demo preview mode switcher, menu management, live order queue, earnings wallet & cashout, open/closed toggle. |
+| `BusinessService` | [`frontend/src/services/businessService.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/services/businessService.ts) | Supabase data service for `businesses`, `business_products`, `business_promotions`, `business_wallets`, and `business_gallery` with offline AsyncStorage caching. |
 | `NotificationContext` | [`frontend/src/context/NotificationContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/NotificationContext.tsx) | In-app notification state, dynamic unread badge count, mark as read, delete, and clear-all actions. |
 | `FriendsContext` | [`frontend/src/context/FriendsContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/FriendsContext.tsx) | Foodie friends list, live weekly leaderboard calculation, "Tara Kain!" mealtime habit nudges, follow/unfollow, and handle search. |
 | `FriendsData` | [`frontend/src/data/friendsData.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/friendsData.ts) | FoodieProfile and LeagueDivision types with seed Naga City foodies and Gold Division config. |
-| `SocialFeedContext` | [`frontend/src/context/SocialFeedContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/SocialFeedContext.tsx) | Community social feed state: posts, stories, likes, bookmarks, comments, filter category, post creation. |
-| `SocialFeedData` | [`frontend/src/data/socialFeedData.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/socialFeedData.ts) | Typed models (`SocialPost`, `PostAuthor`, `SocialComment`, `NagaMomentStory`) and rich initial Naga food crawl posts & moments. |
+| `SocialFeedContext` | [`frontend/src/context/SocialFeedContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/SocialFeedContext.tsx) | Community social feed state: posts, stories, likes, bookmarks, comments, filter category, post creation, interactive ad poll voting (`voteOnPoll`), and voucher claiming (`claimVoucher`). |
+| `SocialFeedData` | [`frontend/src/data/socialFeedData.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/socialFeedData.ts) | Typed models (`SocialPost`, `PostAuthor`, `SocialComment`, `NagaMomentStory`, `AdvertisementData`, `EngagementPoll`), initial posts with sample business engagement ad, and moments. |
 | `DiceBear Avatars` | [`frontend/src/utils/dicebearAvatar.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/utils/dicebearAvatar.ts) | Generates `@dicebear/core` + `@dicebear/styles/adventurer-neutral.json` with `with { type: 'json' }` avatars with random/seeded background colors, inlining `<use>` references for native compatibility. |
 | Mock Data | [`frontend/src/data/mockData.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/mockData.ts) | Canonical dishes (`FOOD_ITEMS`), eateries (`ESTABLISHMENTS`), categories. |
 | Gamification Data | [`frontend/src/data/gamification.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/gamification.ts) | Curated food trails (`FOOD_TRAILS`), badge definitions, insider tips. |
@@ -87,7 +89,7 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 
 | Directory | Key Components | Purpose |
 | :--- | :--- | :--- |
-| `components/feed/` | `FeedHeader`, `NagaMomentsBar`, `StoryViewerModal`, `FeedFilterStrip`, `SocialFeedCard`, `CommentsBottomSheet`, `CreatePostModal` | Full social media discovery feed with stories, double-tap like cards, dish tag overlays, comment threads, and trip composer. |
+| `components/feed/` | `FeedHeader`, `NagaMomentsBar`, `StoryViewerModal`, `FeedFilterStrip`, `SocialFeedCard`, `CommentsBottomSheet`, `CreatePostModal` | Full social media discovery feed with stories, double-tap like cards, dish tag overlays, comment threads, trip composer, and business advertisement & engagement post rendering with interactive craving polls and voucher redemption. |
 | `components/trail/` | `TrailHeroBanner`, `TrailProgressBar`, `TrailSteppingBridge`, `TrailStopStation`, `TrailFinishCrest`, `TrailStopDetailsSheet` | Winding road journey map, gamified crawl stops, and milestone crest. |
 | `components/codex/` | `CodexHeroHeader`, `CodexFilterBar`, `DishCodexCard`, `DishDossierModal` | Clean culinary encyclopedia cards, category filters, and deep lore bottom sheet. |
 | `components/home/` | `MascotHero`, `NagaQuestCarousel`, `CravingDialWidget`, `FoodShowcaseBox` | Dynamic greetings, streak flame button, banner carousel, and interactive flavor dial. |
@@ -101,6 +103,266 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 ## 5. AI Action & Modification Log
 
 *Every AI session must append its actions here:*
+
+### [2026-11-05] - System In-Display Navigation Bar Safe Area Spacing
+- **User Request**: "the app isnt build to have proper spacing and safe area as the bottom navbar of the app is coliding w/ my phones own in display navbar (back, menu, and home buttons)"
+- **Root Cause**:
+  - `NavBar` and `BusinessNavBar` had hardcoded `bottom: 18` on Android and did not consume `useSafeAreaInsets()`.
+  - On Android devices with standard 3-button in-display navigation (back, home, recent apps, ~48dp tall), the bottom navbar was positioned directly over the phone's native buttons.
+  - Tab screens (`home`, `explore`, `feed`, `basket`, `search`, `saved`, `profile`, `business`) had static bottom scroll padding that didn't adjust for dynamic bottom insets.
+  - Subscreens (`streak`, `friends`, `notifications`) omitted `'bottom'` from `<SafeAreaView edges={...}>`.
+- **Changes Applied**:
+  - **Dynamic Inset Clamping in Navbars**:
+    - In [`NavBar.tsx`](frontend/src/components/common/NavBar.tsx) and [`BusinessNavBar.tsx`](frontend/src/components/business/BusinessNavBar.tsx): integrated `useSafeAreaInsets()` to calculate `bottomOffset = Math.max(insets.bottom, Platform.OS === 'android' ? 14 : 10) + (Platform.OS === 'ios' ? 6 : 10)`. The navbar now floats comfortably 10-14dp above any 3-button navigation bar, gesture bar, or iOS home indicator.
+  - **Interactive Map Alignment**:
+    - In [`map.tsx`](frontend/src/app/map.tsx): dynamically chained `carouselBottomOffset = navBottomOffset + 62 + 8` and `recenterBottomOffset = carouselBottomOffset + 218`, keeping the spot carousel and recenter FAB floating above the elevated navbar.
+  - **Scroll Content Breathing Room**:
+    - Dynamically applied `paddingBottom: 110 + insets.bottom` across [`home.tsx`](frontend/src/app/home.tsx), [`explore.tsx`](frontend/src/app/explore.tsx), [`feed.tsx`](frontend/src/app/feed.tsx), [`basket.tsx`](frontend/src/app/basket.tsx), [`search.tsx`](frontend/src/app/search.tsx), [`saved.tsx`](frontend/src/app/saved.tsx), [`profile.tsx`](frontend/src/app/profile.tsx), and [`business.tsx`](frontend/src/app/business.tsx).
+  - **Subscreen Full Safe Areas**:
+    - Updated [`streak.tsx`](frontend/src/app/streak.tsx), [`friends.tsx`](frontend/src/app/friends.tsx), and [`notifications.tsx`](frontend/src/app/notifications.tsx) to `<SafeAreaView edges={['top', 'left', 'right', 'bottom']}>`.
+
+
+### [2026-11-05] - Local Android APK Build Preparation
+- **User Request**: "and then prepare the app so i can locally build the apk file"
+- **Changes Applied**:
+  - **Android Package Identifier**: Configured `"package": "com.nagi.app"` and `INTERNET` permissions inside [`frontend/app.json`](frontend/app.json).
+  - **EAS Build Configuration**: Generated [`frontend/eas.json`](frontend/eas.json) with `preview` profile specifying `"buildType": "apk"` for local standalone APK generation.
+  - **Native Prebuild & Gradle**:
+    - Ran `npx expo prebuild --platform android` to generate the complete native [`frontend/android/`](frontend/android/) project.
+    - Generated [`frontend/android/local.properties`](frontend/android/local.properties) pointing to the system Android SDK (`C:\Users\Admin\AppData\Local\Android\Sdk`).
+    - Verified Gradle 9.4.1 wrapper and Java 17 execution.
+  - **Convenience Scripts**: Added `build:apk:debug`, `build:apk:release`, and `build:eas:apk` scripts in [`frontend/package.json`](frontend/package.json).
+
+
+### [2026-11-05] - Landing Page: Removed In-App Nagi Logo Badge (`/welcome`)
+- **User Request**: "remove the nagi logo in the landing page"
+- **Changes Applied**:
+  - In [`frontend/src/app/welcome.tsx`](frontend/src/app/welcome.tsx), removed the `brandBadge` container, `brandLogo` image, and `brandTitle` text from the header area.
+  - Restored original clean editorial typography layout and vertical spacing for the welcome screen.
+  - Logo remains cleanly attached as the official OS app icon, Android adaptive launcher, splash screen, and browser favicon.
+
+
+### [2026-11-05] - Brand Identity "Nagi" & App Icon Integration
+- **User Request**: "go for Nagi, and while that @[c:\Dev\food\frontend\easyappicon-icons-1793863659855] attach this app logo in my app"
+- **Changes Applied**:
+  - **App Naming & Scheme**:
+    - Renamed application in [`frontend/app.json`](frontend/app.json) to `"name": "Nagi"`, `"slug": "nagi"`, `"scheme": "nagi"`.
+    - Updated package name in [`frontend/package.json`](frontend/package.json) to `"name": "nagi"`.
+    - Updated initial notification greeting in [`frontend/src/context/NotificationContext.tsx`](frontend/src/context/NotificationContext.tsx) to `'Welcome to Nagi! 🌶️'`.
+  - **App Icons Installed**:
+    - Extracted and transferred generated icon package from [`easyappicon-icons-1793863659855`](frontend/easyappicon-icons-1793863659855) to [`frontend/assets/images/`](frontend/assets/images/):
+      - `icon.png`: High-resolution 1024×1024 master app icon.
+      - `android-icon-foreground.png`: 432×432 transparent adaptive icon foreground.
+      - `splash-icon.png`: Centerpiece splash screen logo.
+      - `favicon.png`: 48×48 web favicon.
+      - `nagi-logo.png`: 512×512 in-app brand asset.
+    - Configured Android adaptive icon with native background color `#be141e` (sili crimson).
+    - Configured splash screen plugin with matching background color `#be141e` and width 120.
+  - **In-App Welcome Screen Branding**:
+    - In [`frontend/src/app/welcome.tsx`](frontend/src/app/welcome.tsx), integrated the official Nagi logo and brand badge at the top of the Welcome onboarding screen.
+
+
+### [2026-11-05] - Promote Campaigns: Realistic Pricing and Local Naga Reach (`/business`)
+- **User Request**: "and in the promote section can u also try to reduce the price and the expected reach to be more realistic"
+- **Changes Applied**:
+  - In [`CreatePromotionModal.tsx`](frontend/src/components/business/CreatePromotionModal.tsx), calibrated campaign tiers for local carinderias and food spots:
+    - **1 Day Flash Rush**: Reduced price to **₱49** (from ₱99); adjusted reach to **~150–300 foodies** (from 1,500).
+    - **3 Days Weekend Booster**: Reduced price to **₱120** (from ₱249); adjusted reach to **~400–750 foodies** (from 5,000).
+    - **7 Days Weekly Spotlight**: Reduced price to **₱220** (from ₱499); adjusted reach to **~900–1,500 foodies** (from 14,000).
+    - **14 Days Fortnight Sprint**: Reduced price to **₱390** (from ₱899); adjusted reach to **~1,800–2,800 foodies** (from 30,000).
+    - **30 Days Monthly Anchor**: Reduced price to **₱650** (from ₱1,699); adjusted reach to **~3,500–5,000 foodies** (from 70,000).
+
+
+### [2026-11-05] - Merchant Portal: Removed Hardcoded Today's Overview (`/business`)
+- **User Request**: "can u also remove the hardcoded todays overview part"
+- **Changes Applied**:
+  - In [`business.tsx`](frontend/src/app/business.tsx), removed the hardcoded `TODAY'S OVERVIEW` section displaying mock gross sales (₱4,850), foodie views (3,890), and customer bookmarks (247).
+  - Cleaned up unused `analytics` destructuring and `storeStatsGrid` styles.
+  - Live revenue and payout figures continue to be properly presented by `StoreWalletCard` directly from the merchant's live wallet.
+
+
+### [2026-11-05] - Partner Subscription: Adjusted Price to ₱250/mo (`/business`)
+- **User Request**: "can u reduce the price of partner subscription to just be 250 pesos"
+- **Changes Applied**:
+  - In [`StoreSubscriptionModal.tsx`](frontend/src/components/business/StoreSubscriptionModal.tsx), reduced monthly partner subscription from ₱499 to **₱250 / month**, and annual plan from ₱4,999 to **₱2,500 / year** (Save ₱500, 2 months free).
+  - In [`StoreSubscriptionBanner.tsx`](frontend/src/components/business/StoreSubscriptionBanner.tsx), updated price tag display to **₱250/mo**.
+  - In [`MerchantPaywallGate.tsx`](frontend/src/components/business/MerchantPaywallGate.tsx), updated default CTA text to `Subscribe to Unlock (₱250/mo)`.
+  - In [`business.tsx`](frontend/src/app/business.tsx), updated paywall button text for orders and promotions to `₱250/mo`.
+
+
+### [2026-11-05] - Business Registration & Database Integration (`/profile`, `/business`, `/business-register`)
+- **User Request**: In my profile page there is an option to go the business side, the issue its hard coded, there is actually no way to register a business, an onboarding, and etc. Remove the hard coded business side, directly fetch from the database (if no business side schema is there build it) and create the proper business registration and onboarding when trying to make their own business.
+- **Architectural & Schema Upgrades Applied**:
+  1. **PostgreSQL/Supabase Database Schema (`supabase_business_schema.sql`)**:
+     - Built comprehensive database schema with 6 tables: `public.businesses`, `public.business_products`, `public.business_promotions`, `public.business_wallets`, `public.business_gallery`, and `public.business_subscriptions`.
+     - Defined foreign keys linking `businesses.owner_id` to `food_profiles.id` with cascade deletion and Row Level Security (RLS) policies for public catalog view and authenticated owner management.
+     - Appended schema definitions to `supabase_schema.sql` and `supabase_full_migration.sql`.
+  2. **Database Data Service (`frontend/src/services/businessService.ts`)**:
+     - Built data layer interfacing directly with Supabase for user store query, business creation, menu management, cashout records, promotions, and gallery updates.
+     - Implemented transparent offline and pre-migration fallback via resilient `safeBusinessStorage` (in-memory map + web localStorage + try/catch AsyncStorage) ensuring `Native module is null` errors in Expo Go or unlinked clients never break business registration.
+  3. **Reactive Global Business State (`frontend/src/context/BusinessContext.tsx`)**:
+     - Removed static mock store as permanent default state.
+     - Added dynamic store fetching bound to `useAuth()`: `hasBusiness`, `isLoadingBusiness`, `isDemoMode`, `enableDemoMode()`, and `registerBusiness()`.
+  4. **Dynamic Profile Screen (`frontend/src/app/profile.tsx`)**:
+     - Removed hardcoded Cha Cha's Kinalas Partner row.
+     - Replaced with dynamic Business & Merchant Center:
+       - Displays "Register Your Food Business" with "Start Business Onboarding" CTA and "Explore Partner Demo" button if user has no business.
+       - Displays real registered business profile name, category tag, neighborhood, and "Manage Store & Menu ›" button once registered.
+  5. **Business Registration & Onboarding Screen (`frontend/src/app/business-register.tsx`)**:
+     - Built a 4-step interactive wizard:
+       - Step 1: Establishment Basics & Category (Name, 7 culinary categories, tagline, 10 Naga districts, street address, hotline, hours, description).
+       - Step 2: Branding & Atmosphere (Cover banner, logo avatar with camera/gallery picker and authentic Naga presets, and atmosphere/facility tags).
+       - Step 3: First Signature Dish (Dish name, Bikol dialect name, category, price in ₱, prep time, description, photo).
+       - Step 4: Review & Launch (Interactive storefront card preview, verification agreement, and live submission).
+  6. **Merchant Portal Empty & Demo States (`frontend/src/app/business.tsx`)**:
+     - Added empty state card for users without a registered business with 1-tap route to `/business-register` or demo preview mode.
+     - Added yellow banner indicator when running in Demo Mode with link to register a real business.
+
+### [2026-10-30] - Auth Flow: Route Successful Login and Onboarding to Home (`/home`)
+- **User Request**: Login and the onboarding "Start Exploring Naga" action were returning to the landing page instead of the home dashboard.
+- **Fix Applied**:
+  - In [`frontend/src/app/login.tsx`](frontend/src/app/login.tsx), changed email/password and Google login success redirects to `/home`.
+  - In [`frontend/src/app/onboarding.tsx`](frontend/src/app/onboarding.tsx), changed onboarding completion and skip redirects to `/home`.
+  - Kept the onboarding back button pointed at `/` so users can intentionally return to the landing page.
+
+### [2026-10-30] - App Entry: Landing Page First, Home Dashboard at `/home`
+- **User Request**: Make the first page of the app the landing page instead of the home page.
+- **Fix Applied**:
+  - Updated [`frontend/src/app/index.tsx`](frontend/src/app/index.tsx) so the root `/` route renders the existing landing experience from `welcome.tsx`.
+  - Moved the previous home dashboard implementation to [`frontend/src/app/home.tsx`](frontend/src/app/home.tsx).
+  - Updated the floating navigation bar, business exit action, saved empty states, and web tab trigger to navigate to `/home`.
+
+### [2026-10-30] - Business Portal: Updated Store Profile, Menu, and Promotion Images (`/business`)
+- **User Request**: Replace outdated business store profile images and also update the promotion and store menu pages.
+- **Fix Applied**:
+  - In [`frontend/src/context/BusinessContext.tsx`](frontend/src/context/BusinessContext.tsx), added resolved local food image assets from `frontend/Food Images/`.
+  - Updated the store profile cover/logo, default gallery, seeded menu products, and active promotion image to use matching local dish photos.
+  - Kept the existing string-based profile/gallery contracts so photo picker uploads and existing renderers continue to work.
+
+### [2026-11-05] - Food Basket & Orders: Dynamic Database Synchronization (`/basket`)
+- **User Request**: Remove hardcoded food basket and ensure it actually fetches from the database and not hardcoded stuff.
+- **Fix Applied**:
+  - Created [`frontend/src/services/orderService.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/services/orderService.ts) to interface directly with Supabase `public.user_orders` table (fetching user orders, inserting new orders upon checkout, updating statuses, and deleting canceled passes).
+  - Cleaned up [`frontend/src/context/BasketContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/BasketContext.tsx):
+    - Removed hardcoded `INITIAL_BASKET_ITEMS` (initial items now start empty `[]` and persist cleanly to `@naga_food_basket_items_v1` via AsyncStorage when users add dishes from menus/details).
+    - Removed hardcoded `INITIAL_PRE_ORDERS`.
+    - Added dynamic order loading via `OrderService.getUserOrders(user.id)` from Supabase `user_orders`.
+    - `placePreOrder` now writes newly created pre-orders directly to `user_orders` in Supabase.
+    - Status updates (`updateOrderStatus`, `advanceOrderStatusDemo`) and cancellations sync in real time with Supabase.
+    - Added `isLoading` indicator handling and `refreshOrders` action to the context.
+  - Updated [`frontend/src/app/basket.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/basket.tsx) to display an `ActivityIndicator` loading state when passes are being fetched from the database.
+
+### [2026-10-30] - Food Basket: Updated Seeded Item Images (`/basket`)
+- **User Request**: Replace outdated food basket images with the provided local food photos.
+- **Fix Applied**:
+  - In [`frontend/src/context/BasketContext.tsx`](frontend/src/context/BasketContext.tsx), added local image mappings for Kinalas, Sinanglay, Baduya, and toasted siopao.
+  - Normalized initial cart items, seeded active passes, reset demo passes, and generated demo orders by `foodId` before they enter basket state.
+  - Preserved custom/user-uploaded images and unknown food IDs as fallbacks.
+  - The basket screen already uses `resolveFoodImage`, so local bundled assets render correctly in cart rows and order passes.
+
+### [2026-10-30] - Social Feed: Diversified Seeded Posts (`/feed`)
+- **User Request**: Reduce the feed so only the promoted post is about Kinalas.
+- **Fix Applied**:
+  - In [`frontend/src/data/socialFeedData.ts`](frontend/src/data/socialFeedData.ts), changed `post-1` to Baduya, `post-chacha-1` to Sinanglay, and `post-5` to Laing.
+  - Updated each replacement post's local image, food ID, name, price, caption, insider tip, spice level, tags, and stale comment copy.
+  - Preserved `ad-chacha-merienda` as the only seeded feed post with `foodId: 'kinalas'`; stories remain unchanged because they are separate from feed posts.
+
+### [2026-10-30] - Social Feed: Replaced Seeded Social Photos with Local Food Images (`/feed`)
+- **User Request**: Replace the social media page images with the provided food images.
+- **Fix Applied**:
+  - In [`frontend/src/data/socialFeedData.ts`](frontend/src/data/socialFeedData.ts), mapped all seeded feed posts and Naga Moments stories to the matching local assets in `frontend/Food Images/` (Kinalas, Bicol Express, Baduya, Sinanglay, toasted siopao, and Laing).
+  - In [`frontend/src/components/feed/StoryViewerModal.tsx`](frontend/src/components/feed/StoryViewerModal.tsx), resolved story images through `resolveFoodImage` so bundled local assets render alongside remote URLs.
+  - User-created post photos and profile avatars remain unchanged.
+
+### [2026-10-29] - Milestone 1: Empirical Verification & Gap Analysis Challenge
+- **Role**: Empirical Challenger M1_1
+- **Actions Executed**:
+  - Empirically verified all 9 defects identified in `AUDIT_GAP_ANALYSIS.md`.
+  - Confirmed missing canonical establishment `pan-de-naga-heritage` causing trail truncation and route fallbacks.
+  - Probed and confirmed 100% dish-to-visual mismatches for all 9 canonical dishes (foreign stock items: ramen, cold avocado salad, sourdough bread loaves, chocolate fudge cake; confirmed HTTP 404 for `crispy-pili` asset).
+  - Traced and reproduced 9 occurrences of shorthand non-canonical IDs in `socialFeedData.ts` causing route fallbacks to Cha Cha's Kinalas.
+  - Verified route parameter black hole in `frontend/src/app/map.tsx` where `selectedPlaceId` and `highlightId` are omitted from `useLocalSearchParams`.
+  - Identified 3 minor precision errata in audit documentation (Pinangat actual spot count = 4; business.tsx map push line = 844–847; total unique Unsplash photo IDs = 19).
+  - Static type checks confirmed clean (`npx tsc --noEmit` exited code 0).
+  - Issued official verdict: **APPROVE**.
+
+### [2026-10-27] - Social Media Feed: Instagram-Style Center Double-Tap Pop Heart Animation (`/feed`)
+- **User Request**: "can u add this small thing, in the social media feed page, when i double tap the picture it should also show the heart animation in the center of the pick similar to instragram"
+- **Fix Applied**:
+  - In [`SocialFeedCard.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/SocialFeedCard.tsx):
+    - Added animated values `centerHeartScale` and `centerHeartOpacity` with native driver support.
+    - Implemented `triggerCenterHeartAnimation`: Spring pops in to `1.25x` scale with bouncy friction, settles briefly at natural scale, and smoothly expands to `1.35x` while fading out.
+    - Added an absolute center overlay (`Animated.View` with `pointerEvents="none"`) inside `mediaContainer` rendering a vibrant 96px `#FF3B30` red heart icon with soft drop shadow.
+    - Connected to `handleDoubleTap` so double-tapping the media container instantly fires the center pop heart animation and likes the post.
+
+
+### [2026-10-27] - Passport Stamping: Fixed Top Status Bar Cut-Off on Modal Darkened Backdrop
+- **User Request**: "and also the darkend background when opening the stamp modal doesnt fully go way up so there are parts on top where the dark background is just cut off so having a light part on the background"
+- **Root Cause Identified**:
+  - React Native `<Modal>` on Android defaults to stopping beneath the system status bar unless `statusBarTranslucent={true}` is explicitly enabled, leaving the top 24–48px status bar unshaded and light.
+  - In [`PassportStampModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/gamification/PassportStampModal.tsx), `styles.overlay` lacked `backgroundColor`, and the backdrop was trapped inside `KeyboardAvoidingView`.
+- **Fix Applied**:
+  - In [`PassportStampModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/gamification/PassportStampModal.tsx) and [`TrailStopDetailsSheet.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailStopDetailsSheet.tsx):
+    - Added `statusBarTranslucent={true}` to `<Modal>` so the native window draws edge-to-edge behind the Android status bar and display cutouts.
+    - Added `backgroundColor: 'rgba(0, 0, 0, 0.55)'` directly to `styles.overlay`.
+    - Placed `styles.backdrop` with `position: 'absolute', top: 0, left: 0, right: 0, bottom: 0` directly under the root overlay view to guarantee a seamless, full-bleed darkened backdrop all the way to $y=0$.
+
+
+### [2026-10-27] - Passport Stamping: Removed Forced Cropping on Photo Capture / Upload
+- **User Request**: "remove the required to crop to take / upload a picture"
+- **Fix Applied**:
+  - In [`PassportStampModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/gamification/PassportStampModal.tsx):
+    - Changed `allowsEditing` from `true` to `false` in both `launchCameraAsync` and `launchImageLibraryAsync`.
+    - Removed `aspect: [4, 3]` constraint so photos are captured and uploaded directly at full fidelity without triggering an unwanted crop modal.
+
+
+### [2026-10-27] - Trail Expedition & Passport Stamping: Replaced Bicolano Heat Level with Required Food Photo
+- **User Request**: "in my trail page can u do this: 1. stamping something remove the bicolano heat level and instead require to take / upload a photo"
+- **Issues Identified**:
+  - The stamping workflow ([`PassportStampModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/gamification/PassportStampModal.tsx)) included a "Bicolano Heat Level" flame rating that didn't provide tangible authentication of the food trip.
+  - The modal lacked live camera and photo capture support to verify dish visits.
+- **Fixes Applied**:
+  - In [`PassportStampModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/gamification/PassportStampModal.tsx):
+    - Completely removed the "Bicolano Heat Level" chili rating and label section.
+    - Integrated `expo-image-picker` with both `takePhoto` (camera capture with permissions handling) and `pickImage` (gallery selection).
+    - Designed interactive photo card with dashed upload border, "REQUIRED" indicator badge, and dual "Take Photo" & "From Gallery" actions.
+    - Implemented photo preview card with "✓ Tasting Authenticated" badge and tactile "Retake", "Gallery", and "Remove" controls.
+    - Enforced strict photo requirement validation on submit: If no photo is selected, alerts user and prompts photo capture before stamping passport.
+    - Wrapped the modal sheet in `<ScrollView showsVerticalScrollIndicator={false}>` with safe area & keyboard avoiding bounds.
+  - In [`gamification.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/data/gamification.ts) & [`QuestContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/QuestContext.tsx):
+    - Made `spiceRating?: number` optional in `TastingEntry`.
+    - Handled null-safe badge unlock logic for `sili-survivor` without regression.
+
+
+### [2026-10-27] - Business Portal: Fixed "Choose from Gallery" Button Overflow in Create Post Modal
+- **User Request**: "can u fix this simple ui fix as the choose from gallery text is too big for the button inside the create post modal for the business side"
+- **Issues Identified**:
+  - In [`CreateBusinessPostModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/business/CreateBusinessPostModal.tsx), the "Choose from Gallery" button text was styled with `fontSize: 15, fontWeight: '700'` and `paddingVertical: 13`.
+  - The disproportionate font size combined with an 18px icon and 8px gap forced the 19-character string to overflow or wrap awkwardly on mobile viewports.
+- **Fixes Applied**:
+  - Reduced `uploadPrimaryBtnText` and `uploadSecondaryBtnText` to `fontSize: 13, fontWeight: '600', letterSpacing: -0.1`.
+  - Scaled down button icons from `size={18}` to `size={16}` with a clean `gap: 6`.
+  - Adjusted button flex ratios (`flex: 1.35` for Gallery vs `flex: 0.85` for Camera) and padding (`paddingVertical: 11, paddingHorizontal: 8, borderRadius: 12`).
+  - Added `numberOfLines={1}`, `adjustsFontSizeToFit`, and `minimumFontScale={0.85}` to prevent text wrapping or button boundary breaks across all device sizes.
+
+
+### [2026-10-27] - Community Feed: Sample Business Advertisement & Engagement Post (`/feed`)
+- **User Request**: "in my feeds page, can u make a sample advertisement post, as to demonstrate what it would look like if a business decide to create an engagemet post /plan" & "okay i dont like thats its too long as the craving poll should be hidden in the comments"
+- **Architectural & Design Upgrades Applied**:
+  1. **Data Model Extensions (`socialFeedData.ts`)**:
+     - Created `EngagementPollOption`, `EngagementPoll`, and `AdvertisementData` typed interfaces.
+     - Added `isSponsored?: boolean` and `advertisement?: AdvertisementData` to `SocialPost`.
+     - Seeded realistic sponsored post (`ad-chacha-merienda`) for partner eatery *Cha Cha’s Kinalas & Sinanglay* in `INITIAL_POSTS`, positioned prominently as post #2 on the feed.
+  2. **Reactive Feed State (`SocialFeedContext.tsx`)**:
+     - Implemented `voteOnPoll(postId, optionId)`: Dynamically tracks user pick, increments/decrements option vote counts, and computes community distribution percentages in real-time.
+     - Implemented `claimVoucher(postId)`: Simulates 1-tap voucher redemption, updating `isClaimed = true` and incrementing claimed counters.
+  3. **Streamlined Card Layout & Hidden-in-Comments Craving Poll**:
+     - **Main Card Height Kept Compact (`SocialFeedCard.tsx`)**: Removed the tall craving poll container from the main feed card to prevent overwhelming card height and maintain fast, seamless feed scrolling.
+     - **Sponsored Identity**: Distinctive terracotta accent border (`#FCD5CE`), `⚡ Promoted` badge with sparkles icon, and `Sponsored Ad` meta pill alongside district placement.
+     - **Promotional CTA Ribbon**: Dedicated banner under the media with offer badge, headline (`⚡ Afternoon Merienda Rush: 20% OFF Kinalas Pass`), and 1-tap `Claim 20% Voucher` button with tactile toast notification.
+     - **Comments Prompt**: Dynamic comment button pill (`Vote in Craving Poll in Comments (38) ›`) guiding users to the interactive poll.
+     - **Pinned Store Poll in Comments Sheet (`CommentsBottomSheet.tsx`)**: The full interactive community poll (*"Which Kinalas ritual is your go-to afternoon merienda?"*) is pinned right at the top of the comments sheet with option pills, animated voting percentage progress bars, checkmark indicators, and voucher unlock callouts above the community discussion.
+     - **Establishment Link**: Enhanced footer CTA (`Claim Pass & View Menu`) with direct route to `/establishment/cha-chas-kinalas`.
 
 ### [2026-10-26] - Merchant Portal Modal Visibility & Layout Fixes (`/business`)
 - **User Request**: "and the cash out modal isnt visible on the modal its not fully visible all, same as the edit logo / edit cover modal too, same as the add photo"
@@ -956,3 +1218,108 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
     - Added the same `pickImage` / `takePhoto` upload box & preview flow, maintaining consistency across every photo upload interface in the business portal.
 - **Verification**:
   - `npx tsc --noEmit` executed with 0 errors.
+
+
+---
+
+## AI Changelog — 2026-10-30: Authentic Naga Culinary Data Overhaul
+
+### Summary
+Full audit, research, and implementation of authentic Naga City (Bicol) culinary data replacing all mismatched stock photos, ghost IDs, and incorrect geographic labels.
+
+### Data Layer Changes
+
+**`frontend/src/data/mockData.ts`** — FULLY REWRITTEN
+- `FOOD_ITEMS`: 9 → 15 authentic Bicolano dishes. Added: `laing`, `kinunot`, `sinantol`, `tilmok`, `baduya`, `naga-night-skewers`
+- All 15 dish images replaced with Unsplash photos accurately matching each dish
+- `ESTABLISHMENTS`: 8 → 14 verified Naga venues. Added: `cha-kamot-kinalas`, `biggs-diner-centro`, `biggs-diner-magsaysay`, `red-platter`, `chef-doys-restaurant`, `3n-bakery-triangulo`, `pan-de-naga-heritage`
+- Fixed Aling Cely's address (Barlin/Dimasalang St., Santa Cruz — not Bagumbayan Sur)
+- `street-grill` category: 0 → 2 dishes (`baduya`, `naga-night-skewers`)
+
+**`frontend/src/data/gamification.ts`** — UPDATED
+- `FOOD_TRAILS`: 3 → 4 trails. Added `trail-penafrancia-pilgrimage`
+- Updated existing trail establishment sequences with correct verified IDs
+- Added 9 new `DISH_INSIDER_TIPS` for new and updated dishes
+- `getTrailById()`: extended fuzzy aliases for new trail slugs
+- `NAGA_DISTRICTS_DATA`: `spotsCount` reconciled with actual establishment counts
+
+**`frontend/src/data/socialFeedData.ts`** — FIXED
+- Normalized all 5 short establishment IDs → full IDs:
+  - `'chacha-kinalas'` → `'cha-chas-kinalas'`
+  - `'bob-marlin'` → `'bob-marlin-restaurant'`
+  - `'bakers-plaza'` → `'bakers-plaza-naga'`
+  - `'geewan'` → `'geewan-bicolano-eatery'`
+  - `'aling-cely'` → `'aling-celys-kinalasan'`
+- Fixed geographic inversions in post districts:
+  - Post-1 (Cha Cha's): `'Bagumbayan Norte'` → `'Barlin St., Santa Cruz, Naga City'`
+  - Post-4 (Baker's Plaza): `'Plaza Quezon, Centro'` → `'Panganiban Drive, Naga City'`
+
+### Context Layer Changes
+
+**`frontend/src/context/BasketContext.tsx`** — FIXED ghost food IDs
+- `foodId: 'puto'` → `foodId: 'baduya'` (3 occurrences)
+- `foodId: 'gravy'` → `foodId: 'kinalas'` (1 occurrence)
+
+**`frontend/src/context/BusinessContext.tsx`** — FIXED
+- `foodId: 'bakery-merienda'` → `foodId: 'toasted-siopao'` (line 320)
+- Gallery image `photo-1552611052` (generic kitchen) → `photo-1583860788934` (kitchen prep scene)
+
+**`frontend/src/context/QuestContext.tsx`** — FIXED
+- `INITIAL_TASTINGS`: kinalas image replaced with accurate photo `1594998893017`
+
+**`frontend/src/context/SocialFeedContext.tsx`** — No change (avatar fallback is appropriate)
+
+### Component Changes
+
+**`frontend/src/app/map.tsx`** — ENHANCED
+- `useLocalSearchParams` now includes `selectedPlaceId?: string` and `highlightId?: string`
+- Added `useEffect` to auto-select establishment when navigating from another screen
+- Added `useEffect` import
+
+**`frontend/src/components/home/NagaQuestCarousel.tsx`** — UPDATED
+- Added `banner4` (remote URI) for 4th quest card
+- Added 4th quest: `trail-penafrancia-pilgrimage` — "Peñafrancia Pilgrim Trail" (+200 XP)
+- `DEFAULT_BANNER_IMAGES`: 3 → 4 items
+
+**`frontend/src/components/business/AddProductModal.tsx`** — FIXED
+- `DEFAULT_DISH_FALLBACK` replaced with accurate Bicolano dish photo
+
+**`frontend/src/components/feed/CreatePostModal.tsx`** — FIXED
+- `DEFAULT_POST_FALLBACK` replaced with accurate Bicolano dish photo
+
+### Reference Documents
+- `AUDIT_GAP_ANALYSIS.md` — 548-line audit document
+- `NAGA_CULINARY_RESEARCH.md` — 1,209-line research document with GPS coordinates, trail distances, visual criteria
+
+### Verification
+- `npx tsc --noEmit` → **0 errors**
+- `street-grill` category: 2 dishes ✓
+- `pan-de-naga-heritage` present in mockData ✓
+- No ghost `puto`/`gravy` IDs in BasketContext ✓
+- No short establishment IDs in socialFeedData ✓
+
+---
+
+## 16. Supabase Backend & Database Migration (November 2026)
+
+### Summary
+Migrated client-side mock data and simulated local authentication state into a production-grade Supabase architecture.
+
+### Schema & Seed Artifacts
+- [`supabase_schema.sql`](file:///c:/Users/Admin/Desktop/Dev/food/supabase_schema.sql): Complete DDL with UUID extension, 11 PostgreSQL tables (`food_profiles`, `categories`, `food_items`, `establishments`, `food_trails`, `posts`, `post_likes`, `post_comments`, `user_saved`, `user_orders`, `user_tastings`), comprehensive RLS policies, and an automated profile creation trigger on `auth.users`.
+- [`supabase_seed_data.sql`](file:///c:/Users/Admin/Desktop/Dev/food/supabase_seed_data.sql): Seed data generator migrating all 6 categories, 13 `FOOD_ITEMS`, 14 `ESTABLISHMENTS`, and 4 `FOOD_TRAILS`.
+- [`supabase_full_migration.sql`](file:///c:/Users/Admin/Desktop/Dev/food/supabase_full_migration.sql): Combined schema and seed script ready for 1-click execution in Supabase SQL Editor.
+
+### Client & Context Integrations
+- [`frontend/src/lib/supabase.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/lib/supabase.ts): Initialized Supabase client with `@react-native-async-storage/async-storage` session persistence and `react-native-url-polyfill`.
+- [`frontend/src/services/catalogService.ts`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/services/catalogService.ts): Hybrid data service querying Supabase catalog tables with instant offline fallback.
+- [`frontend/src/context/AuthContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/AuthContext.tsx): Real Supabase Auth (`signUp`, `signInWithPassword`, `signOut`, `onAuthStateChange`), profile sync to `public.food_profiles`.
+- [`frontend/src/context/SavedContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/SavedContext.tsx): Per-user bookmark synchronization with `public.user_saved`.
+- [`frontend/src/context/SocialFeedContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/SocialFeedContext.tsx): Remote post fetching, user-isolated post publishing, comments, and like persistence via `public.posts`, `public.post_likes`, and `public.post_comments`.
+- [`frontend/src/context/QuestContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/QuestContext.tsx): Clean new user baseline (XP: 0, streak: 0, 0 unearned badges, empty initial tastings). Dynamically loads trails via `CatalogService.getFoodTrails()` and syncs user tastings from `public.user_tastings`.
+- [`frontend/src/context/NotificationContext.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/context/NotificationContext.tsx): Removed mock order & streak alert history; provides welcoming onboarding tip for new accounts.
+- [`frontend/src/components/home/FoodShowcaseBox.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/FoodShowcaseBox.tsx): Switched from static `FOOD_ITEMS` import to dynamic fetching via `CatalogService.getFoodItems()`; fixed counter badge to reference `foodItems.length`.
+- [`frontend/src/components/home/NagaQuestCarousel.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/NagaQuestCarousel.tsx): Connected to live trails in `QuestContext`, calculating progress against real `tastingLog` (0 spots visited for new users).
+- [`frontend/src/components/home/MascotHero.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/MascotHero.tsx): Replaced hardcoded 'Bryl' fallback with dynamic user name or 'Explorer'.
+
+

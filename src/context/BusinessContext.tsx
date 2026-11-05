@@ -1,7 +1,9 @@
-import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect, useCallback } from 'react';
 import { Image, ImageSourcePropType } from 'react-native';
 import { FoodCategory, EstablishmentType } from '@/data/types';
 import { ESTABLISHMENTS, FOOD_ITEMS } from '@/data/mockData';
+import { useAuth } from '@/context/AuthContext';
+import { BusinessService, RegisterBusinessInput } from '@/services/businessService';
 
 export interface BusinessProduct {
   id: string;
@@ -117,6 +119,12 @@ export interface BusinessAnalytics {
 
 interface BusinessContextType {
   profile: BusinessProfile;
+  hasBusiness: boolean;
+  isLoadingBusiness: boolean;
+  isDemoMode: boolean;
+  registerBusiness: (input: RegisterBusinessInput) => Promise<{ success: boolean; error?: string }>;
+  enableDemoMode: () => void;
+  refreshBusiness: () => Promise<void>;
   products: BusinessProduct[];
   promotions: PromotionCampaign[];
   activePromotion: PromotionCampaign | null;
@@ -150,6 +158,18 @@ interface BusinessContextType {
   switchEstablishment: (id: string) => void;
 }
 
+const localAssetUri = (source: ImageSourcePropType): string =>
+  Image.resolveAssetSource(source)?.uri ?? '';
+
+const LOCAL_BUSINESS_IMAGES = {
+  baduya: localAssetUri(require('../../Food Images/Baduya1.jpg')),
+  bicolExpress: localAssetUri(require('../../Food Images/BicolExpress1.webp')),
+  kinalas: localAssetUri(require('../../Food Images/kinalas1.webp')),
+  laing: localAssetUri(require('../../Food Images/Laing1.jpg')),
+  sinanglay: localAssetUri(require('../../Food Images/sinanglayTilapia1.jpg')),
+  toastedSiopao: localAssetUri(require('../../Food Images/toastedSiopao1.jpg')),
+};
+
 const DEFAULT_WALLET: StoreWallet = {
   balance: 24850,
   todayEarnings: 4850,
@@ -176,29 +196,7 @@ const DEFAULT_WALLET: StoreWallet = {
       status: 'completed',
       referenceNumber: 'BDO-55291048',
     },
-    {
-      id: 'payout-103',
-      amount: 4500,
-      method: 'maya',
-      account: '0918 ••• 3942',
-      accountName: 'Cha Cha Store',
-      date: 'Oct 20, 2026',
-      status: 'completed',
-      referenceNumber: 'MAYA-11829031',
-    },
   ],
-};
-
-const localAssetUri = (source: ImageSourcePropType): string =>
-  Image.resolveAssetSource(source)?.uri ?? '';
-
-const LOCAL_BUSINESS_IMAGES = {
-  baduya: localAssetUri(require('../../Food Images/Baduya1.jpg')),
-  bicolExpress: localAssetUri(require('../../Food Images/BicolExpress1.webp')),
-  kinalas: localAssetUri(require('../../Food Images/kinalas1.webp')),
-  laing: localAssetUri(require('../../Food Images/Laing1.jpg')),
-  sinanglay: localAssetUri(require('../../Food Images/sinanglayTilapia1.jpg')),
-  toastedSiopao: localAssetUri(require('../../Food Images/toastedSiopao1.jpg')),
 };
 
 const DEFAULT_GALLERY: GalleryPhoto[] = [
@@ -246,7 +244,7 @@ const DEFAULT_GALLERY: GalleryPhoto[] = [
   },
 ];
 
-const DEFAULT_PROFILE: BusinessProfile = {
+const DEMO_PROFILE: BusinessProfile = {
   id: 'cha-chas-kinalas',
   name: 'Cha Cha’s Kinalas & Sinanglay',
   tagline: 'Home of Authentic Barlin Street Kinalas & Rich Savory Gravy',
@@ -274,7 +272,7 @@ const DEFAULT_PROFILE: BusinessProfile = {
   },
 };
 
-const INITIAL_PRODUCTS: BusinessProduct[] = [
+const DEMO_PRODUCTS: BusinessProduct[] = [
   {
     id: 'prod-kinalas-special',
     foodId: 'kinalas',
@@ -294,23 +292,6 @@ const INITIAL_PRODUCTS: BusinessProduct[] = [
     totalOrdersCount: 245,
   },
   {
-    id: 'prod-kinalas-regular',
-    foodId: 'kinalas',
-    name: 'Kinalas Regular',
-    bikolName: 'Kinalas Regular',
-    description: 'Classic hearty bowl of tender scraped beef meat, rich marrow broth, and savory brown gravy.',
-    category: 'soups-noodles',
-    categoryLabel: 'Soups & Noodles',
-    price: 70,
-    isSignature: false,
-    inStock: true,
-    prepTime: '5–8 mins',
-    image: LOCAL_BUSINESS_IMAGES.kinalas,
-    flavorProfile: ['Savory', 'Warm Broth', 'Tender Meat'],
-    servingNote: 'Traditional recipe since 1994',
-    totalOrdersCount: 182,
-  },
-  {
     id: 'prod-sinanglay-tilapia',
     foodId: 'sinanglay',
     name: 'Sinanglay na Tilapia',
@@ -327,51 +308,6 @@ const INITIAL_PRODUCTS: BusinessProduct[] = [
     flavorProfile: ['Creamy Coconut', 'Fresh Ginger', 'Fiery Sili'],
     servingNote: 'Simmered fresh daily in clay pots',
     totalOrdersCount: 96,
-  },
-  {
-    id: 'prod-puto-seko',
-    foodId: 'toasted-siopao',
-    name: 'Fresh Steamed Puto (Pair of 2)',
-    bikolName: 'Puto Biko',
-    description: 'Fluffy white rice cakes gently steamed to pair perfectly with your hot bowl of Kinalas broth.',
-    category: 'snacks-merienda',
-    categoryLabel: 'Snacks & Merienda',
-    price: 25,
-    isSignature: false,
-    inStock: true,
-    prepTime: 'Instant',
-    image: LOCAL_BUSINESS_IMAGES.toastedSiopao,
-    flavorProfile: ['Subtle Sweet', 'Pillowy Texture'],
-    servingNote: 'Best dipped in kinalas gravy',
-    totalOrdersCount: 140,
-  },
-];
-
-const INITIAL_PROMOTIONS: PromotionCampaign[] = [
-  {
-    id: 'promo-001',
-    establishmentId: 'cha-chas-kinalas',
-    title: 'Afternoon Merienda Rush: 15% Off All Kinalas Bowls',
-    description:
-      'Beat the afternoon hunger! Enjoy freshly scraped beef kinalas with free extra brain gravy between 2:00 PM and 5:00 PM.',
-    badgeText: '15% OFF MERIENDA',
-    discountPercent: 15,
-    targetDistrict: 'Centro & Barlin District',
-    featuredFoodId: 'kinalas',
-    featuredFoodName: 'Kinalas Special',
-    featuredProductIds: ['prod-kinalas-special', 'prod-kinalas-regular'],
-    featuredProductNames: ['Kinalas Special', 'Kinalas Regular'],
-    image: LOCAL_BUSINESS_IMAGES.kinalas,
-    active: true,
-    startDate: 'Active today',
-    impressions: 1420,
-    clicks: 312,
-    ordersDriven: 48,
-    budgetTier: 'Community Booster (3 Days)',
-    durationDays: 3,
-    cost: 249,
-    paymentMode: 'gcash',
-    paymentRef: 'GCASH-78291044',
   },
 ];
 
@@ -393,13 +329,96 @@ const INITIAL_ANALYTICS: BusinessAnalytics = {
 const BusinessContext = createContext<BusinessContextType | undefined>(undefined);
 
 export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [profile, setProfile] = useState<BusinessProfile>(DEFAULT_PROFILE);
-  const [products, setProducts] = useState<BusinessProduct[]>(INITIAL_PRODUCTS);
-  const [promotions, setPromotions] = useState<PromotionCampaign[]>(INITIAL_PROMOTIONS);
+  const { user, isAuthenticated } = useAuth();
+
+  const [hasBusiness, setHasBusiness] = useState<boolean>(false);
+  const [isLoadingBusiness, setIsLoadingBusiness] = useState<boolean>(true);
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
+
+  const [profile, setProfile] = useState<BusinessProfile>(DEMO_PROFILE);
+  const [products, setProducts] = useState<BusinessProduct[]>(DEMO_PRODUCTS);
+  const [promotions, setPromotions] = useState<PromotionCampaign[]>([]);
   const [analytics] = useState<BusinessAnalytics>(INITIAL_ANALYTICS);
+
+  // Load business for the current authenticated user
+  const loadUserBusiness = useCallback(async () => {
+    if (!isAuthenticated || !user || user.id === 'usr_guest') {
+      setHasBusiness(false);
+      setIsLoadingBusiness(false);
+      return;
+    }
+
+    setIsLoadingBusiness(true);
+    try {
+      const fetchedBiz = await BusinessService.getBusinessByOwner(user.id);
+      if (fetchedBiz) {
+        setProfile(fetchedBiz);
+        setHasBusiness(true);
+        setIsDemoMode(false);
+
+        // Fetch products & promotions
+        const [prodList, promoList] = await Promise.all([
+          BusinessService.getProducts(fetchedBiz.id),
+          BusinessService.getPromotions(fetchedBiz.id),
+        ]);
+        setProducts(prodList);
+        setPromotions(promoList);
+      } else {
+        setHasBusiness(false);
+      }
+    } catch (err) {
+      console.warn('[BusinessContext] Error loading user business:', err);
+      setHasBusiness(false);
+    } finally {
+      setIsLoadingBusiness(false);
+    }
+  }, [user, isAuthenticated]);
+
+  useEffect(() => {
+    loadUserBusiness();
+  }, [loadUserBusiness]);
+
+  const refreshBusiness = async () => {
+    await loadUserBusiness();
+  };
+
+  const enableDemoMode = () => {
+    setProfile(DEMO_PROFILE);
+    setProducts(DEMO_PRODUCTS);
+    setHasBusiness(true);
+    setIsDemoMode(true);
+  };
+
+  /**
+   * Register a new business for current authenticated user
+   */
+  const registerBusiness = async (
+    input: RegisterBusinessInput
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (!user || user.id === 'usr_guest') {
+      return { success: false, error: 'Please sign in to register your food business.' };
+    }
+
+    try {
+      const res = await BusinessService.registerBusiness(user.id, input);
+      if (res.success && res.business) {
+        setProfile(res.business);
+        if (res.products) {
+          setProducts(res.products);
+        }
+        setHasBusiness(true);
+        setIsDemoMode(false);
+        return { success: true };
+      }
+      return { success: false, error: res.error || 'Failed to create business.' };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Unexpected registration error.' };
+    }
+  };
 
   // Synchronize establishment changes with global mock dataset so customer view reflects updates
   useEffect(() => {
+    if (!hasBusiness) return;
     const est = ESTABLISHMENTS.find((e) => e.id === profile.id);
     if (est) {
       est.name = profile.name;
@@ -423,24 +442,30 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         servingNote: p.servingNote,
       }));
     }
-  }, [profile, products]);
+  }, [profile, products, hasBusiness]);
 
   const activePromotion = useMemo(() => {
     return promotions.find((p) => p.active) || null;
   }, [promotions]);
 
   const updateProfile = (updates: Partial<BusinessProfile>) => {
-    setProfile((prev) => ({ ...prev, ...updates }));
+    setProfile((prev) => {
+      const updated = { ...prev, ...updates };
+      if (hasBusiness && !isDemoMode) {
+        BusinessService.updateBusinessProfile(prev.id, updates).catch(() => {});
+      }
+      return updated;
+    });
   };
 
   const updateProfilePhoto = (type: 'banner' | 'logo', url: string) => {
     if (!url.trim()) return;
     setProfile((prev) => {
-      if (type === 'banner') {
-        return { ...prev, heroImage: url.trim() };
-      } else {
-        return { ...prev, logoImage: url.trim() };
+      const updated = type === 'banner' ? { ...prev, heroImage: url.trim() } : { ...prev, logoImage: url.trim() };
+      if (hasBusiness && !isDemoMode) {
+        BusinessService.updateBusinessProfile(prev.id, type === 'banner' ? { heroImage: url.trim() } : { logoImage: url.trim() }).catch(() => {});
       }
+      return updated;
     });
   };
 
@@ -465,15 +490,21 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       referenceNumber: `${method.toUpperCase()}-${Math.floor(10000000 + Math.random() * 90000000)}`,
     };
 
+    const newBal = profile.wallet.balance - amount;
+
     setProfile((prev) => ({
       ...prev,
       wallet: {
         ...prev.wallet,
-        balance: prev.wallet.balance - amount,
+        balance: newBal,
         lifetimePaid: prev.wallet.lifetimePaid + amount,
         payoutHistory: [newRecord, ...prev.wallet.payoutHistory],
       },
     }));
+
+    if (hasBusiness && !isDemoMode) {
+      BusinessService.recordCashout(profile.id, newRecord, newBal).catch(() => {});
+    }
 
     return true;
   };
@@ -492,6 +523,10 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       gallery: [newPhoto, ...prev.gallery],
     }));
+
+    if (hasBusiness && !isDemoMode) {
+      BusinessService.addGalleryPhoto(profile.id, photo).catch(() => {});
+    }
   };
 
   const deleteGalleryPhoto = (photoId: string) => {
@@ -499,14 +534,25 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       gallery: prev.gallery.filter((p) => p.id !== photoId),
     }));
+
+    if (hasBusiness && !isDemoMode) {
+      BusinessService.deleteGalleryPhoto(photoId).catch(() => {});
+    }
   };
 
   const toggleOpenStatus = () => {
-    setProfile((prev) => ({
-      ...prev,
-      isOpenNow: !prev.isOpenNow,
-      openingHours: !prev.isOpenNow ? '7:00 AM – 8:30 PM' : 'Opens tomorrow 7:00 AM',
-    }));
+    setProfile((prev) => {
+      const nextOpen = !prev.isOpenNow;
+      const updated = {
+        ...prev,
+        isOpenNow: nextOpen,
+        openingHours: nextOpen ? '7:00 AM – 8:30 PM' : 'Opens tomorrow 7:00 AM',
+      };
+      if (hasBusiness && !isDemoMode) {
+        BusinessService.updateBusinessProfile(prev.id, { isOpenNow: nextOpen }).catch(() => {});
+      }
+      return updated;
+    });
   };
 
   const addProduct = (newProd: Omit<BusinessProduct, 'id' | 'totalOrdersCount'>): BusinessProduct => {
@@ -518,26 +564,8 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     setProducts((prev) => [product, ...prev]);
 
-    // Also check if food exists in FOOD_ITEMS, if not add to catalog
-    const foodExists = FOOD_ITEMS.some((f) => f.id === product.foodId);
-    if (!foodExists) {
-      FOOD_ITEMS.push({
-        id: product.foodId,
-        name: product.name,
-        bikolName: product.bikolName,
-        tagline: product.description,
-        description: product.description,
-        culturalContext: `Signature dish curated by ${profile.name} in Naga City.`,
-        category: product.category,
-        categoryLabel: product.categoryLabel,
-        image: product.image,
-        priceRange: `₱${product.price}`,
-        priceLevel: product.price < 100 ? 'budget' : product.price < 250 ? 'moderate' : 'upscale',
-        servingSpotsCount: 1,
-        featured: product.isSignature,
-        flavorProfile: product.flavorProfile.length > 0 ? product.flavorProfile : ['Savory', 'House Special'],
-        tags: [product.categoryLabel, 'Local Favorite'],
-      });
+    if (hasBusiness && !isDemoMode) {
+      BusinessService.addProduct(profile.id, newProd).catch(() => {});
     }
 
     return product;
@@ -547,7 +575,11 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setProducts((prev) =>
       prev.map((item) => {
         if (item.id === id) {
-          return { ...item, ...updates };
+          const updated = { ...item, ...updates };
+          if (hasBusiness && !isDemoMode) {
+            BusinessService.updateProduct(id, updates).catch(() => {});
+          }
+          return updated;
         }
         return item;
       })
@@ -556,13 +588,20 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const deleteProduct = (id: string) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
+    if (hasBusiness && !isDemoMode) {
+      BusinessService.deleteProduct(id).catch(() => {});
+    }
   };
 
   const toggleProductStock = (id: string) => {
     setProducts((prev) =>
       prev.map((item) => {
         if (item.id === id) {
-          return { ...item, inStock: !item.inStock };
+          const nextStock = !item.inStock;
+          if (hasBusiness && !isDemoMode) {
+            BusinessService.updateProduct(id, { inStock: nextStock }).catch(() => {});
+          }
+          return { ...item, inStock: nextStock };
         }
         return item;
       })
@@ -581,11 +620,14 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ordersDriven: 0,
     };
 
-    // If active, deactivate others to spotlight this single primary campaign
     setPromotions((prev) => {
       const updated = newPromo.active ? prev.map((p) => ({ ...p, active: false })) : prev;
       return [newPromo, ...updated];
     });
+
+    if (hasBusiness && !isDemoMode) {
+      BusinessService.createPromotion(profile.id, campaignData).catch(() => {});
+    }
 
     return newPromo;
   };
@@ -690,7 +732,6 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           : profile.gallery,
       });
 
-      // Map offerings into products
       const mapped = target.foodsOffered.map((f, idx) => {
         const fullFood = FOOD_ITEMS.find((fi) => fi.id === f.foodId);
         return {
@@ -719,6 +760,12 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     <BusinessContext.Provider
       value={{
         profile,
+        hasBusiness,
+        isLoadingBusiness,
+        isDemoMode,
+        registerBusiness,
+        enableDemoMode,
+        refreshBusiness,
         products,
         promotions,
         activePromotion,

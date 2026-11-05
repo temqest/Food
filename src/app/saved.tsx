@@ -7,7 +7,7 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { NavBar } from '@/components/common/NavBar';
@@ -16,6 +16,7 @@ import { EstablishmentCard } from '@/components/establishment/EstablishmentCard'
 import { useSaved } from '@/context/SavedContext';
 
 export default function SavedScreen() {
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'dishes' | 'places'>('dishes');
   const { savedFoods, savedEstablishments, clearAllSaved } = useSaved();
 
@@ -25,7 +26,7 @@ export default function SavedScreen() {
     <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 110 + insets.bottom }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.mainContainer}>

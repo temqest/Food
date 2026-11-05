@@ -14,7 +14,7 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { NavBar } from '@/components/common/NavBar';
@@ -24,6 +24,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { resolveFoodImage } from '@/utils/imageHelper';
 
 export default function BasketScreen() {
+  const insets = useSafeAreaInsets();
   const {
     items,
     activePreOrders,
@@ -140,7 +141,7 @@ export default function BasketScreen() {
     <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 110 + insets.bottom }]}
         showsVerticalScrollIndicator={false}
         keyboardDismissMode="on-drag"
       >

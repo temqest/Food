@@ -7,7 +7,7 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { NavBar } from '@/components/common/NavBar';
@@ -35,6 +35,7 @@ const FILTER_OPTIONS: FilterOption[] = [
 ];
 
 export default function MapScreen() {
+  const insets = useSafeAreaInsets();
   const mapRef = useRef<MapboxMapViewRef>(null);
   const params = useLocalSearchParams<{ trailId?: string; selectedPlaceId?: string; highlightId?: string }>();
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -42,6 +43,11 @@ export default function MapScreen() {
   const [selectedEstablishmentId, setSelectedEstablishmentId] = useState<string>(
     ESTABLISHMENTS[0].id
   );
+
+  // Safe positioning so floating elements clear Android's 3-button in-display navigation bar, gesture bar, or iOS home bar
+  const navBottomOffset = Math.max(insets.bottom, Platform.OS === 'android' ? 14 : 10) + (Platform.OS === 'ios' ? 6 : 10);
+  const carouselBottomOffset = navBottomOffset + 62 + 8; // navbar height (62) + 8px gap
+  const recenterBottomOffset = carouselBottomOffset + 218; // carousel height + gap
 
   const activeTrail = FOOD_TRAILS.find((t) => t.id === params.trailId);
 
@@ -223,7 +229,7 @@ export default function MapScreen() {
       </View>
 
       {/* Floating Recenter Button (Elevated comfortably above the restaurant cards) */}
-      <View style={styles.floatingRecenterContainer} pointerEvents="box-none">
+      <View style={[styles.floatingRecenterContainer, { bottom: recenterBottomOffset }]} pointerEvents="box-none">
         <Pressable
           onPress={handleRecenter}
           style={({ pressed }) => [
@@ -239,7 +245,7 @@ export default function MapScreen() {
       </View>
 
       {/* Floating Bottom Spot Carousel */}
-      <View style={styles.bottomOverlay} pointerEvents="box-none">
+      <View style={[styles.bottomOverlay, { bottom: carouselBottomOffset }]} pointerEvents="box-none">
         {filteredEstablishments.length > 0 ? (
           <MapSpotCarousel
             establishments={filteredEstablishments}
@@ -481,7 +487,6 @@ const styles = StyleSheet.create({
   floatingRecenterContainer: {
     position: 'absolute',
     right: 16,
-    bottom: Platform.OS === 'ios' ? 312 : 304,
     zIndex: 25,
   },
   floatingRecenterBtn: {
@@ -503,7 +508,6 @@ const styles = StyleSheet.create({
   // Floating Bottom Spot Carousel
   bottomOverlay: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 94 : 86,
     left: 0,
     right: 0,
     zIndex: 20,

@@ -40,17 +40,17 @@ const PLANS: PlanOption[] = [
     id: 'monthly',
     name: 'Monthly Partner Pass',
     tagline: 'Flexible, pay-as-you-grow for local carinderias',
-    price: 499,
+    price: 250,
     period: '/ month',
   },
   {
     id: 'annual',
     name: 'Annual Pro Partner',
     tagline: 'Best value for established Naga food businesses',
-    price: 4999,
+    price: 2500,
     period: '/ year',
     badge: 'SAVE 20%',
-    savings: '2 Months Free (Save ₱989)',
+    savings: '2 Months Free (Save ₱500)',
   },
 ];
 

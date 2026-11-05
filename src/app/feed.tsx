@@ -6,7 +6,7 @@ import {
   ScrollView,
   RefreshControl,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NavBar } from '@/components/common/NavBar';
 import { useSocialFeed } from '@/context/SocialFeedContext';
 import { FeedHeader } from '@/components/feed/FeedHeader';
@@ -20,6 +20,7 @@ import { SocialPost } from '@/data/socialFeedData';
 import { IOSTokens } from '@/constants/theme';
 
 export default function FeedScreen() {
+  const insets = useSafeAreaInsets();
   const { filteredPosts, refreshPosts } = useSocialFeed();
   const [refreshing, setRefreshing] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -38,7 +39,7 @@ export default function FeedScreen() {
     <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 110 + insets.bottom }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl

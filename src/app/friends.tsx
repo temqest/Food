@@ -102,7 +102,7 @@ export default function FriendsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.screen} edges={['top', 'left', 'right', 'bottom']}>
       {/* 1. Header Navigation Bar */}
       <View style={styles.headerRow}>
         <Pressable

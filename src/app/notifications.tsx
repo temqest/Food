@@ -122,7 +122,7 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.screen} edges={['top', 'left', 'right', 'bottom']}>
       {/* 1. Header Bar */}
       <View style={styles.headerRow}>
         <Pressable

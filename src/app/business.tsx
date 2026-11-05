@@ -11,8 +11,9 @@ import {
   Platform,
   TextInput,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useBusiness, BusinessProduct } from '@/context/BusinessContext';
@@ -39,11 +40,15 @@ import { SocialPost } from '@/data/socialFeedData';
 import { IOSTokens } from '@/constants/theme';
 
 export default function BusinessDashboardScreen() {
+  const insets = useSafeAreaInsets();
   const {
     profile,
+    hasBusiness,
+    isLoadingBusiness,
+    isDemoMode,
+    enableDemoMode,
     products,
     promotions,
-    analytics,
     updateProfile,
     updateProfilePhoto,
     cashOutWallet,
@@ -207,8 +212,83 @@ export default function BusinessDashboardScreen() {
     }
   };
 
+  if (isLoadingBusiness) {
+    return (
+      <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+          <ActivityIndicator size="large" color="#D42F13" />
+          <Text style={{ fontSize: 14, color: '#8E8E93', fontWeight: '500' }}>
+            Loading merchant portal...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!hasBusiness && !isDemoMode) {
+    return (
+      <SafeAreaView style={styles.screen} edges={['top', 'bottom', 'left', 'right']}>
+        <View style={styles.noBizScreen}>
+          <View style={styles.noBizHeader}>
+            <Pressable
+              onPress={() => router.replace('/profile')}
+              style={styles.noBizBackBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Back to Profile"
+            >
+              <Ionicons name="arrow-back" size={22} color="#111111" />
+            </Pressable>
+            <Text style={styles.noBizHeaderTitle}>Merchant Portal</Text>
+            <View style={{ width: 36 }} />
+          </View>
+
+          <View style={styles.noBizContent}>
+            <View style={styles.noBizIconCircle}>
+              <Ionicons name="storefront-outline" size={48} color="#D42F13" />
+            </View>
+
+            <Text style={styles.noBizTitle}>No Business Registered</Text>
+            <Text style={styles.noBizSubtitle}>
+              You haven’t registered a food business on this account yet. List your carinderia, kinalasan, or bakery to manage menus and start taking digital orders across Naga City.
+            </Text>
+
+            <View style={styles.noBizActionCol}>
+              <Pressable
+                onPress={() => router.push('/business-register')}
+                style={({ pressed }) => [styles.noBizRegisterBtn, pressed && styles.pressed]}
+              >
+                <Ionicons name="rocket-outline" size={18} color="#FFFFFF" />
+                <Text style={styles.noBizRegisterBtnText}>Register Your Business</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={enableDemoMode}
+                style={({ pressed }) => [styles.noBizDemoBtn, pressed && styles.pressed]}
+              >
+                <Ionicons name="eye-outline" size={16} color="#666666" />
+                <Text style={styles.noBizDemoBtnText}>Explore Partner Demo Mode</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
+      {isDemoMode && (
+        <View style={styles.demoModeBanner}>
+          <View style={styles.demoModeBannerLeft}>
+            <Ionicons name="sparkles" size={14} color="#D97706" />
+            <Text style={styles.demoModeBannerText}>Demo Preview Mode · Cha Cha's Kinalas</Text>
+          </View>
+          <Pressable onPress={() => router.push('/business-register')}>
+            <Text style={styles.demoModeBannerLink}>Register Yours ›</Text>
+          </Pressable>
+        </View>
+      )}
+
       {/* Sleek Native iOS Mobile App Header */}
       <View style={styles.topHeader}>
         <Pressable
@@ -261,7 +341,7 @@ export default function BusinessDashboardScreen() {
       {/* Main Scroll Content Area */}
       <ScrollView
         style={styles.mainScroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 130 + insets.bottom }]}
         showsVerticalScrollIndicator={false}
       >
         {/* ================= TAB 1: ORDERS ================= */}
@@ -277,7 +357,7 @@ export default function BusinessDashboardScreen() {
                   'One-tap kitchen prep and ready status dispatch',
                   'Instant sales settlement directly into your store wallet',
                 ]}
-                ctaText="Unlock Kitchen Orders (₱499/mo)"
+                ctaText="Unlock Kitchen Orders (₱250/mo)"
                 onUpgradePress={() => setIsSubscriptionModalOpen(true)}
               />
             ) : (
@@ -559,7 +639,7 @@ export default function BusinessDashboardScreen() {
                   '3x algorithm boost in local foodie search and recommendations',
                   'Live promotion performance, counter redemptions, and view reach',
                 ]}
-                ctaText="Unlock Promotions (₱499/mo)"
+                ctaText="Unlock Promotions (₱250/mo)"
                 onUpgradePress={() => setIsSubscriptionModalOpen(true)}
               />
             ) : (
@@ -773,27 +853,6 @@ export default function BusinessDashboardScreen() {
               onOpenCashOut={() => setIsCashOutOpen(true)}
               onRequireSubscription={() => setIsSubscriptionModalOpen(true)}
             />
-
-            {/* Today's Overview Metrics */}
-            <Text style={styles.sectionDividerLabel}>TODAY&apos;S OVERVIEW</Text>
-            <View style={styles.storeStatsGrid}>
-              <View style={styles.storeStatTile}>
-                <Text style={styles.storeStatNumber}>₱{analytics.todayGrossSales.toLocaleString()}</Text>
-                <Text style={styles.storeStatLabel}>Gross Sales Today</Text>
-              </View>
-              <View style={styles.storeStatTile}>
-                <Text style={styles.storeStatNumber}>{storeOrders.length}</Text>
-                <Text style={styles.storeStatLabel}>Pre-Orders Handled</Text>
-              </View>
-              <View style={styles.storeStatTile}>
-                <Text style={styles.storeStatNumber}>{analytics.weeklyCustomerReach.toLocaleString()}</Text>
-                <Text style={styles.storeStatLabel}>Foodie Views</Text>
-              </View>
-              <View style={styles.storeStatTile}>
-                <Text style={styles.storeStatNumber}>{analytics.profileSaves}</Text>
-                <Text style={styles.storeStatLabel}>Customer Bookmarks</Text>
-              </View>
-            </View>
 
             {/* Store Information Details & Operations Inset */}
             <Text style={styles.sectionDividerLabel}>STORE DETAILS &amp; OPERATIONS</Text>
@@ -1677,33 +1736,6 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
 
-  // Today Overview Metrics Grid
-  storeStatsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 8,
-    marginBottom: 16,
-  },
-  storeStatTile: {
-    width: '48.5%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 0.5,
-    borderColor: 'rgba(60, 60, 67, 0.15)',
-  },
-  storeStatNumber: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000000',
-    marginBottom: 2,
-  },
-  storeStatLabel: {
-    fontSize: 11,
-    color: 'rgba(60, 60, 67, 0.6)',
-  },
-
   storeDetailRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2049,5 +2081,119 @@ const styles = StyleSheet.create({
   },
   businessPostsList: {
     width: '100%',
+  },
+  // No Business / Empty Portal State
+  noBizScreen: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
+  noBizHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E5EA',
+    backgroundColor: '#FFFFFF',
+  },
+  noBizBackBtn: {
+    padding: 6,
+  },
+  noBizHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111111',
+  },
+  noBizContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  noBizIconCircle: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: '#FDECE9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  noBizTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#111111',
+    letterSpacing: -0.3,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  noBizSubtitle: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 28,
+  },
+  noBizActionCol: {
+    width: '100%',
+    gap: 12,
+  },
+  noBizRegisterBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#D42F13',
+    paddingVertical: 14,
+    borderRadius: 14,
+    width: '100%',
+  },
+  noBizRegisterBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  noBizDemoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#E5E5EA',
+    paddingVertical: 13,
+    borderRadius: 14,
+    width: '100%',
+  },
+  noBizDemoBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#444444',
+  },
+  demoModeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FDE68A',
+  },
+  demoModeBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  demoModeBannerText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#92400E',
+  },
+  demoModeBannerLink: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#D97706',
   },
 });

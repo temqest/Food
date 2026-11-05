@@ -20,7 +20,7 @@ export const MerchantPaywallGate: React.FC<MerchantPaywallGateProps> = ({
   accentColor = IOSTokens.colors.tint,
   features,
   onUpgradePress,
-  ctaText = 'Subscribe to Unlock (₱499/mo)',
+  ctaText = 'Subscribe to Unlock (₱250/mo)',
 }) => {
   return (
     <View style={styles.cardContainer}>

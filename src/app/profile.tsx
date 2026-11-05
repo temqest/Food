@@ -13,14 +13,16 @@ import {
   TextInput,
   KeyboardAvoidingView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { NavBar } from '@/components/common/NavBar';
 import { useSaved } from '@/context/SavedContext';
 import { useAuth } from '@/context/AuthContext';
 import { useQuest } from '@/context/QuestContext';
+import { useBusiness } from '@/context/BusinessContext';
 import { getDiceBearAvatar } from '@/utils/dicebearAvatar';
 import { UserAvatar } from '@/components/common/UserAvatar';
 
@@ -32,9 +34,11 @@ const AVATAR_PRESETS = [
 ];
 
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
   const { savedFoods, savedEstablishments } = useSaved();
   const { user, isAuthenticated, logout, updateProfile } = useAuth();
   const { currentRank, tastingLog, unlockedBadgeIds } = useQuest();
+  const { profile: businessProfile, hasBusiness, isLoadingBusiness, enableDemoMode } = useBusiness();
 
   // Settings Toggles
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -146,7 +150,7 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 110 + insets.bottom }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.mainContainer}>
@@ -312,28 +316,109 @@ export default function ProfileScreen() {
           <View style={styles.sectionBlock}>
             <Text style={styles.sectionTitle}>Business &amp; Merchant Center</Text>
             <View style={styles.insetGroup}>
-              <Pressable
-                onPress={() => router.push('/business?tab=store')}
-                style={({ pressed }) => [styles.groupRow, styles.groupRowLast, pressed && styles.rowPressed]}
-                accessibilityRole="button"
-                accessibilityLabel="Open Business & Merchant Portal"
-              >
-                <View style={styles.rowLeft}>
-                  <View style={[styles.rowIconCircle, { backgroundColor: 'rgba(212, 47, 19, 0.12)' }]}>
-                    <Ionicons name="storefront" size={17} color="#D42F13" />
-                  </View>
-                  <View style={{ flex: 1, paddingRight: 8 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={styles.rowLabel}>Merchant Portal</Text>
-                      <View style={{ backgroundColor: '#D42F13', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4 }}>
-                        <Text style={{ fontSize: 9, fontWeight: '700', color: '#FFFFFF' }}>PARTNER</Text>
+              {isLoadingBusiness ? (
+                <View style={[styles.groupRow, styles.groupRowLast, { justifyContent: 'center', paddingVertical: 18, gap: 10 }]}>
+                  <ActivityIndicator size="small" color="#D42F13" />
+                  <Text style={styles.rowSubLabel}>Loading business status...</Text>
+                </View>
+              ) : hasBusiness ? (
+                <>
+                  <Pressable
+                    onPress={() => router.push('/business?tab=store')}
+                    style={({ pressed }) => [styles.groupRow, pressed && styles.rowPressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Open Business & Merchant Portal"
+                  >
+                    <View style={styles.rowLeft}>
+                      <View style={[styles.rowIconCircle, { backgroundColor: '#E8F5E9' }]}>
+                        <Ionicons name="storefront" size={17} color="#2E7D32" />
+                      </View>
+                      <View style={{ flex: 1, paddingRight: 8 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <Text style={styles.rowLabel} numberOfLines={1}>{businessProfile.name}</Text>
+                          <View style={{ backgroundColor: '#2E7D32', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4 }}>
+                            <Text style={{ fontSize: 9, fontWeight: '700', color: '#FFFFFF' }}>PARTNER</Text>
+                          </View>
+                        </View>
+                        <Text style={styles.rowSubLabel} numberOfLines={1}>
+                          {businessProfile.typeLabel} · {businessProfile.neighborhood}
+                        </Text>
                       </View>
                     </View>
-                    <Text style={styles.rowSubLabel}>Manage products, orders &amp; advertise in Naga</Text>
+                    <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => router.push('/business-register')}
+                    style={({ pressed }) => [styles.groupRow, styles.groupRowLast, pressed && styles.rowPressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Register another food spot"
+                  >
+                    <View style={styles.rowLeft}>
+                      <View style={[styles.rowIconCircle, { backgroundColor: '#F2F2F7' }]}>
+                        <Ionicons name="add-circle-outline" size={17} color="#111111" />
+                      </View>
+                      <View>
+                        <Text style={styles.rowLabel}>Register Another Branch</Text>
+                        <Text style={styles.rowSubLabel}>Add another establishment in Naga</Text>
+                      </View>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+                  </Pressable>
+                </>
+              ) : (
+                <View style={styles.merchantPromoCard}>
+                  <View style={styles.merchantPromoHeader}>
+                    <View style={styles.merchantPromoIconCircle}>
+                      <Ionicons name="storefront" size={20} color="#D42F13" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={styles.merchantPromoTitle}>Register Your Business</Text>
+                        <View style={styles.freeBadge}>
+                          <Text style={styles.freeBadgeText}>FREE</Text>
+                        </View>
+                      </View>
+                      <Text style={styles.merchantPromoSubtitle}>
+                        List your eatery, carinderia, or bakery on Naga Food
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.merchantPromoDesc}>
+                    Get discovered by thousands of local diners in Naga City. Receive pre-orders, manage menus, and broadcast promotions.
+                  </Text>
+
+                  <View style={styles.merchantPromoActions}>
+                    <Pressable
+                      onPress={() => {
+                        if (!isAuthenticated) {
+                          Alert.alert('Sign In Required', 'Please sign in or create an account to register a food business.', [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Sign In', onPress: () => router.push('/login') },
+                          ]);
+                        } else {
+                          router.push('/business-register');
+                        }
+                      }}
+                      style={({ pressed }) => [styles.merchantRegisterBtn, pressed && styles.primaryPressed]}
+                    >
+                      <Ionicons name="rocket-outline" size={15} color="#FFFFFF" />
+                      <Text style={styles.merchantRegisterBtnText}>Start Business Onboarding</Text>
+                    </Pressable>
+
+                    <Pressable
+                      onPress={() => {
+                        enableDemoMode();
+                        router.push('/business?tab=store');
+                      }}
+                      style={({ pressed }) => [styles.merchantDemoBtn, pressed && styles.rowPressed]}
+                    >
+                      <Text style={styles.merchantDemoBtnText}>Explore Partner Demo</Text>
+                    </Pressable>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
-              </Pressable>
+              )}
             </View>
           </View>
 
@@ -949,6 +1034,87 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#2E7D32',
+  },
+
+  // Merchant Promo Card
+  merchantPromoCard: {
+    padding: 16,
+    gap: 10,
+  },
+  merchantPromoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  merchantPromoIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FDECE9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  merchantPromoTitle: {
+    fontFamily: sansFamily,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111111',
+  },
+  freeBadge: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  freeBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#2E7D32',
+  },
+  merchantPromoSubtitle: {
+    fontFamily: sansFamily,
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 1,
+  },
+  merchantPromoDesc: {
+    fontFamily: sansFamily,
+    fontSize: 13,
+    color: '#555555',
+    lineHeight: 18,
+  },
+  merchantPromoActions: {
+    flexDirection: 'column',
+    gap: 8,
+    marginTop: 4,
+  },
+  merchantRegisterBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#D42F13',
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  merchantRegisterBtnText: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  merchantDemoBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#F2F2F7',
+  },
+  merchantDemoBtnText: {
+    fontFamily: sansFamily,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#555555',
   },
 
   // Sign Out

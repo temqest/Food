@@ -59,7 +59,7 @@ export const StoreSubscriptionBanner: React.FC<StoreSubscriptionBannerProps> = (
           </View>
         </View>
 
-        <Text style={styles.priceTag}>₱499/mo</Text>
+        <Text style={styles.priceTag}>₱250/mo</Text>
       </View>
 
       {/* Main Title & Subtitle */}

@@ -31,7 +31,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'notif-welcome',
     type: 'special',
-    title: 'Welcome to Naga Food Compass! 🌶️',
+    title: 'Welcome to Nagi! 🌶️',
     message: 'Explore authentic Bicolano dishes, join curated food trails, and earn stamps in your tasting journal!',
     timestamp: 'Just now',
     read: false,

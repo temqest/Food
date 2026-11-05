@@ -7,7 +7,7 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { SearchInput } from '@/components/common/SearchInput';
@@ -19,6 +19,7 @@ import { useSaved } from '@/context/SavedContext';
 import { FOOD_ITEMS, ESTABLISHMENTS, CATEGORIES } from '@/data/mockData';
 
 export default function SearchScreen() {
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ q?: string; category?: string }>();
   const [query, setQuery] = useState(params.q || '');
   const [selectedCategory, setSelectedCategory] = useState<string>(params.category || 'all');
@@ -121,7 +122,7 @@ export default function SearchScreen() {
     <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 110 + insets.bottom }]}
         showsVerticalScrollIndicator={false}
         keyboardDismissMode="on-drag"
       >

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Pressable, Platform, Keyboard, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { IOSTokens } from '@/constants/theme';
 
@@ -16,7 +17,12 @@ export const BusinessNavBar: React.FC<BusinessNavBarProps> = ({
   onSelectTab,
   ordersBadgeCount = 0,
 }) => {
+  const insets = useSafeAreaInsets();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  // Safe bottom offset ensuring the floating pill floats comfortably above
+  // Android's 3-button in-display navigation bar (~48dp), gesture bar (~16-24dp), or iOS home indicator (~34dp)
+  const bottomOffset = Math.max(insets.bottom, Platform.OS === 'android' ? 14 : 10) + (Platform.OS === 'ios' ? 6 : 10);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -74,7 +80,7 @@ export const BusinessNavBar: React.FC<BusinessNavBarProps> = ({
   ];
 
   return (
-    <View style={styles.outerContainer} pointerEvents="box-none">
+    <View style={[styles.outerContainer, { bottom: bottomOffset }]} pointerEvents="box-none">
       <View style={styles.pillContainer}>
         {navItems.map((item) => {
           const isFocused = currentTab === item.tab;
@@ -113,7 +119,6 @@ export const BusinessNavBar: React.FC<BusinessNavBarProps> = ({
 const styles = StyleSheet.create({
   outerContainer: {
     position: Platform.OS === 'web' ? ('fixed' as any) : 'absolute',
-    bottom: Platform.OS === 'ios' ? 24 : 18,
     left: 0,
     right: 0,
     alignItems: 'center',

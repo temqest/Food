@@ -3,20 +3,21 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NavBar } from '@/components/common/NavBar';
 import { MascotHero } from '@/components/home/MascotHero';
 import { CravingDialWidget } from '@/components/home/CravingDialWidget';
 import { FoodShowcaseBox } from '@/components/home/FoodShowcaseBox';
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const [selectedCravingId, setSelectedCravingId] = useState<string>('heritage-noodles');
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 110 + insets.bottom }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Top Header, Greeting & Naga Quest Infinite Postcard Carousel */}

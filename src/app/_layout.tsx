@@ -52,6 +52,7 @@ export default function RootLayout() {
                         <Stack.Screen name="profile" />
                         <Stack.Screen name="search" />
                         <Stack.Screen name="business" />
+                        <Stack.Screen name="business-register" />
                         <Stack.Screen name="food/[id]" />
                         <Stack.Screen name="establishment/[id]" />
                         <Stack.Screen name="trail/[id]" />

@@ -143,7 +143,8 @@ export const CreateBusinessPostModal: React.FC<CreateBusinessPostModalProps> = (
       setSelectedDish(prod);
       // Auto-set photo if not already selected
       if (!selectedPhoto && prod.image) {
-        setSelectedPhoto(prod.image);
+        const resolvedUri = typeof prod.image === 'string' ? prod.image : (Image.resolveAssetSource(prod.image)?.uri || '');
+        setSelectedPhoto(resolvedUri);
       }
     }
   };
@@ -385,7 +386,10 @@ export const CreateBusinessPostModal: React.FC<CreateBusinessPostModalProps> = (
                         onPress={() => handleSelectDish(prod)}
                         style={[styles.dishChip, isSelected && styles.dishChipSelected]}
                       >
-                        <Image source={{ uri: prod.image }} style={styles.dishChipThumb} />
+                        <Image
+                          source={typeof prod.image === 'string' ? { uri: prod.image } : prod.image}
+                          style={styles.dishChipThumb}
+                        />
                         <View style={styles.dishChipInfo}>
                           <Text style={[styles.dishChipName, isSelected && styles.dishChipNameSelected]} numberOfLines={1}>
                             {prod.name}

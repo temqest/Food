@@ -7,7 +7,7 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NavBar } from '@/components/common/NavBar';
 import { PassportStampModal } from '@/components/gamification/PassportStampModal';
 import { CodexHeroHeader } from '@/components/codex/CodexHeroHeader';
@@ -20,6 +20,7 @@ import { FoodItem, Establishment } from '@/data/types';
 import { useQuest } from '@/context/QuestContext';
 
 export default function ExploreScreen() {
+  const insets = useSafeAreaInsets();
   const { isFoodLogged } = useQuest();
 
   // Search & Filter State
@@ -72,7 +73,7 @@ export default function ExploreScreen() {
     <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 110 + insets.bottom }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.mainContainer}>

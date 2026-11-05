@@ -60,42 +60,42 @@ const DURATION_OPTIONS: DurationOption[] = [
     days: 1,
     label: '1 Day Flash Rush',
     tagline: 'Ideal for same-day flash lunch rush & peak merienda',
-    price: 99,
-    estimatedReach: '~1,500 foodies',
+    price: 49,
+    estimatedReach: '~150–300 foodies',
   },
   {
     days: 3,
     label: '3 Days Weekend Booster',
     tagline: 'Spotlight across Friday to Sunday dining rushes',
-    price: 249,
-    originalPrice: 297,
-    estimatedReach: '~5,000 foodies',
+    price: 120,
+    originalPrice: 147,
+    estimatedReach: '~400–750 foodies',
     badge: 'POPULAR',
   },
   {
     days: 7,
     label: '7 Days Weekly Spotlight',
     tagline: 'Continuous top placement in feed and discovery map',
-    price: 499,
-    originalPrice: 693,
-    estimatedReach: '~14,000 foodies',
+    price: 220,
+    originalPrice: 343,
+    estimatedReach: '~900–1,500 foodies',
     badge: 'BEST ROI',
   },
   {
     days: 14,
     label: '14 Days Fortnight Sprint',
     tagline: 'High-frequency impressions across Naga Centro & CBD',
-    price: 899,
-    originalPrice: 1386,
-    estimatedReach: '~30,000 foodies',
+    price: 390,
+    originalPrice: 686,
+    estimatedReach: '~1,800–2,800 foodies',
   },
   {
     days: 30,
     label: '30 Days Monthly Anchor',
     tagline: 'Maximum city-wide visibility & branded carinderia badge',
-    price: 1699,
-    originalPrice: 2970,
-    estimatedReach: '~70,000 foodies',
+    price: 650,
+    originalPrice: 1470,
+    estimatedReach: '~3,500–5,000 foodies',
     badge: 'MAX VALUE',
   },
 ];
@@ -605,7 +605,7 @@ export const CreatePromotionModal: React.FC<CreatePromotionModalProps> = ({
                         />
                       </View>
                       <ExpoImage
-                        source={{ uri: prod.image }}
+                        source={(typeof prod.image === 'string' ? { uri: prod.image } : prod.image) as any}
                         style={styles.productThumb}
                         contentFit="cover"
                       />
