@@ -1,23 +1,23 @@
 {
   "expo": {
-    "name": "Nagi",
-    "slug": "nagi",
+    "name": "Masaen",
+    "slug": "masaen",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "nagi",
+    "scheme": "masaen",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/images/icon.png",
-      "bundleIdentifier": "com.nagi.app"
+      "bundleIdentifier": "com.masaen.app"
     },
     "android": {
-      "package": "com.nagi.app",
+      "package": "com.masaen.app",
       "permissions": [
         "android.permission.INTERNET"
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#be141e",
+        "backgroundColor": "#b41414",
         "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false
@@ -31,7 +31,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#be141e",
+          "backgroundColor": "#b41414",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 120
         }
