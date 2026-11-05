@@ -3,7 +3,7 @@ import { Image, ImageSourcePropType } from 'react-native';
 import { FoodCategory, EstablishmentType } from '@/data/types';
 import { ESTABLISHMENTS, FOOD_ITEMS } from '@/data/mockData';
 import { useAuth } from '@/context/AuthContext';
-import { BusinessService, RegisterBusinessInput } from '@/services/businessService';
+import { BusinessService, RegisterBusinessInput, safeBusinessStorage } from '@/services/businessService';
 
 export interface BusinessProduct {
   id: string;
@@ -382,7 +382,23 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     await loadUserBusiness();
   };
 
-  const enableDemoMode = () => {
+  const enableDemoMode = async () => {
+    try {
+      const cached = await safeBusinessStorage.getItem('@naga_demo_biz_profile_v1');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.profile) {
+          setProfile(parsed.profile);
+          setProducts(parsed.products || DEMO_PRODUCTS);
+          setHasBusiness(true);
+          setIsDemoMode(true);
+          return;
+        }
+      }
+    } catch {
+      // Fall through to initial demo profile
+    }
+
     setProfile(DEMO_PROFILE);
     setProducts(DEMO_PRODUCTS);
     setHasBusiness(true);
@@ -660,42 +676,98 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       expiryDate.setFullYear(today.getFullYear() + 1);
     }
 
-    const formattedExpiry = expiryDate.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-
-    const formattedSince = today.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-
     const ref = paymentRef || `SUB-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
-    setProfile((prev) => ({
-      ...prev,
-      subscription: {
-        status: 'active',
-        plan,
-        expiryDate: formattedExpiry,
-        autoRenew: true,
-        paymentMethod,
-        paymentRef: ref,
-        subscribedSince: formattedSince,
-      },
-    }));
+    const newSubscription: StoreSubscription = {
+      status: 'active',
+      plan,
+      expiryDate: expiryDate.toISOString(),
+      autoRenew: true,
+      paymentMethod,
+      paymentRef: ref,
+      subscribedSince: today.toISOString(),
+    };
+
+    setProfile((prev) => {
+      const updated = {
+        ...prev,
+        subscription: newSubscription,
+      };
+
+      // Persist asynchronously to Supabase and local storage
+      (async () => {
+        try {
+          await BusinessService.updateSubscription(prev.id, newSubscription);
+
+          if (user?.id && user.id !== 'usr_guest') {
+            await safeBusinessStorage.setItem(
+              `@naga_registered_biz_${user.id}`,
+              JSON.stringify({ profile: updated, products })
+            );
+          }
+
+          if (isDemoMode) {
+            await safeBusinessStorage.setItem(
+              '@naga_demo_biz_profile_v1',
+              JSON.stringify({ profile: updated, products })
+            );
+          }
+
+          await safeBusinessStorage.setItem(
+            `@naga_biz_store_${prev.id}`,
+            JSON.stringify({ profile: updated, products })
+          );
+        } catch (err) {
+          console.warn('[BusinessContext] Error saving subscription:', err);
+        }
+      })();
+
+      return updated;
+    });
   };
 
   const cancelSubscription = () => {
-    setProfile((prev) => ({
-      ...prev,
-      subscription: {
+    setProfile((prev) => {
+      const updatedSubscription: StoreSubscription = {
         ...prev.subscription,
         autoRenew: false,
-      },
-    }));
+      };
+
+      const updated = {
+        ...prev,
+        subscription: updatedSubscription,
+      };
+
+      // Persist cancellation asynchronously
+      (async () => {
+        try {
+          await BusinessService.updateSubscription(prev.id, updatedSubscription);
+
+          if (user?.id && user.id !== 'usr_guest') {
+            await safeBusinessStorage.setItem(
+              `@naga_registered_biz_${user.id}`,
+              JSON.stringify({ profile: updated, products })
+            );
+          }
+
+          if (isDemoMode) {
+            await safeBusinessStorage.setItem(
+              '@naga_demo_biz_profile_v1',
+              JSON.stringify({ profile: updated, products })
+            );
+          }
+
+          await safeBusinessStorage.setItem(
+            `@naga_biz_store_${prev.id}`,
+            JSON.stringify({ profile: updated, products })
+          );
+        } catch (err) {
+          console.warn('[BusinessContext] Error persisting subscription cancellation:', err);
+        }
+      })();
+
+      return updated;
+    });
   };
 
   const switchEstablishment = (id: string) => {

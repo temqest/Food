@@ -14,11 +14,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
+import { useKeyboardState } from '@/hooks/useKeyboardState';
 
 type ResetStep = 'request' | 'verify' | 'reset' | 'success';
 
 export default function ForgotPasswordScreen() {
   const { requestPasswordReset, verifyResetCode, resetPassword, isLoading } = useAuth();
+  const { isKeyboardVisible } = useKeyboardState();
 
   const [step, setStep] = useState<ResetStep>('request');
   const [identifier, setIdentifier] = useState('maria.santos@gmail.com');
@@ -132,13 +134,18 @@ export default function ForgotPasswordScreen() {
 
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
       >
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            isKeyboardVisible && styles.scrollContentActive,
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
         >
           <View style={styles.mainContainer}>
             {/* STEP 1: Request Code */}
@@ -442,6 +449,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingBottom: 40,
     paddingTop: 10,
+  },
+  scrollContentActive: {
+    justifyContent: 'flex-start',
+    paddingTop: Platform.OS === 'ios' ? 8 : 12,
+    paddingBottom: 70,
   },
   mainContainer: {
     maxWidth: 440,

@@ -10,75 +10,12 @@ import {
 } from '@/context/BusinessContext';
 import { Platform } from 'react-native';
 
+import { safeStorage } from '@/utils/safeStorage';
+
 const STORAGE_PREFIX = '@naga_business_user_';
 const ACTIVE_BIZ_KEY = '@naga_active_business_id';
 
-// In-memory fallback map ensuring storage operations always succeed even if native modules are null
-const memoryStore = new Map<string, string>();
-
-const safeBusinessStorage = {
-  async getItem(key: string): Promise<string | null> {
-    if (Platform.OS === 'web') {
-      try {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          return window.localStorage.getItem(key);
-        }
-      } catch {
-        // Silently fall back
-      }
-    }
-    try {
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-      if (AsyncStorage && typeof AsyncStorage.getItem === 'function') {
-        const val = await AsyncStorage.getItem(key);
-        if (val !== null && val !== undefined) return val;
-      }
-    } catch {
-      // Native module is null or unlinked (Expo Go / web / etc.)
-    }
-    return memoryStore.get(key) ?? null;
-  },
-
-  async setItem(key: string, value: string): Promise<void> {
-    memoryStore.set(key, value);
-    if (Platform.OS === 'web') {
-      try {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          window.localStorage.setItem(key, value);
-          return;
-        }
-      } catch {
-        // Silently fall back
-      }
-    }
-    try {
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-      if (AsyncStorage && typeof AsyncStorage.setItem === 'function') {
-        await AsyncStorage.setItem(key, value);
-      }
-    } catch {
-      // Native module is null or unlinked; in-memory store already updated
-    }
-  },
-
-  async removeItem(key: string): Promise<void> {
-    memoryStore.delete(key);
-    if (Platform.OS === 'web') {
-      try {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          window.localStorage.removeItem(key);
-          return;
-        }
-      } catch {}
-    }
-    try {
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-      if (AsyncStorage && typeof AsyncStorage.removeItem === 'function') {
-        await AsyncStorage.removeItem(key);
-      }
-    } catch {}
-  },
-};
+export const safeBusinessStorage = safeStorage;
 
 export interface RegisterBusinessInput {
   name: string;
@@ -104,6 +41,41 @@ export interface RegisterBusinessInput {
     image?: string;
     isSignature?: boolean;
   };
+}
+
+function toSafeISOString(input?: string | Date | null): string | null {
+  if (!input) return null;
+  if (input instanceof Date) {
+    return isNaN(input.getTime()) ? null : input.toISOString();
+  }
+  if (typeof input === 'string') {
+    const directDate = new Date(input);
+    if (!isNaN(directDate.getTime())) {
+      return directDate.toISOString();
+    }
+    // Parse "Nov 5, 2026" or similar localized format
+    try {
+      const parts = input.replace(/,/g, '').split(/\s+/);
+      if (parts.length >= 3) {
+        const monthNames: Record<string, number> = {
+          jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+          jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
+        };
+        const mKey = parts[0].toLowerCase().slice(0, 3);
+        const day = parseInt(parts[1], 10);
+        const year = parseInt(parts[2], 10);
+        if (monthNames[mKey] !== undefined && !isNaN(day) && !isNaN(year)) {
+          const manualDate = new Date(Date.UTC(year, monthNames[mKey], day, 12, 0, 0));
+          if (!isNaN(manualDate.getTime())) {
+            return manualDate.toISOString();
+          }
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  }
+  return null;
 }
 
 export const BusinessService = {
@@ -359,13 +331,20 @@ export const BusinessService = {
         console.warn('[BusinessService] Caught DB error during registration:', dbErr);
       }
 
-      // 2. Always persist locally for instant offline responsiveness
+      // 2. Always persist locally and write initial subscription
       try {
         await safeBusinessStorage.setItem(
           `${STORAGE_PREFIX}${userId}`,
           JSON.stringify({ profile: newProfile, products: initialProductsList })
         );
+        await safeBusinessStorage.setItem(
+          `@naga_biz_store_${businessId}`,
+          JSON.stringify({ profile: newProfile, products: initialProductsList })
+        );
         await safeBusinessStorage.setItem(ACTIVE_BIZ_KEY, businessId);
+
+        // Initialize subscription record
+        await this.updateSubscription(businessId, initialSubscription);
       } catch (storageErr) {
         console.warn('[BusinessService] Warning saving to local storage:', storageErr);
       }
@@ -705,6 +684,24 @@ export const BusinessService = {
    * Fetch subscription details
    */
   async getSubscription(businessId: string): Promise<StoreSubscription | null> {
+    // 1. Check local storage cache first for fast response and demo mode support
+    try {
+      const cached = await safeBusinessStorage.getItem(`@naga_biz_subscription_${businessId}`);
+      if (cached) {
+        return JSON.parse(cached) as StoreSubscription;
+      }
+    } catch (storageErr) {
+      console.warn('[BusinessService] Error reading cached subscription:', storageErr);
+    }
+
+    // 2. If it's a demo or non-registered business ID, no need to query Supabase
+    const isDemoStore =
+      businessId === 'cha-chas-kinalas' ||
+      businessId.startsWith('demo-') ||
+      !businessId.startsWith('biz-');
+
+    if (isDemoStore) return null;
+
     try {
       const { data, error } = await supabase
         .from('business_subscriptions')
@@ -724,8 +721,167 @@ export const BusinessService = {
         };
       }
     } catch (err) {
-      console.warn('[BusinessService] Error fetching subscription:', err);
+      console.warn('[BusinessService] Error fetching subscription from Supabase:', err);
     }
+
+    return null;
+  },
+
+  /**
+   * Persist or update a business subscription in Supabase and offline storage.
+   */
+  async updateSubscription(
+    businessId: string,
+    subscription: StoreSubscription
+  ): Promise<boolean> {
+    // 1. Always persist locally so offline, demo, and local modes remember active status immediately
+    try {
+      await safeBusinessStorage.setItem(
+        `@naga_biz_subscription_${businessId}`,
+        JSON.stringify(subscription)
+      );
+    } catch (storageErr) {
+      console.warn('[BusinessService] Error caching subscription locally:', storageErr);
+    }
+
+    // 2. If this is a demo or seeded store (e.g. cha-chas-kinalas), do not push to Supabase to avoid RLS violation
+    const isDemoStore =
+      businessId === 'cha-chas-kinalas' ||
+      businessId.startsWith('demo-') ||
+      !businessId.startsWith('biz-');
+
+    if (isDemoStore) {
+      return true;
+    }
+
+    // 3. Persist to Supabase if authenticated and is a real registered business
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session?.user) {
+        const payload: any = {
+          business_id: businessId,
+          status: subscription.status,
+          plan: subscription.plan,
+          expiry_date: toSafeISOString(subscription.expiryDate),
+          auto_renew: !!subscription.autoRenew,
+          payment_method: subscription.paymentMethod || null,
+          payment_ref: subscription.paymentRef || null,
+          subscribed_since: toSafeISOString(subscription.subscribedSince) || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        const { error } = await supabase
+          .from('business_subscriptions')
+          .upsert(payload, { onConflict: 'business_id' });
+
+        if (error) {
+          // If RLS blocked (e.g. business owner UUID mismatch), log as informational notice rather than loud warning
+          console.log('[BusinessService] Supabase subscription note:', error.message);
+        }
+      }
+    } catch (err) {
+      console.log('[BusinessService] Supabase subscription sync note:', err);
+    }
+
+    return true;
+  },
+
+  /**
+   * Fetch a business profile and its products by its unique ID.
+   * Checks Supabase first, then falls back to local storage cache.
+   */
+  async getBusinessById(
+    businessId: string
+  ): Promise<{ profile: BusinessProfile; products: BusinessProduct[] } | null> {
+    if (!businessId) return null;
+
+    try {
+      const { data: bizRow, error } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('id', businessId)
+        .maybeSingle();
+
+      if (!error && bizRow) {
+        const [products, wallet, gallery, subscription] = await Promise.all([
+          this.getProducts(businessId),
+          this.getWallet(businessId),
+          this.getGallery(businessId),
+          this.getSubscription(businessId),
+        ]);
+
+        const profile: BusinessProfile = {
+          id: bizRow.id,
+          name: bizRow.name,
+          tagline: bizRow.tagline || '',
+          type: bizRow.type as any,
+          typeLabel: bizRow.type_label || 'Carinderia',
+          description: bizRow.description || '',
+          address: bizRow.address,
+          neighborhood: bizRow.neighborhood || 'Centro',
+          contactNumber: bizRow.contact_number,
+          openingHours: bizRow.opening_hours || '7:00 AM – 8:30 PM',
+          isOpenNow: !!bizRow.is_open_now,
+          heroImage:
+            bizRow.hero_image ||
+            'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80',
+          logoImage:
+            bizRow.logo_image ||
+            'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=300&q=80',
+          atmosphereTags: bizRow.atmosphere_tags || ['Local Favorite', 'Freshly Cooked'],
+          rating: Number(bizRow.rating) || 5.0,
+          reviewCount: Number(bizRow.review_count) || 0,
+          followersCount: Number(bizRow.followers_count) || 12,
+          wallet: wallet || {
+            balance: 0,
+            todayEarnings: 0,
+            pendingBalance: 0,
+            lifetimePaid: 0,
+            payoutHistory: [],
+          },
+          gallery: gallery || [],
+          subscription: subscription || {
+            status: 'inactive',
+            plan: 'none',
+            autoRenew: false,
+          },
+        };
+
+        return { profile, products };
+      }
+    } catch (err) {
+      console.warn('[BusinessService] Error querying business by ID from Supabase:', err);
+    }
+
+    // Local storage fallback
+    try {
+      const directKey = `@naga_biz_store_${businessId}`;
+      const directCached = await safeBusinessStorage.getItem(directKey);
+      if (directCached) {
+        const parsed = JSON.parse(directCached);
+        if (parsed?.profile) {
+          return {
+            profile: parsed.profile,
+            products: parsed.products || [],
+          };
+        }
+      }
+
+      // Check demo profile cache
+      const demoCached = await safeBusinessStorage.getItem('@naga_demo_biz_profile_v1');
+      if (demoCached) {
+        const parsed = JSON.parse(demoCached);
+        if (parsed?.profile?.id === businessId || parsed?.id === businessId) {
+          return {
+            profile: parsed.profile || parsed,
+            products: parsed.products || [],
+          };
+        }
+      }
+    } catch (storageErr) {
+      console.warn('[BusinessService] Error reading fallback business by ID:', storageErr);
+    }
+
     return null;
   },
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,20 +16,114 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, router } from 'expo-router';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import { ESTABLISHMENTS, FOOD_ITEMS } from '@/data/mockData';
+import { Establishment } from '@/data/types';
 import { useSaved } from '@/context/SavedContext';
 import { useBasket } from '@/context/BasketContext';
+import { useBusiness, BusinessProfile, BusinessProduct } from '@/context/BusinessContext';
+import { BusinessService } from '@/services/businessService';
 import { resolveFoodImage } from '@/utils/imageHelper';
+
+function mapProfileToEstablishment(
+  profile: BusinessProfile,
+  products: BusinessProduct[]
+): Establishment {
+  const avgPrice =
+    products.length > 0
+      ? products.reduce((acc, p) => acc + (p.price || 0), 0) / products.length
+      : 100;
+  const priceLevel = avgPrice < 120 ? 'budget' : avgPrice < 280 ? 'moderate' : 'upscale';
+
+  const galleryImages =
+    profile.gallery && profile.gallery.length > 0
+      ? profile.gallery.map((g) => g.url)
+      : [profile.heroImage, profile.logoImage];
+
+  const foodsOffered = products.map((prod) => ({
+    foodId: prod.foodId || prod.id,
+    foodName: prod.name,
+    price: prod.price,
+    isSignature: prod.isSignature,
+    servingNote: prod.servingNote || prod.description,
+    image: typeof prod.image === 'string' ? prod.image : undefined,
+  }));
+
+  return {
+    id: profile.id,
+    name: profile.name,
+    type: profile.type || 'carinderia',
+    typeLabel: profile.typeLabel || 'Carinderia',
+    description: profile.description || profile.tagline || `${profile.name} in Naga City`,
+    address: profile.address || 'Naga City, Camarines Sur',
+    neighborhood: profile.neighborhood || 'Centro',
+    coordinates: {
+      latitude: 13.6218,
+      longitude: 123.1948,
+      mapX: 50,
+      mapY: 50,
+    },
+    distanceKm: 0.8,
+    openingHours: profile.openingHours || '7:00 AM – 8:30 PM',
+    isOpenNow: profile.isOpenNow ?? true,
+    contactNumber: profile.contactNumber,
+    heroImage:
+      profile.heroImage ||
+      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80',
+    logo: profile.logoImage || profile.heroImage,
+    galleryImages,
+    foodsOffered,
+    priceLevel,
+    atmosphereTags:
+      profile.atmosphereTags && profile.atmosphereTags.length > 0
+        ? profile.atmosphereTags
+        : ['Local Favorite', 'Freshly Cooked'],
+  };
+}
 
 export default function EstablishmentDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { isEstablishmentSaved, toggleSaveEstablishment } = useSaved();
   const { addToBasket, setActiveTabSection } = useBasket();
+  const { profile: currentBizProfile, products: currentBizProducts } = useBusiness();
 
   const [addedFoodId, setAddedFoodId] = useState<string | null>(null);
+  const [fetchedEstablishment, setFetchedEstablishment] = useState<Establishment | null>(null);
 
-  const establishment =
-    ESTABLISHMENTS.find((e) => e.id === id) || ESTABLISHMENTS[0];
+  // 1. Check if ID matches canonical mock data
+  const canonicalEstablishment = useMemo(
+    () => ESTABLISHMENTS.find((e) => e.id === id),
+    [id]
+  );
+
+  // 2. Check if ID matches currently active business in context (zero-latency for user's own business / demo)
+  const contextEstablishment = useMemo(() => {
+    if (currentBizProfile && currentBizProfile.id === id) {
+      return mapProfileToEstablishment(currentBizProfile, currentBizProducts);
+    }
+    return null;
+  }, [currentBizProfile, currentBizProducts, id]);
+
+  // 3. Asynchronously fetch from BusinessService if not found in mock data or context
+  useEffect(() => {
+    if (canonicalEstablishment || contextEstablishment) return;
+
+    let isMounted = true;
+    BusinessService.getBusinessById(id).then((res) => {
+      if (isMounted && res) {
+        setFetchedEstablishment(mapProfileToEstablishment(res.profile, res.products));
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, canonicalEstablishment, contextEstablishment]);
+
+  const establishment: Establishment =
+    canonicalEstablishment ||
+    contextEstablishment ||
+    fetchedEstablishment ||
+    ESTABLISHMENTS[0];
   const saved = isEstablishmentSaved(establishment.id);
 
   const distanceStr =
@@ -63,6 +157,7 @@ export default function EstablishmentDetailScreen() {
 
   const handleAddDish = (food: (typeof establishment.foodsOffered)[0]) => {
     const fullFoodObj = FOOD_ITEMS.find((f) => f.id === food.foodId);
+    const dishImage = (food as any).image || fullFoodObj?.image || establishment.heroImage;
     addToBasket({
       foodId: food.foodId,
       foodName: food.foodName,
@@ -70,7 +165,7 @@ export default function EstablishmentDetailScreen() {
       establishmentId: establishment.id,
       establishmentName: establishment.name,
       establishmentAddress: establishment.address,
-      image: fullFoodObj?.image || establishment.heroImage,
+      image: dishImage,
       quantity: 1,
       selectedNote: food.servingNote,
     });
@@ -255,10 +350,14 @@ export default function EstablishmentDetailScreen() {
                   <Pressable
                     key={index}
                     onPress={() => {
-                      router.push({
-                        pathname: '/food/[id]',
-                        params: { id: food.foodId },
-                      });
+                      if (fullFoodObj) {
+                        router.push({
+                          pathname: '/food/[id]',
+                          params: { id: food.foodId },
+                        });
+                      } else {
+                        handleAddDish(food);
+                      }
                     }}
                     style={({ pressed }) => [styles.dishCard, pressed && styles.cardPressed]}
                     accessibilityRole="button"
@@ -267,7 +366,7 @@ export default function EstablishmentDetailScreen() {
                     {/* Fixed Proportional Food Thumbnail (Never over-extends) */}
                     <View style={styles.dishThumbnailContainer}>
                       <Image
-                        source={resolveFoodImage(fullFoodObj?.image || establishment.heroImage)}
+                        source={resolveFoodImage((food as any).image || fullFoodObj?.image || establishment.heroImage)}
                         style={styles.dishThumbnail}
                         resizeMode="cover"
                       />

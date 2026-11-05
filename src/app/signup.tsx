@@ -14,9 +14,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
+import { useKeyboardState } from '@/hooks/useKeyboardState';
 
 export default function SignUpScreen() {
   const { signup, isLoading } = useAuth();
+  const { isKeyboardVisible } = useKeyboardState();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -72,13 +74,18 @@ export default function SignUpScreen() {
 
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
       >
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            isKeyboardVisible && styles.scrollContentActive,
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
           bounces={false}
         >
           <View style={styles.mainContainer}>
@@ -257,8 +264,13 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingBottom: 10,
+    paddingBottom: 20,
     paddingTop: 0,
+  },
+  scrollContentActive: {
+    justifyContent: 'flex-start',
+    paddingTop: Platform.OS === 'ios' ? 4 : 8,
+    paddingBottom: 70,
   },
   mainContainer: {
     maxWidth: 400,

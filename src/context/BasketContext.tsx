@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ImageSourcePropType } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { safeStorage } from '@/utils/safeStorage';
 import { useAuth } from '@/context/AuthContext';
 import { OrderService } from '@/services/orderService';
 
@@ -108,7 +108,7 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     let isMounted = true;
     async function loadStoredCart() {
       try {
-        const stored = await AsyncStorage.getItem(BASKET_STORAGE_KEY);
+        const stored = await safeStorage.getItem(BASKET_STORAGE_KEY);
         if (stored && isMounted) {
           const parsed: BasketItem[] = JSON.parse(stored);
           if (Array.isArray(parsed)) {
@@ -138,7 +138,7 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         ...item,
         image: typeof item.image === 'string' ? item.image : '',
       }));
-      await AsyncStorage.setItem(BASKET_STORAGE_KEY, JSON.stringify(serialized));
+      await safeStorage.setItem(BASKET_STORAGE_KEY, JSON.stringify(serialized));
     } catch (err) {
       console.warn('[BasketContext] Error saving basket items:', err);
     }
