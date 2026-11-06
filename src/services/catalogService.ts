@@ -51,23 +51,29 @@ export const CatalogService = {
         return FALLBACK_FOOD_ITEMS;
       }
 
-      return data.map((row) => ({
-        id: row.id,
-        name: row.name,
-        bikolName: row.bikol_name || undefined,
-        tagline: row.tagline || '',
-        description: row.description || '',
-        culturalContext: row.cultural_context || '',
-        category: row.category_id as FoodCategory,
-        categoryLabel: row.category_label || '',
-        image: row.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c',
-        priceRange: row.price_range || '₱',
-        priceLevel: row.price_level || 'budget',
-        servingSpotsCount: row.serving_spots_count || 1,
-        featured: !!row.featured,
-        flavorProfile: row.flavor_profile || [],
-        tags: row.tags || [],
-      }));
+      return data.map((row) => {
+        const fallback = FALLBACK_FOOD_ITEMS.find((f) => f.id === row.id);
+        const hasDummyStockPhoto = !row.image_url || row.image_url.includes('1546069901-ba9599a7e63c');
+        const resolvedImage = hasDummyStockPhoto && fallback?.image ? fallback.image : (row.image_url || fallback?.image);
+
+        return {
+          id: row.id,
+          name: row.name,
+          bikolName: row.bikol_name || undefined,
+          tagline: row.tagline || '',
+          description: row.description || '',
+          culturalContext: row.cultural_context || '',
+          category: row.category_id as FoodCategory,
+          categoryLabel: row.category_label || '',
+          image: resolvedImage,
+          priceRange: row.price_range || '₱',
+          priceLevel: row.price_level || 'budget',
+          servingSpotsCount: row.serving_spots_count || 1,
+          featured: !!row.featured,
+          flavorProfile: row.flavor_profile || [],
+          tags: row.tags || [],
+        };
+      });
     } catch {
       return FALLBACK_FOOD_ITEMS;
     }
@@ -88,6 +94,10 @@ export const CatalogService = {
         return FALLBACK_FOOD_ITEMS.find((f) => f.id === id);
       }
 
+      const fallback = FALLBACK_FOOD_ITEMS.find((f) => f.id === id);
+      const hasDummyStockPhoto = !data.image_url || data.image_url.includes('1546069901-ba9599a7e63c');
+      const resolvedImage = hasDummyStockPhoto && fallback?.image ? fallback.image : (data.image_url || fallback?.image);
+
       return {
         id: data.id,
         name: data.name,
@@ -97,7 +107,7 @@ export const CatalogService = {
         culturalContext: data.cultural_context || '',
         category: data.category_id as FoodCategory,
         categoryLabel: data.category_label || '',
-        image: data.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c',
+        image: resolvedImage,
         priceRange: data.price_range || '₱',
         priceLevel: data.price_level || 'budget',
         servingSpotsCount: data.serving_spots_count || 1,
