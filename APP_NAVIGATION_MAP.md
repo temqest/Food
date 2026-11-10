@@ -19,11 +19,11 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 | `/food/[id]` | [`frontend/src/app/food/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/food/%5Bid%5D.tsx) | Full-bleed with clamped `insets.top` & sticky bottom bar | **Food Detail & Lore Screen**: Full-bleed hero with SVG gradient scrim, floating glass navigation & bookmark pills, Sili heat meter (1–5 flames), Flavor Anatomy taste chips, Nagueño Dining Ritual card with dialect quote, Lore & Cultural Roots card, rich eatery discovery cards with direct map navigation, and sticky bottom action bar (Stamp Passport +60 XP, Dine-In Pass, Map shortcut). |
 | `/establishment/[id]` | [`frontend/src/app/establishment/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/establishment/%5Bid%5D.tsx) | Full-bleed with clamped `insets.top` & sticky bottom bar | **Store / Establishment Info Screen**: Full-bleed hero with SVG gradient scrim, floating frosted glass controls (back, live open/closed pill, bookmark), venue stats strip (Budget, Hours, Distance), atmosphere & vibe pills, rich menu cards with food photos, signature badges & one-tap order, photo gallery preview, contact & phone linking, and sticky bottom action bar (Call, Passes, Locate on Map). |
 | `/feed` | [`frontend/src/app/feed.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/feed.tsx) | `['top', 'left', 'right']` | **Naga Community Social Feed**: Street food trips, eatery dispatches, live Naga Moments stories ([`NagaMomentsBar.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/NagaMomentsBar.tsx)), filterable post cards ([`SocialFeedCard.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/SocialFeedCard.tsx)), post composer ([`CreatePostModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CreatePostModal.tsx)), comments sheet ([`CommentsBottomSheet.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/feed/CommentsBottomSheet.tsx)). |
-| `/basket` | [`frontend/src/app/basket.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/basket.tsx) | `['top', 'left', 'right']` | **Food Basket & Pre-Orders Hub**: Dual-tab hub for Cart & Checkout (steppers, store grouping, dining option selector, special kitchen notes, bill breakdown, and Proceed to Payment CTA) and Active Passes (digital QR voucher pass, payment badges, 4-stage live kitchen status tracker, counter call/map actions, demo status simulation). |
+| `/basket` | [`frontend/src/app/basket.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/basket.tsx) | `['top', 'left', 'right']` | **Food Basket & Pre-Orders Hub**: Dual-tab hub for Cart & Checkout (steppers, store grouping, dining option selector, special kitchen notes, bill breakdown with 5% Platform Fee, and Proceed to Payment CTA) and Active Passes (digital QR voucher pass, payment badges, 4-stage live kitchen status tracker, counter call/map actions, demo status simulation). |
 | `/streak` | [`frontend/src/app/streak.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/streak.tsx) | `['top', 'left', 'right']` | **Duolingo-Inspired Streak & Trophy Hub**: Hero flame counter with countdown timer, 7-day habit consistency calendar, Sili Shield (streak freeze) indicator, Level & XP progress HUD, 5-tier streak trophies showcase (Bronze, Silver, Gold, Diamond, Centennial), mealtime reminder nudges (Lunch, Merienda, Night Crawl), and 1-tap check-in action. |
 | `/notifications` | [`frontend/src/app/notifications.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/notifications.tsx) | `['top', 'left', 'right']` | **Notifications Hub**: Central notification center for pre-order pickup alerts, daily taste pulse streak reminders, trophy unlock celebrations, community likes & comments, and local flavor drops. Interactive category filters (All, Orders, Streaks, Trophies, Social, Specials), unread badges, mark-all-as-read, item dismissal, and deep link navigation. |
 | `/friends` | [`frontend/src/app/friends.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/friends.tsx) | `['top', 'left', 'right']` | **Foodie Friends & Weekly Taste League Hub**: Dual-tab hub for Weekly Taste League (División de Oro, promotion/relegation zones, ranked foodies with XP/dishes, current user elevation) and Squad Streaks (active friend streaks, 1-tap "Tara Kain!" mealtime nudges, friend recent tasting dispatches, and Add Friend / Foodie Invite modal). |
-| `/payment` | [`frontend/src/app/payment.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/payment.tsx) | `['top', 'left', 'right', 'bottom']` | **Payment & Checkout**: Supports Cash on Arrival (pay at store counter), GCash E-Wallet with mobile number validation, and Maya / BSP QR Ph Universal National QR scan with receipt references; customer pass contact details; itemized summary. |
+| `/payment` | [`frontend/src/app/payment.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/payment.tsx) | `['top', 'left', 'right', 'bottom']` | **Payment & Checkout**: Supports Cash on Arrival (pay at store counter), GCash E-Wallet with mobile number validation, and Maya / BSP QR Ph Universal National QR scan with receipt references; customer pass contact details; itemized summary with 5% Platform Fee. |
 | `/saved` | [`frontend/src/app/saved.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/saved.tsx) | `['top', 'left', 'right']` | **Saved Favorites (Preserved)**: Tabbed lists of bookmarked dishes and eateries with quick removal and clear-all actions; accessible via Profile screen Activity section. |
 | `/search` | [`frontend/src/app/search.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/search.tsx) | `['top', 'left', 'right']` | **Search Screen**: Live filter by dish, ingredient, district, or open status; category tags; empty state suggestions. |
 | `/profile` | [`frontend/src/app/profile.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/profile.tsx) | `['top', 'left', 'right']` | **Profile & Settings**: User preferences, spice tolerance setting, favorite district, security settings, business portal switch. |
@@ -103,6 +103,86 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 ## 5. AI Action & Modification Log
 
 *Every AI session must append its actions here:*
+
+### [2026-11-05] - Hotfix: Safe Storage for BasketContext, Hermes Date Bounds & Subscription RLS
+- **Issue Reported**:
+  1. `WARN [BasketContext] Error loading cached basket items: [AsyncStorageError: Native module is null, cannot access legacy storage]`
+  2. `WARN [BusinessService] Network/Supabase subscription error: [RangeError: Date value out of bounds]` when subscribing.
+  3. `WARN [BusinessService] Supabase subscription upsert warning: new row violates row-level security policy for table "business_subscriptions"`
+- **Root Causes**:
+  - `BasketContext.tsx` imported `@react-native-async-storage/async-storage` directly; in Expo Go or unlinked clients, native storage threw `Native module is null`.
+  - In `BusinessContext.tsx`, `expiryDate` was stored as a localized string (`Nov 5, 2026`). In Hermes on Android, `new Date("Nov 5, 2026")` produced an `Invalid Date`, and calling `.toISOString()` threw `RangeError: Date value out of bounds`.
+  - When testing in Demo Mode (`cha-chas-kinalas`) or as unauthenticated user, attempting to upsert to Supabase `business_subscriptions` triggered an RLS violation because `auth.uid()` does not own the demo record.
+- **Fixes Applied**:
+  - Created [`frontend/src/utils/safeStorage.ts`](file:///c:/Dev/food/frontend/src/utils/safeStorage.ts) with web localStorage, try/catch native AsyncStorage, and resilient in-memory map fallback. Updated `BasketContext.tsx`, `supabase.ts`, and `businessService.ts` to use `safeStorage`, guaranteeing that Supabase Auth JWT sessions persist properly in Expo Go.
+  - In `BusinessContext.tsx`, stored spec-compliant ISO timestamps (`expiryDate.toISOString()`, `today.toISOString()`).
+  - In `businessService.ts`, implemented `toSafeISOString()` which safely extracts ISO strings from dates, ISO strings, or localized text without ever throwing `RangeError`.
+  - In `businessService.ts`, added demo store detection (`isDemoStore`): demo/preview stores save directly to local storage cache and bypass remote Supabase sync, preventing RLS violations while maintaining persistent active Pro subscription states. For registered user businesses, checks `supabase.auth.getSession()` before syncing.
+  - In `supabase_business_schema.sql`, added explicit `WITH CHECK` clause matching `USING` for the subscriptions RLS policy.
+- **Verification**: `npx tsc --noEmit` exited code 0.
+
+### [2026-11-05] - Brand Identity Renamed to "Masaen"
+- **User Request**: "can u rename the file to this instead: Masaen"
+- **Changes Applied**:
+  - **App Configuration & Scheme**:
+    - Renamed application in [`frontend/app.json`](file:///c:/Dev/food/frontend/app.json):
+      - `"name": "Masaen"` (Bikol: *"Where to eat?"*)
+      - `"slug": "masaen"`
+      - `"scheme": "masaen"`
+      - `"ios.bundleIdentifier": "com.masaen.app"`
+      - `"android.package": "com.masaen.app"`
+    - Updated package name in [`frontend/package.json`](file:///c:/Dev/food/frontend/package.json) to `"name": "masaen"`.
+    - Updated initial notification greeting in [`frontend/src/context/NotificationContext.tsx`](file:///c:/Dev/food/frontend/src/context/NotificationContext.tsx) to `'Welcome to Masaen! 🌶️'`.
+  - **Brand Assets & Project Documentation**:
+    - Cloned high-resolution brand asset to [`frontend/assets/images/masaen-logo.png`](file:///c:/Dev/food/frontend/assets/images/masaen-logo.png) (while preserving `nagi-logo.png` for backward compatibility).
+    - Generated comprehensive project brief [`MASAEN_APP_DOCUMENTATION.md`](file:///c:/Dev/food/MASAEN_APP_DOCUMENTATION.md) reflecting the **Masaen** identity.
+  - **Native Android Rebuild**:
+    - Re-ran `npx expo prebuild --platform android --no-install` to update Android manifest, package namespaces (`com.masaen.app`), and launcher label `<string name="app_name">Masaen</string>`.
+    - Preserved [`frontend/android/local.properties`](file:///c:/Dev/food/frontend/android/local.properties) pointing to the local Android SDK.
+- **Verification**: `npx tsc --noEmit` exited code 0.
+
+### [2026-11-05] - Brand Logo Asset Upgrade (`newlogo/`)
+- **User Request**: "@[frontend/newlogo] can u update the new logo to use this instead"
+- **Changes Applied**:
+  - **Asset Extraction & Replacement**:
+    - Replaced master app icon [`frontend/assets/images/icon.png`](file:///c:/Dev/food/frontend/assets/images/icon.png) from `newlogo/ios/iTunesArtwork@2x.png` (1024×1024).
+    - Replaced Android adaptive icon foreground [`frontend/assets/images/android-icon-foreground.png`](file:///c:/Dev/food/frontend/assets/images/android-icon-foreground.png) from `newlogo/android/mipmap-xxxhdpi/ic_launcher_foreground.png` (432×432).
+    - Replaced splash screen centerpiece [`frontend/assets/images/splash-icon.png`](file:///c:/Dev/food/frontend/assets/images/splash-icon.png) from `newlogo/android/mipmap-xxxhdpi/ic_launcher_foreground.png` (432×432).
+    - Replaced web browser favicon [`frontend/assets/images/favicon.png`](file:///c:/Dev/food/frontend/assets/images/favicon.png) from `newlogo/android/mipmap-mdpi/ic_launcher.png` (48×48).
+    - Replaced in-app brand asset [`frontend/assets/images/nagi-logo.png`](file:///c:/Dev/food/frontend/assets/images/nagi-logo.png) from `newlogo/android/playstore-icon.png` (512×512).
+  - **Color Palette Alignment**:
+    - Updated adaptive icon background and splash screen background in [`frontend/app.json`](file:///c:/Dev/food/frontend/app.json) to `#b41414` (matching `newlogo/android/values/ic_launcher_background.xml`).
+  - **Native Android Prebuild Synchronization**:
+    - Executed `npx expo prebuild --platform android --no-install` to regenerate native Android resources (density-specific mipmaps, drawables, splashscreen vector/bitmap layers, and `@color/splashscreen_background` / `@color/iconBackground` in `colors.xml`).
+    - Maintained [`frontend/android/local.properties`](file:///c:/Dev/food/frontend/android/local.properties) pointing to the local Android SDK.
+- **Verification**: Clean TypeScript validation (`npx tsc --noEmit` exited code 0).
+
+### [2026-11-05] - Business Subscription Persistence, Dynamic Public Page & Auth Keyboard Detection
+- **User Request**:
+  1. Business subscription isn't actually saved; it doesn't remember if a user subscribed or not.
+  2. The view public page shows a hardcoded page not the actual user's page.
+  3. The auth pages don't have proper keyboard detection knowing if the keyboard of the phone is overlapping the field, preventing the user from seeing what they are typing.
+- **Root Causes & Solutions Applied**:
+  - **Issue 1: Business Subscription Persistence**:
+    - *Diagnosis*: `BusinessContext.tsx` only updated in-memory React state in `subscribeStore` and `cancelSubscription`. `businessService.ts` lacked a write method for `business_subscriptions` and did not cache subscription records to offline storage `safeBusinessStorage`.
+    - *Fix*: Added `updateSubscription(businessId, subscription)` to `BusinessService` with Supabase upsert and local `@naga_biz_subscription_${businessId}` storage fallback. Refactored `subscribeStore` and `cancelSubscription` in `BusinessContext.tsx` to asynchronously persist active status, auto-renew, payment refs, and timestamps across both user accounts and demo mode. Updated `registerBusiness` to initialize subscription records upon launch.
+  - **Issue 2: Dynamic Public Establishment Page (`/establishment/[id]`)**:
+    - *Diagnosis*: `establishment/[id].tsx` performed a lookup strictly in `mockData.ts` (`ESTABLISHMENTS.find(e => e.id === id) || ESTABLISHMENTS[0]`). Custom business IDs failed matching and defaulted to Cha Cha's Kinalas.
+    - *Fix*: Added `BusinessService.getBusinessById(businessId)` querying Supabase `businesses`, `business_products`, and `business_gallery` with local offline cache fallback. Implemented synchronous context detection via `useBusiness()` in `establishment/[id].tsx` so merchant views load instantly with zero delay, mapping `BusinessProfile` + `BusinessProduct[]` into the `Establishment` format with custom dish photos, tags, contact, and hours. Updated `handleAddDish` to add custom store dishes directly to `BasketContext`.
+  - **Issue 3: Auth Pages Keyboard Detection & Responsive Layout**:
+    - *Diagnosis*: In `/login`, `/signup`, and `/forgot-password`, `KeyboardAvoidingView` had `behavior={undefined}` on Android. `scrollContent` had `justifyContent: 'center'` with `flexGrow: 1`, which forced flex centering in reduced viewport height when the keyboard opened, hiding headers and trapping focused fields behind the virtual keyboard.
+    - *Fix*: Created universal `useKeyboardState` hook (`frontend/src/hooks/useKeyboardState.ts`) listening to native `keyboardDidShow` / `keyboardDidHide` events. In all three auth pages, adapted `KeyboardAvoidingView` to `behavior={Platform.OS === 'ios' ? 'padding' : 'height'}` with vertical offset, set `keyboardShouldPersistTaps="handled"` on `<ScrollView>`, and dynamically transitioned `justifyContent: isKeyboardVisible ? 'flex-start' : 'center'` with generous bottom scroll padding (`paddingBottom: 60-70`), preventing any input occlusion.
+- **Verification**: Clean TypeScript compilation (`npx tsc --noEmit` exited code 0).
+
+### [2026-11-05] - Project Documentation & Business Model Export to Google Docs
+- **User Request**: Create a Google Doc documenting and describing the app, its main features, and its business model.
+- **Actions Executed**:
+  - Authored comprehensive documentation in [`NAGI_APP_DOCUMENTATION.md`](file:///c:/Dev/food/NAGI_APP_DOCUMENTATION.md) detailing:
+    - Executive summary and cultural problem statement (preserving Bicolano culinary heritage and supporting micro-merchants against delivery conglomerates).
+    - 7 Core Feature Pillars: Flavor Codex, Curated Food Trails, Interactive Geospatial Map, Community Social Feed with Naga Moments & interactive ad polls, Gamification (Streaks, Sili Shield, Division de Oro Taste League), Smart Food Basket & Pre-Orders (GCash, Maya, BSP QR Ph), and Merchant Onboarding & Business Portal.
+    - Multi-tiered Business Model: Nagi Pro Partner subscription (₱250/mo, ₱2,500/yr), hyper-local micro-promotions (₱49–₱650 tiers), transaction convenience fee, and B2G cultural tourism partnerships.
+    - Technical stack and phased strategic expansion roadmap.
+  - Initialized `gdocs` CLI integration, completed OAuth authorization, and generated the live Google Doc with auto-fitted tables: [Nagi — Product Overview, Feature Architecture & Business Model](https://docs.google.com/document/d/1qy76m6cBVCxkSr_fPy-UifyoBFXdXrvtwt-1XI2Ckuk/edit).
 
 ### [2026-11-05] - System In-Display Navigation Bar Safe Area Spacing
 - **User Request**: "the app isnt build to have proper spacing and safe area as the bottom navbar of the app is coliding w/ my phones own in display navbar (back, menu, and home buttons)"
@@ -1321,5 +1401,56 @@ Migrated client-side mock data and simulated local authentication state into a p
 - [`frontend/src/components/home/FoodShowcaseBox.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/FoodShowcaseBox.tsx): Switched from static `FOOD_ITEMS` import to dynamic fetching via `CatalogService.getFoodItems()`; fixed counter badge to reference `foodItems.length`.
 - [`frontend/src/components/home/NagaQuestCarousel.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/NagaQuestCarousel.tsx): Connected to live trails in `QuestContext`, calculating progress against real `tastingLog` (0 spots visited for new users).
 - [`frontend/src/components/home/MascotHero.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/MascotHero.tsx): Replaced hardcoded 'Bryl' fallback with dynamic user name or 'Explorer'.
+
+---
+
+## 17. Food Images & Supabase Storage Architecture (November 2026)
+
+### Summary
+Diagnosed and resolved generic Unsplash placeholder images (`photo-1546069901-ba9599a7e63c`) displayed in the Home Screen's [`FoodShowcaseBox`](file:///c:/Dev/food/frontend/src/components/home/FoodShowcaseBox.tsx).
+
+### Artifacts & Scripts Created
+- [`supabase_update_food_images.sql`](file:///c:/Dev/food/supabase_update_food_images.sql): Creates the public `'food-images'` Supabase Storage bucket, configures RLS SELECT & INSERT policies, and updates all 15 `food_items` records to their direct Supabase Storage URLs.
+- [`scripts/upload_food_images.js`](file:///c:/Dev/food/scripts/upload_food_images.js): Automated Node script using `@supabase/supabase-js` that successfully uploaded all 15 authentic dish assets from [`frontend/assets/images/dishes/`](file:///c:/Dev/food/frontend/assets/images/dishes) into the live Supabase `'food-images'` storage bucket (200 OK verified).
+- [`frontend/src/services/catalogService.ts`](file:///c:/Dev/food/frontend/src/services/catalogService.ts): Added smart fallback in `getFoodItems()` and `getFoodById()` to detect placeholder stock URLs and gracefully serve authentic local bundled images.
+- **Git Commit**: `6927f3c` pushed to `origin/main` (`https://github.com/temqest/Food.git`).
+
+---
+
+## 18. Platform Fee (5%) & Business Cashout Processing Fee (3%) (November 2026)
+
+### Summary
+- Replaced the 0-peso "Reservation Service Fee" across the checkout and payment flows with a dynamic **Platform Fee** calculated as 5% of the total order cost (subtotal) only when paying online (GCash / Maya); when choosing **Cash on Arrival**, no extra fee (0%) is charged and the fee line is omitted.
+- Added a 3% **Payment Processing Fee** to the business merchant cashout flow ([`CashOutModal.tsx`](file:///c:/Dev/food/frontend/src/components/business/CashOutModal.tsx)), itemizing gross withdrawal, the 3% deduction, and net payout received.
+
+### Key Updates
+- **[`frontend/src/context/BasketContext.tsx`](file:///c:/Dev/food/frontend/src/context/BasketContext.tsx)**:
+  - Updated `getBasketFee: (method?: 'cash' | 'gcash' | 'maya') => number`: returns 0 if `method === 'cash'`, else `Math.round(subtotal * 0.05 * 100) / 100`.
+  - Updated `getBasketTotal: (method?: 'cash' | 'gcash' | 'maya') => number`: returns `subtotal + getBasketFee(method)`.
+  - Updated `placePreOrder` to compute and record `fee` and `total` based on the active or selected payment method.
+- **[`frontend/src/app/basket.tsx`](file:///c:/Dev/food/frontend/src/app/basket.tsx)**:
+  - Added Payment Method selector card strip ("Cash on Arrival · No fee" vs "Pay Online · 5% fee").
+  - Dynamically hides the Platform Fee line when Cash on Arrival is chosen; displays "Platform Fee [5%]" when Pay Online is selected.
+  - Updated Payment Summary and "Proceed to Payment" CTA button.
+- **[`frontend/src/app/payment.tsx`](file:///c:/Dev/food/frontend/src/app/payment.tsx)**:
+  - Connected `paymentMode` to context `paymentMethod`.
+  - Updated payment options with clear fee indicators (`NO EXTRA FEE` badge on Cash on Arrival, `+5% FEE` on GCash and Maya).
+  - Conditionally renders the Platform Fee row only when online payment is selected; sets total to subtotal when Cash on Arrival is active.
+- **[`frontend/src/components/business/CashOutModal.tsx`](file:///c:/Dev/food/frontend/src/components/business/CashOutModal.tsx)**:
+  - Added 3% Payment Processing Fee calculation (`Math.round(parsedAmount * 0.03 * 100) / 100`).
+  - Updated settlement summary to show Gross Withdrawal, 3% Payment Processing Fee, and Net Payout Received.
+  - Updated confirmation CTA and alert notice with exact net and fee breakdown.
+- **[`frontend/src/context/BusinessContext.tsx`](file:///c:/Dev/food/frontend/src/context/BusinessContext.tsx) & [`frontend/src/components/business/StoreWalletCard.tsx`](file:///c:/Dev/food/frontend/src/components/business/StoreWalletCard.tsx)**:
+  - Added `fee` and `netAmount` to `PayoutRecord`.
+  - Updated `cashOutWallet` to record `processingFee` and `finalNet`.
+  - Updated `StoreWalletCard` payout history items to show net payout and 3% fee.
+- **[`frontend/src/services/orderService.ts`](file:///c:/Dev/food/frontend/src/services/orderService.ts)**:
+  - Added `fee?: number` to `DBUserOrder` interface and mapped `fee` when loading orders.
+
+### Verification
+- `npx tsc --noEmit` → **0 errors**.
+
+
+
 
 

@@ -22,7 +22,9 @@ interface CashOutModalProps {
     amount: number,
     method: 'gcash' | 'maya' | 'bank',
     account: string,
-    accountName: string
+    accountName: string,
+    fee?: number,
+    netAmount?: number
   ) => boolean;
 }
 
@@ -44,6 +46,10 @@ export const CashOutModal: React.FC<CashOutModalProps> = ({
   const isOverBalance = parsedAmount > availableBalance;
   const isBelowMin = parsedAmount < 100;
   const isValidAmount = parsedAmount >= 100 && parsedAmount <= availableBalance;
+
+  // 3% Payment Processing Fee
+  const processingFee = Math.round(parsedAmount * 0.03 * 100) / 100;
+  const netAmount = Math.max(0, Math.round((parsedAmount - processingFee) * 100) / 100);
 
   const quickAmounts = [1000, 2500, 5000, availableBalance];
 
@@ -80,13 +86,15 @@ export const CashOutModal: React.FC<CashOutModalProps> = ({
       parsedAmount,
       selectedChannel,
       channelDisplay,
-      accountName.trim() || 'Store Account'
+      accountName.trim() || 'Store Account',
+      processingFee,
+      netAmount
     );
 
     if (success) {
       Alert.alert(
         'Payout Initiated!',
-        `₱${parsedAmount.toLocaleString()} has been sent to your ${selectedChannel.toUpperCase()} (${accountNumber}). Funds should reflect within 5 minutes.`,
+        `Net payout of ₱${netAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (after 3% Payment Processing Fee of ₱${processingFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}) has been sent to your ${selectedChannel.toUpperCase()} (${accountNumber}). Funds should reflect within 5 minutes.`,
         [{ text: 'Awesome', onPress: onClose }]
       );
     } else {
@@ -286,11 +294,20 @@ export const CashOutModal: React.FC<CashOutModalProps> = ({
             <View style={styles.summaryCard}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Gross Withdrawal</Text>
-                <Text style={styles.summaryValue}>₱{parsedAmount.toLocaleString()}</Text>
+                <Text style={styles.summaryValue}>
+                  ₱{parsedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Text>
               </View>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Transfer Fee</Text>
-                <Text style={styles.freeFeeText}>₱0.00 (Promo Free)</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.summaryLabel}>Payment Processing Fee</Text>
+                  <View style={styles.feeRateBadge}>
+                    <Text style={styles.feeRateBadgeText}>3%</Text>
+                  </View>
+                </View>
+                <Text style={styles.feeAmountText}>
+                  -₱{processingFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Estimated Arrival</Text>
@@ -298,8 +315,10 @@ export const CashOutModal: React.FC<CashOutModalProps> = ({
               </View>
               <View style={styles.summaryDivider} />
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryTotalLabel}>Net Payout Total</Text>
-                <Text style={styles.summaryTotalAmount}>₱{parsedAmount.toLocaleString()}</Text>
+                <Text style={styles.summaryTotalLabel}>Net Payout Received</Text>
+                <Text style={styles.summaryTotalAmount}>
+                  ₱{netAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Text>
               </View>
             </View>
 
@@ -317,7 +336,7 @@ export const CashOutModal: React.FC<CashOutModalProps> = ({
             >
               <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
               <Text style={styles.confirmBtnText}>
-                Confirm Cashout of ₱{parsedAmount.toLocaleString()}
+                Confirm Cashout (Net: ₱{netAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
               </Text>
             </Pressable>
             <View style={{ height: 28 }} />
@@ -608,6 +627,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#000000',
+  },
+  feeRateBadge: {
+    backgroundColor: '#FFF2F0',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 6,
+    borderWidth: 0.5,
+    borderColor: 'rgba(212, 47, 19, 0.2)',
+  },
+  feeRateBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#D42F13',
+  },
+  feeAmountText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#D42F13',
   },
   freeFeeText: {
     fontSize: 13,

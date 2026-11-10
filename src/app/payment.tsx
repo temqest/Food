@@ -19,6 +19,12 @@ import QRCode from 'react-native-qrcode-svg';
 import { useBasket, PreOrder } from '@/context/BasketContext';
 import { useAuth } from '@/context/AuthContext';
 
+const formatPrice = (val: number) =>
+  val.toLocaleString('en-US', {
+    minimumFractionDigits: val % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  });
+
 type PaymentMode = 'cash' | 'gcash' | 'maya';
 
 export default function PaymentScreen() {
@@ -26,6 +32,10 @@ export default function PaymentScreen() {
     items,
     getBasketCount,
     getBasketSubtotal,
+    getBasketFee,
+    getBasketTotal,
+    paymentMethod,
+    setPaymentMethod,
     diningOption,
     pickupTimeSlot,
     specialInstructions,
@@ -33,7 +43,7 @@ export default function PaymentScreen() {
   } = useBasket();
   const { user } = useAuth();
 
-  const [paymentMode, setPaymentMode] = useState<PaymentMode>('cash');
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>(paymentMethod || 'cash');
   const [customerName, setCustomerName] = useState(user?.name || 'Maria Santos');
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '0917 842 9102');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -45,8 +55,9 @@ export default function PaymentScreen() {
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<PreOrder | null>(null);
 
+  const isOnlinePayment = paymentMode !== 'cash';
   const subtotal = getBasketSubtotal();
-  const fee = 0; // Free reservation
+  const fee = isOnlinePayment ? getBasketFee(paymentMode) : 0;
   const total = subtotal + fee;
   const basketCount = getBasketCount();
 
@@ -171,7 +182,10 @@ export default function PaymentScreen() {
 
           {/* Option 1: Cash on Arrival / Pay at Counter */}
           <Pressable
-            onPress={() => setPaymentMode('cash')}
+            onPress={() => {
+              setPaymentMode('cash');
+              setPaymentMethod('cash');
+            }}
             style={[
               styles.paymentOptionCard,
               paymentMode === 'cash' && styles.paymentOptionCardActive,
@@ -194,7 +208,7 @@ export default function PaymentScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text style={styles.methodTitle}>Cash on Arrival</Text>
                 <View style={styles.popularBadge}>
-                  <Text style={styles.popularBadgeText}>POPULAR</Text>
+                  <Text style={styles.popularBadgeText}>NO EXTRA FEE</Text>
                 </View>
               </View>
               <Text style={styles.methodSubtitle}>
@@ -205,7 +219,10 @@ export default function PaymentScreen() {
 
           {/* Option 2: GCash */}
           <Pressable
-            onPress={() => setPaymentMode('gcash')}
+            onPress={() => {
+              setPaymentMode('gcash');
+              setPaymentMethod('gcash');
+            }}
             style={[
               styles.paymentOptionCard,
               paymentMode === 'gcash' && styles.paymentOptionCardActive,
@@ -231,8 +248,8 @@ export default function PaymentScreen() {
             <View style={styles.methodDetails}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text style={styles.methodTitle}>GCash</Text>
-                <View style={[styles.popularBadge, { backgroundColor: '#EBF4FF' }]}>
-                  <Text style={[styles.popularBadgeText, { color: '#007AFF' }]}>E-WALLET</Text>
+                <View style={[styles.popularBadge, { backgroundColor: '#FFF2F0' }]}>
+                  <Text style={[styles.popularBadgeText, { color: '#D42F13' }]}>+5% FEE</Text>
                 </View>
               </View>
               <Text style={styles.methodSubtitle}>
@@ -245,6 +262,7 @@ export default function PaymentScreen() {
           <Pressable
             onPress={() => {
               setPaymentMode('maya');
+              setPaymentMethod('maya');
               setShowPaymentQrModal(true);
             }}
             style={[
@@ -272,8 +290,8 @@ export default function PaymentScreen() {
             <View style={styles.methodDetails}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text style={styles.methodTitle}>Maya / QR Ph</Text>
-                <View style={[styles.popularBadge, { backgroundColor: '#E0F2F1' }]}>
-                  <Text style={[styles.popularBadgeText, { color: '#00897B' }]}>NATIONAL QR</Text>
+                <View style={[styles.popularBadge, { backgroundColor: '#FFF2F0' }]}>
+                  <Text style={[styles.popularBadgeText, { color: '#D42F13' }]}>+5% FEE</Text>
                 </View>
               </View>
               <Text style={styles.methodSubtitle}>
@@ -380,21 +398,25 @@ export default function PaymentScreen() {
             <View style={styles.billDivider} />
             <View style={styles.billRow}>
               <Text style={styles.billLabel}>Subtotal</Text>
-              <Text style={styles.billValue}>₱{subtotal}</Text>
+              <Text style={styles.billValue}>₱{formatPrice(subtotal)}</Text>
             </View>
-            <View style={styles.billRow}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text style={styles.billLabel}>Reservation Service Fee</Text>
-                <View style={styles.freePill}>
-                  <Text style={styles.freePillText}>FREE PROMO</Text>
+            {isOnlinePayment && (
+              <View style={styles.billRow}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.billLabel}>Platform Fee</Text>
+                  <View style={styles.feeRatePill}>
+                    <Text style={styles.feeRatePillText}>5%</Text>
+                  </View>
                 </View>
+                <Text style={styles.billValue}>₱{formatPrice(fee)}</Text>
               </View>
-              <Text style={[styles.billValue, { color: '#34C759' }]}>₱0</Text>
-            </View>
+            )}
             <View style={styles.billDivider} />
             <View style={styles.billRowTotal}>
-              <Text style={styles.totalLabel}>Total Payment</Text>
-              <Text style={styles.totalValue}>₱{total}</Text>
+              <Text style={styles.totalLabel}>
+                {isOnlinePayment ? 'Total Payment' : 'Total Due at Counter'}
+              </Text>
+              <Text style={styles.totalValue}>₱{formatPrice(total)}</Text>
             </View>
           </View>
 
@@ -412,10 +434,10 @@ export default function PaymentScreen() {
               {isProcessing
                 ? 'Securing Pass...'
                 : paymentMode === 'cash'
-                ? `Confirm with Cash on Arrival (₱${total})`
+                ? `Confirm with Cash on Arrival (₱${formatPrice(total)})`
                 : paymentMode === 'gcash'
-                ? `Pay with GCash · ₱${total}`
-                : `Complete with Maya / QR Ph · ₱${total}`}
+                ? `Pay with GCash · ₱${formatPrice(total)}`
+                : `Complete with Maya / QR Ph · ₱${formatPrice(total)}`}
             </Text>
             <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
           </Pressable>
@@ -460,7 +482,7 @@ export default function PaymentScreen() {
 
             <View style={styles.qrPaymentAmountRow}>
               <Text style={styles.qrPaymentAmountLabel}>Total Amount:</Text>
-              <Text style={styles.qrPaymentAmountValue}>₱{total}</Text>
+              <Text style={styles.qrPaymentAmountValue}>₱{formatPrice(total)}</Text>
             </View>
 
             <View style={styles.qrMerchantCard}>
@@ -477,7 +499,7 @@ export default function PaymentScreen() {
             >
               <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
               <Text style={styles.qrModalConfirmText}>
-                Confirm Paid via QR (₱{total})
+                Confirm Paid via QR (₱{formatPrice(total)})
               </Text>
             </Pressable>
           </View>
@@ -1037,6 +1059,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#111111',
+  },
+  feeRatePill: {
+    backgroundColor: '#FFF2F0',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+    borderWidth: 0.5,
+    borderColor: 'rgba(212, 47, 19, 0.2)',
+  },
+  feeRatePillText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#D42F13',
+    letterSpacing: 0.3,
   },
   freePill: {
     backgroundColor: '#E8F5E9',

@@ -82,6 +82,8 @@ interface BasketContextType {
   resetDemoOrders: () => void;
   getBasketCount: () => number;
   getBasketSubtotal: () => number;
+  getBasketFee: (method?: 'cash' | 'gcash' | 'maya') => number;
+  getBasketTotal: (method?: 'cash' | 'gcash' | 'maya') => number;
   activeTabSection: 'current' | 'history';
   setActiveTabSection: (tab: 'current' | 'history') => void;
   isLoading: boolean;
@@ -231,6 +233,19 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
+  const getBasketFee = (method?: 'cash' | 'gcash' | 'maya') => {
+    const activeMethod = method !== undefined ? method : paymentMethod;
+    if (activeMethod === 'cash') return 0;
+    const subtotal = getBasketSubtotal();
+    return Math.round(subtotal * 0.05 * 100) / 100;
+  };
+
+  const getBasketTotal = (method?: 'cash' | 'gcash' | 'maya') => {
+    const subtotal = getBasketSubtotal();
+    const fee = getBasketFee(method);
+    return Math.round((subtotal + fee) * 100) / 100;
+  };
+
   const getBasketCount = () => {
     return items.reduce((sum, item) => sum + item.quantity, 0);
   };
@@ -238,13 +253,13 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const placePreOrder = (paymentDetails?: { method?: 'cash' | 'gcash' | 'maya'; refNumber?: string }): PreOrder | null => {
     if (items.length === 0) return null;
 
+    const chosenMethod = paymentDetails?.method || paymentMethod;
     const subtotal = getBasketSubtotal();
-    const fee = 0; // Free pre-order service
-    const total = subtotal + fee;
+    const fee = getBasketFee(chosenMethod);
+    const total = getBasketTotal(chosenMethod);
 
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const firstItem = items[0];
-    const chosenMethod = paymentDetails?.method || paymentMethod;
     const paymentStatus: PreOrder['paymentStatus'] = chosenMethod === 'cash' ? 'pending_counter' : 'paid';
     const paymentRefNumber =
       paymentDetails?.refNumber ||
@@ -403,6 +418,8 @@ export const BasketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         resetDemoOrders,
         getBasketCount,
         getBasketSubtotal,
+        getBasketFee,
+        getBasketTotal,
         activeTabSection,
         setActiveTabSection,
         isLoading,

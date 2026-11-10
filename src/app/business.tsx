@@ -1123,8 +1123,8 @@ export default function BusinessDashboardScreen() {
         visible={isCashOutOpen}
         availableBalance={profile.wallet.balance}
         onClose={() => setIsCashOutOpen(false)}
-        onConfirmCashOut={(amount, method, account, accountName) =>
-          cashOutWallet(amount, method, account, accountName)
+        onConfirmCashOut={(amount, method, account, accountName, fee, netAmount) =>
+          cashOutWallet(amount, method, account, accountName, fee, netAmount)
         }
       />
 

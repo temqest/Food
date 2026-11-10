@@ -51,6 +51,8 @@ export interface PromotionCampaign {
 export interface PayoutRecord {
   id: string;
   amount: number;
+  fee?: number;
+  netAmount?: number;
   method: 'gcash' | 'maya' | 'bank';
   account: string;
   accountName?: string;
@@ -135,7 +137,9 @@ interface BusinessContextType {
     amount: number,
     method: 'gcash' | 'maya' | 'bank',
     account: string,
-    accountName?: string
+    accountName?: string,
+    fee?: number,
+    netAmount?: number
   ) => boolean;
   addGalleryPhoto: (photo: { url: string; caption?: string; category?: string }) => void;
   deleteGalleryPhoto: (photoId: string) => void;
@@ -179,6 +183,8 @@ const DEFAULT_WALLET: StoreWallet = {
     {
       id: 'payout-101',
       amount: 8500,
+      fee: 255,
+      netAmount: 8245,
       method: 'gcash',
       account: '0917 ••• 8291',
       accountName: 'Cha Cha Kinalas St.',
@@ -189,6 +195,8 @@ const DEFAULT_WALLET: StoreWallet = {
     {
       id: 'payout-102',
       amount: 12000,
+      fee: 360,
+      netAmount: 11640,
       method: 'bank',
       account: 'BDO •••• 5821',
       accountName: 'Cha Cha Eatery Inc.',
@@ -489,15 +497,22 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     amount: number,
     method: 'gcash' | 'maya' | 'bank',
     account: string,
-    accountName?: string
+    accountName?: string,
+    fee?: number,
+    netAmount?: number
   ): boolean => {
     if (amount <= 0 || amount > profile.wallet.balance) {
       return false;
     }
 
+    const processingFee = fee !== undefined ? fee : Math.round(amount * 0.03 * 100) / 100;
+    const finalNet = netAmount !== undefined ? netAmount : Math.max(0, Math.round((amount - processingFee) * 100) / 100);
+
     const newRecord: PayoutRecord = {
       id: `payout-${Date.now()}`,
       amount,
+      fee: processingFee,
+      netAmount: finalNet,
       method,
       account,
       accountName: accountName || profile.name,

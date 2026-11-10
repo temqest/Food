@@ -176,7 +176,10 @@ export const StoreWalletCard: React.FC<StoreWalletCardProps> = ({
                       <Text style={styles.historyAmount}>-₱{p.amount.toLocaleString()}</Text>
                     </View>
                     <View style={styles.historyLine2}>
-                      <Text style={styles.historyDate}>{p.date}</Text>
+                      <Text style={styles.historyDate}>
+                        {p.date}
+                        {p.fee ? ` · Net: ₱${(p.netAmount ?? (p.amount - p.fee)).toLocaleString()} (3% fee)` : ''}
+                      </Text>
                       <View style={styles.historyStatusPill}>
                         <Ionicons name="checkmark-circle" size={11} color="#2E7D32" />
                         <Text style={styles.historyStatusText}>Settled</Text>

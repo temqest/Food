@@ -13,6 +13,7 @@ export interface DBUserOrder {
   payment_method: string;
   items: any;
   total_amount: number;
+  fee?: number;
   qr_code_value: string | null;
   created_at: string;
 }
@@ -68,7 +69,7 @@ export const OrderService = {
           establishmentAddress: items[0]?.establishmentAddress || 'Naga City',
           items,
           subtotal,
-          fee: 0,
+          fee: row.fee != null ? Number(row.fee) : Math.round(subtotal * 0.05 * 100) / 100,
           total,
           diningOption: (row.dining_option === 'takeout' ? 'takeout' : 'dine_in') as 'dine_in' | 'takeout',
           pickupTimeSlot: row.pickup_time || 'ASAP (15–20 mins)',

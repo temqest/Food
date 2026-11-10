@@ -23,6 +23,12 @@ import { IOSTokens } from '@/constants/theme';
 import QRCode from 'react-native-qrcode-svg';
 import { resolveFoodImage } from '@/utils/imageHelper';
 
+const formatPrice = (val: number) =>
+  val.toLocaleString('en-US', {
+    minimumFractionDigits: val % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  });
+
 export default function BasketScreen() {
   const insets = useSafeAreaInsets();
   const {
@@ -30,6 +36,8 @@ export default function BasketScreen() {
     activePreOrders,
     diningOption,
     setDiningOption,
+    paymentMethod,
+    setPaymentMethod,
     specialInstructions,
     setSpecialInstructions,
     updateQuantity,
@@ -41,6 +49,8 @@ export default function BasketScreen() {
     cancelOrder,
     getBasketCount,
     getBasketSubtotal,
+    getBasketFee,
+    getBasketTotal,
     activeTabSection,
     setActiveTabSection,
     isLoading,
@@ -61,9 +71,10 @@ export default function BasketScreen() {
   const [editingItem, setEditingItem] = useState<BasketItem | null>(null);
   const [noteInput, setNoteInput] = useState('');
 
+  const isOnlinePayment = paymentMethod !== 'cash';
   const subtotal = getBasketSubtotal();
-  const fee = 0; // Free reservation
-  const total = subtotal + fee;
+  const fee = getBasketFee(paymentMethod);
+  const total = getBasketTotal(paymentMethod);
   const basketCount = getBasketCount();
 
   const handlePlaceOrder = () => {
@@ -470,6 +481,96 @@ export default function BasketScreen() {
                     />
                   </View>
 
+                  {/* Payment Method Selector */}
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionLabel}>Payment Method</Text>
+                  </View>
+                  <View style={styles.optionRow}>
+                    <Pressable
+                      onPress={() => setPaymentMethod('cash')}
+                      style={[
+                        styles.optionCard,
+                        paymentMethod === 'cash' && styles.optionCardActive,
+                      ]}
+                    >
+                      <View style={styles.optionIconCircle}>
+                        <Ionicons
+                          name="cash-outline"
+                          size={18}
+                          color={paymentMethod === 'cash' ? '#2E7D32' : '#8E8E93'}
+                        />
+                      </View>
+                      <View style={styles.optionTextCol}>
+                        <Text
+                          style={[
+                            styles.optionTitle,
+                            paymentMethod === 'cash' && styles.optionTitleActive,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          Cash on Arrival
+                        </Text>
+                        <Text style={styles.optionSub} numberOfLines={1}>
+                          Pay at counter · No fee
+                        </Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.optionIndicator,
+                          paymentMethod === 'cash'
+                            ? styles.optionIndicatorActive
+                            : styles.optionIndicatorInactive,
+                        ]}
+                      >
+                        {paymentMethod === 'cash' && (
+                          <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                        )}
+                      </View>
+                    </Pressable>
+
+                    <Pressable
+                      onPress={() => setPaymentMethod('gcash')}
+                      style={[
+                        styles.optionCard,
+                        paymentMethod !== 'cash' && styles.optionCardActive,
+                      ]}
+                    >
+                      <View style={styles.optionIconCircle}>
+                        <Ionicons
+                          name="card-outline"
+                          size={18}
+                          color={paymentMethod !== 'cash' ? '#007AFF' : '#8E8E93'}
+                        />
+                      </View>
+                      <View style={styles.optionTextCol}>
+                        <Text
+                          style={[
+                            styles.optionTitle,
+                            paymentMethod !== 'cash' && styles.optionTitleActive,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          Pay Online
+                        </Text>
+                        <Text style={styles.optionSub} numberOfLines={1}>
+                          GCash / Maya · 5% fee
+                        </Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.optionIndicator,
+                          paymentMethod !== 'cash'
+                            ? styles.optionIndicatorActive
+                            : styles.optionIndicatorInactive,
+                        ]}
+                      >
+                        {paymentMethod !== 'cash' && (
+                          <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                        )}
+                      </View>
+                    </Pressable>
+                  </View>
+
                   {/* Bill Breakdown & Total */}
                   <View style={styles.sectionHeaderRow}>
                     <Text style={styles.sectionLabel}>Payment Summary</Text>
@@ -477,26 +578,36 @@ export default function BasketScreen() {
                   <View style={styles.billCard}>
                     <View style={styles.billRow}>
                       <Text style={styles.billLabel}>Item Subtotal</Text>
-                      <Text style={styles.billValue}>₱{subtotal}</Text>
+                      <Text style={styles.billValue}>₱{formatPrice(subtotal)}</Text>
                     </View>
-                    <View style={styles.billRow}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                        <Text style={styles.billLabel}>Reservation Service Fee</Text>
-                        <View style={styles.freePill}>
-                          <Text style={styles.freePillText}>FREE</Text>
+                    {isOnlinePayment && (
+                      <View style={styles.billRow}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <Text style={styles.billLabel}>Platform Fee</Text>
+                          <View style={styles.feeRatePill}>
+                            <Text style={styles.feeRatePillText}>5%</Text>
+                          </View>
                         </View>
+                        <Text style={styles.billValue}>₱{formatPrice(fee)}</Text>
                       </View>
-                      <Text style={[styles.billValue, { color: '#34C759' }]}>₱0</Text>
-                    </View>
+                    )}
                     <View style={styles.billDivider} />
                     <View style={styles.billRowTotal}>
-                      <Text style={styles.totalLabel}>Total Due at Counter</Text>
-                      <Text style={styles.totalValue}>₱{total}</Text>
+                      <Text style={styles.totalLabel}>
+                        {isOnlinePayment ? 'Total Payment' : 'Total Due at Counter'}
+                      </Text>
+                      <Text style={styles.totalValue}>₱{formatPrice(total)}</Text>
                     </View>
                     <View style={styles.paymentMethodNotice}>
-                      <Ionicons name="card-outline" size={14} color="#666666" />
+                      <Ionicons
+                        name={isOnlinePayment ? 'card-outline' : 'cash-outline'}
+                        size={14}
+                        color="#666666"
+                      />
                       <Text style={styles.paymentNoticeText}>
-                        Pay directly upon counter pickup · Cash, GCash, or Maya
+                        {isOnlinePayment
+                          ? 'Online payment via GCash or Maya · 5% platform fee applies'
+                          : 'Cash on arrival · Pay exact amount at counter (No extra fee)'}
                       </Text>
                     </View>
                   </View>
@@ -506,10 +617,10 @@ export default function BasketScreen() {
                     onPress={() => router.push('/payment')}
                     style={({ pressed }) => [styles.confirmBtn, pressed && styles.pressed]}
                     accessibilityRole="button"
-                    accessibilityLabel={`Proceed to payment for ₱${total}`}
+                    accessibilityLabel={`Proceed to payment for ₱${formatPrice(total)}`}
                   >
                     <Text style={styles.confirmBtnText}>
-                      Proceed to Payment (₱{total})
+                      Proceed to Payment (₱{formatPrice(total)})
                     </Text>
                     <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
                   </Pressable>
@@ -1519,6 +1630,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#111111',
+  },
+  feeRatePill: {
+    backgroundColor: '#FFF2F0',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 0.5,
+    borderColor: 'rgba(212, 47, 19, 0.2)',
+  },
+  feeRatePillText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#D42F13',
+    letterSpacing: 0.3,
   },
   freePill: {
     backgroundColor: '#E8F5E9',
