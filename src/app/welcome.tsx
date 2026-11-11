@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { useAuth } from '@/context/AuthContext';
 
 interface PillItem {
   id: string;
@@ -125,6 +126,13 @@ function MarqueeRow({
 }
 
 export default function WelcomeScreen() {
+  const { isAuthenticated, isLoading, loginAsGuest } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace('/home');
+    }
+  }, [isAuthenticated, isLoading]);
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom', 'left', 'right']}>
       <StatusBar barStyle="dark-content" />
@@ -167,6 +175,19 @@ export default function WelcomeScreen() {
             accessibilityLabel="I Already Have an Account"
           >
             <Text style={styles.secondaryLinkText}>I Already Have an Account</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              loginAsGuest();
+              router.replace('/home');
+            }}
+            style={({ pressed }) => [styles.guestLink, pressed && styles.secondaryPressed]}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Continue as Guest"
+          >
+            <Text style={styles.guestLinkText}>Continue as Guest</Text>
           </Pressable>
         </View>
       </View>
@@ -343,5 +364,17 @@ const styles = StyleSheet.create({
   },
   secondaryPressed: {
     opacity: 0.5,
+  },
+  guestLink: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    marginTop: 2,
+  },
+  guestLinkText: {
+    fontFamily: sansFamily,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#8E8E93',
+    letterSpacing: -0.1,
   },
 });

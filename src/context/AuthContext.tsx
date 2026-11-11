@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { safeStorage } from '@/utils/safeStorage';
 import { getDiceBearAvatar } from '@/utils/dicebearAvatar';
+
+export const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+export const CACHED_PROFILE_KEY = 'naga_auth_cached_profile';
+export const SESSION_TIMESTAMP_KEY = 'naga_auth_session_timestamp';
+export const GUEST_FLAG_KEY = 'naga_auth_is_guest';
 
 export interface UserProfile {
   id: string;
@@ -63,7 +69,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [activeResetCode, setActiveResetCode] = useState<string | null>(null);
 
   /**
-   * Fetch user profile from public.food_profiles or construct from metadata
+   * Fetch user profile from public.food_profiles, persist to safe local cache,
+   * with guaranteed offline fallback so network drops never log the user out.
    */
   const loadUserProfile = async (userId: string, email: string) => {
     try {
@@ -73,8 +80,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', userId)
         .maybeSingle();
 
+      let loadedProfile: UserProfile;
+
       if (profile) {
-        setUser({
+        loadedProfile = {
           id: profile.id,
           name: profile.name || email.split('@')[0],
           email: profile.email || email,
@@ -86,11 +95,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           memberSince: profile.member_since || 'November 2026',
           badge: profile.badge || 'Local Foodie',
           reviewCount: profile.review_count || 0,
-        });
+        };
       } else {
-        // Fallback profile if table is not yet synced
+        // Fallback profile if table row is not yet synced
         const fallbackName = email.split('@')[0];
-        setUser({
+        loadedProfile = {
           id: userId,
           name: fallbackName,
           email: email,
@@ -102,23 +111,101 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           memberSince: 'November 2026',
           badge: 'New Explorer',
           reviewCount: 0,
-        });
+        };
       }
+
+      setUser(loadedProfile);
       setIsGuest(false);
+
+      // Persist to safeStorage and renew rolling 30-day timestamp
+      await safeStorage.setItem(CACHED_PROFILE_KEY, JSON.stringify(loadedProfile));
+      await safeStorage.setItem(SESSION_TIMESTAMP_KEY, Date.now().toString());
+      await safeStorage.removeItem(GUEST_FLAG_KEY);
     } catch (err) {
-      console.warn('Error loading food profile:', err);
+      console.warn('Network issue loading food profile; using offline cache:', err);
+      // Fallback: If network failed, do NOT leave user as null!
+      const cached = await safeStorage.getItem(CACHED_PROFILE_KEY);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.id) {
+            setUser(parsed);
+            setIsGuest(false);
+            return;
+          }
+        } catch {}
+      }
+
+      const fallbackName = email ? email.split('@')[0] : 'Food Explorer';
+      const offlineProfile: UserProfile = {
+        id: userId,
+        name: fallbackName,
+        email: email || '',
+        phone: '',
+        avatar: getDiceBearAvatar(fallbackName),
+        location: 'Centro, Naga City',
+        spicePreference: 'moderate',
+        favoriteDistrict: 'Centro',
+        memberSince: 'November 2026',
+        badge: 'Local Foodie',
+        reviewCount: 0,
+      };
+      setUser(offlineProfile);
+      setIsGuest(false);
     }
   };
 
-  // Initialize and listen to active Supabase Session
+  // Initialize and listen to active Supabase Session with 30-day persistence
   useEffect(() => {
     let mounted = true;
 
     async function initSession() {
       try {
+        // 1. Check local session timestamp for 30-day expiration window
+        const storedTimestamp = await safeStorage.getItem(SESSION_TIMESTAMP_KEY);
+        const storedGuest = await safeStorage.getItem(GUEST_FLAG_KEY);
+        const storedProfile = await safeStorage.getItem(CACHED_PROFILE_KEY);
+
+        const now = Date.now();
+        const isSessionExpired = storedTimestamp
+          ? now - Number(storedTimestamp) > THIRTY_DAYS_MS
+          : false;
+
+        if (isSessionExpired) {
+          // 30 days exceeded: clear session
+          await supabase.auth.signOut().catch(() => {});
+          await safeStorage.removeItem(CACHED_PROFILE_KEY);
+          await safeStorage.removeItem(SESSION_TIMESTAMP_KEY);
+          await safeStorage.removeItem(GUEST_FLAG_KEY);
+          if (mounted) {
+            setUser(null);
+            setIsGuest(false);
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        // 2. Optimistic load from local cache for instant, zero-delay UI rendering
+        if (storedGuest === 'true' && mounted) {
+          setUser(GUEST_USER);
+          setIsGuest(true);
+        } else if (storedProfile && mounted) {
+          try {
+            const parsed = JSON.parse(storedProfile);
+            if (parsed?.id) {
+              setUser(parsed);
+              setIsGuest(false);
+            }
+          } catch {}
+        }
+
+        // 3. Verify / refresh active Supabase session
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user && mounted) {
+          await safeStorage.setItem(SESSION_TIMESTAMP_KEY, Date.now().toString());
           await loadUserProfile(session.user.id, session.user.email || '');
+        } else if (!storedGuest && !storedProfile) {
+          if (mounted) setUser(null);
         }
       } catch (err) {
         console.warn('Supabase session load error:', err);
@@ -131,9 +218,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
+        await safeStorage.setItem(SESSION_TIMESTAMP_KEY, Date.now().toString());
+        await safeStorage.removeItem(GUEST_FLAG_KEY);
         await loadUserProfile(session.user.id, session.user.email || '');
       } else if (event === 'SIGNED_OUT') {
-        if (!isGuest) setUser(null);
+        const storedGuest = await safeStorage.getItem(GUEST_FLAG_KEY);
+        if (storedGuest !== 'true') {
+          await safeStorage.removeItem(CACHED_PROFILE_KEY);
+          await safeStorage.removeItem(SESSION_TIMESTAMP_KEY);
+          if (mounted) setUser(null);
+        }
       }
     });
 
@@ -141,7 +235,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       mounted = false;
       authListener.subscription.unsubscribe();
     };
-  }, [isGuest]);
+  }, []);
 
   /**
    * Real Supabase Authentication: Log in
@@ -169,6 +263,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
+        await safeStorage.setItem(SESSION_TIMESTAMP_KEY, Date.now().toString());
+        await safeStorage.removeItem(GUEST_FLAG_KEY);
         await loadUserProfile(data.user.id, data.user.email || email);
       }
 
@@ -233,6 +329,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.warn('Profile upsert note:', dbErr);
         }
 
+        await safeStorage.setItem(SESSION_TIMESTAMP_KEY, Date.now().toString());
+        await safeStorage.removeItem(GUEST_FLAG_KEY);
         await loadUserProfile(authData.user.id, email);
       }
 
@@ -248,6 +346,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginAsGuest = () => {
     setUser(GUEST_USER);
     setIsGuest(true);
+    safeStorage.setItem(GUEST_FLAG_KEY, 'true').catch(() => {});
+    safeStorage.setItem(SESSION_TIMESTAMP_KEY, Date.now().toString()).catch(() => {});
   };
 
   const logout = async () => {
@@ -256,6 +356,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err) {
       console.warn('SignOut error:', err);
     }
+    await safeStorage.removeItem(CACHED_PROFILE_KEY);
+    await safeStorage.removeItem(SESSION_TIMESTAMP_KEY);
+    await safeStorage.removeItem(GUEST_FLAG_KEY);
     setUser(null);
     setIsGuest(false);
   };
@@ -264,6 +367,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
     const updated = { ...user, ...updates };
     setUser(updated);
+    await safeStorage.setItem(CACHED_PROFILE_KEY, JSON.stringify(updated)).catch(() => {});
 
     if (!isGuest && user.id) {
       try {

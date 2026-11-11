@@ -12,7 +12,8 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 
 | Route URL | File Path | Safe Area / Edges | Description & Key Components |
 | :--- | :--- | :--- | :--- |
-| `/` or `/index` | [`frontend/src/app/index.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/index.tsx) | `['top', 'left', 'right']` | **Home Screen**: Mascot hero, streak button, Naga Quest infinite carousel ([`NagaQuestCarousel.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/NagaQuestCarousel.tsx)), Craving Dial ([`CravingDialWidget.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/CravingDialWidget.tsx)), Food showcase box, floating [`NavBar`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/common/NavBar.tsx). |
+| `/` or `/index` | [`frontend/src/app/index.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/index.tsx) | Clean loading view / auto-redirect | **Root Entry & Auth Guard**: Verifies active session and 30-day persistence. If authenticated, seamlessly redirects to `/home` without layout flash. If unauthenticated, renders [`welcome.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/welcome.tsx). |
+| `/home` | [`frontend/src/app/home.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/home.tsx) | `['top', 'left', 'right']` | **Home Screen**: Mascot hero, streak button, Naga Quest infinite carousel ([`NagaQuestCarousel.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/NagaQuestCarousel.tsx)), Craving Dial ([`CravingDialWidget.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/home/CravingDialWidget.tsx)), Food showcase box, floating [`NavBar`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/common/NavBar.tsx). |
 | `/explore` | [`frontend/src/app/explore.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/explore.tsx) | `['top', 'left', 'right']` | **Flavor Codex**: Bicolano culinary encyclopedia, search bar ([`CodexHeroHeader.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/codex/CodexHeroHeader.tsx)), category filter strip, dish cards ([`DishCodexCard.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/codex/DishCodexCard.tsx)), deep lore sheet ([`DishDossierModal.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/codex/DishDossierModal.tsx)). |
 | `/trail/[id]` | [`frontend/src/app/trail/[id].tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/trail/%5Bid%5D.tsx) | Full-bleed with clamped `insets.top` | **Expedition Food Trail**: Full-bleed hero ([`TrailHeroBanner.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailHeroBanner.tsx)), progress HUD ([`TrailProgressBar.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailProgressBar.tsx)), winding Bezier S-curve road ([`TrailSteppingBridge.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailSteppingBridge.tsx)), food stops ([`TrailStopStation.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailStopStation.tsx)), finish crest ([`TrailFinishCrest.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/trail/TrailFinishCrest.tsx)). |
 | `/map` | [`frontend/src/app/map.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/app/map.tsx) | `['top', 'left', 'right']` | **Interactive Map**: Viewport-anchored Mapbox GL map ([`MapboxMapView.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/map/MapboxMapView.tsx)), bespoke vector SVG category pins (noodles, pot, bread, dining, gifts, stalls), floating location badge with live spot counter, quick `Open Now` toggle, horizontal category filter pills, interactive horizontal spot carousel ([`MapSpotCarousel.tsx`](file:///c:/Users/Admin/Desktop/Dev/food/frontend/src/components/map/MapSpotCarousel.tsx)) with signature dishes, prices, menu routes, and directions. |
@@ -103,6 +104,32 @@ All app screens use **Expo Router** and are located in [`frontend/src/app/`](fil
 ## 5. AI Action & Modification Log
 
 *Every AI session must append its actions here:*
+
+### [2026-11-11] - 30-Day Login Persistence, Launch Routing Guard & Resilient Multi-Tier Safe Storage
+- **User Request**: "can u make the app log-in stay for at least 30 days, as currenty the app requires me to re log-in everytime i use the app"
+- **Root Causes Diagnosed**:
+  1. **Root Screen Never Checked Auth**: `frontend/src/app/index.tsx` was a simple pass-through exporting `WelcomeScreen`. Every time the user launched the app (cold boot or web reload), Expo Router loaded `/`, forcing them to see the Welcome screen and navigate to `/login` to type credentials again.
+  2. **Fragile AsyncStorage Module Resolution**: In `safeStorage.ts`, `require('@react-native-async-storage/async-storage').default` yielded `undefined` in CJS/Metro environments where the module functions are located directly on the root export object. It silently fell back to an ephemeral in-memory `Map`, clearing stored Supabase JWT tokens upon process termination.
+  3. **Offline Profile Failure**: If a device opened the app offline or on slow cellular data, the `food_profiles` query in `loadUserProfile` failed and threw an error caught by a block that left `user` as `null`, immediately logging out the user despite having valid stored session credentials.
+- **Fixes Applied**:
+  - **Multi-Tier Persistent Storage ([`safeStorage.ts`](file:///c:/Dev/food/frontend/src/utils/safeStorage.ts))**:
+    - Implemented safe CJS/ESM interop (`mod?.default ?? mod`).
+    - Added native `expo-file-system` persistent file backup alongside `AsyncStorage` and web `localStorage`.
+    - Sanitized key handling to guarantee durable on-disk persistence across app restarts.
+  - **Auth Context with 30-Day Lifespan & Offline Resilience ([`AuthContext.tsx`](file:///c:/Dev/food/frontend/src/context/AuthContext.tsx))**:
+    - Added constants `THIRTY_DAYS_MS` (30 days), `CACHED_PROFILE_KEY`, and `SESSION_TIMESTAMP_KEY`.
+    - Implemented optimistic profile hydration from local storage for instant zero-flash app startup.
+    - Added rolling 30-day session timestamp updates on login, signup, and session refresh.
+    - Added robust offline fallback in `loadUserProfile` to keep the user authenticated even when network queries fail.
+    - Handled session revocation if 30 days of inactivity elapse.
+  - **App Entry Auth Guard ([`index.tsx`](file:///c:/Dev/food/frontend/src/app/index.tsx))**:
+    - Listens to `useAuth()`. While `isLoading`, displays a clean branded spinner.
+    - If `isAuthenticated`, automatically routes to `/home` with `<Redirect href="/home" />`.
+    - If unauthenticated, displays `<WelcomeScreen />`.
+  - **Welcome Screen Guard ([`welcome.tsx`](file:///c:/Dev/food/frontend/src/app/welcome.tsx))**:
+    - Automatically redirects authenticated users to `/home`.
+    - Added a "Continue as Guest" one-tap action.
+- **Verification**: Verified TypeScript compilation with `npx tsc --noEmit` (exited code 0).
 
 ### [2026-11-05] - Hotfix: Safe Storage for BasketContext, Hermes Date Bounds & Subscription RLS
 - **Issue Reported**:
